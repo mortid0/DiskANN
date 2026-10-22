@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "shared_index": {
+    "host": "alex@100.83.201.102",
+    "root": "/home/alex/diskann-single-hop-benchmark/indexes/rust-native-1m"
+  },
+  "unpruned": {
+    "log_sha256": "9c8db7d7e20e905f6a2c8e45332ab0217e8a62b89a17b3d625617150cf8e7e83",
+    "binary_sha256": "1d71f73a46d9a9745ebc31f7035e0f14ab0e654f3eef46d91674edc49f4d4af4",
+    "source_archive": {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-v2-unpruned-complete-sources.tar.gz",
+      "sha256": "ecf93efd59321f8597d3baa0dba8b241974e440e3850ec95d7a82b8be384e03a"
+    },
+    "index_identity": {
+      "generation": 2,
+      "base_sequence": 1,
+      "sequence": 13,
+      "current_sha256": "c1d9ee738b73d3efb57fa82b4380485cc0591dcf2cee565cec6f43f9b167f21e",
+      "catalog_sha256": "a92b9f152fb1117399ff1e0dd9e832479f53eee344b04c6df7ccff8c994cf632",
+      "journal_sha256": "bf62367a63c09fe79e21233572a36417566ae87e2897f007129b37e0fc6fdc0e"
+    }
+  },
+  "optimized": {
+    "log_sha256": "ebe2303c2419982c541f8254b950880609ce396a5adce167eb721e7d52780a15",
+    "binary_sha256": "e4c1ccaecf2924e28bed26eebc1cead5e0f1a0cc831b9fc05fc345e22611414b",
+    "source_archive": {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-v3-optimized-complete-sources.tar.gz",
+      "sha256": "f8f97ee8082a481decd4a0036c7e3b5fb9e88077e4901fa825c7df79064aefcd"
+    },
+    "index_identity": {
+      "generation": 2,
+      "base_sequence": 1,
+      "sequence": 13,
+      "current_sha256": "c1d9ee738b73d3efb57fa82b4380485cc0591dcf2cee565cec6f43f9b167f21e",
+      "catalog_sha256": "a92b9f152fb1117399ff1e0dd9e832479f53eee344b04c6df7ccff8c994cf632",
+      "journal_sha256": "bf62367a63c09fe79e21233572a36417566ae87e2897f007129b37e0fc6fdc0e"
+    }
+  }
+}

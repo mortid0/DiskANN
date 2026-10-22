@@ -1,0 +1,39 @@
+{
+  "created_at_utc": "2026-10-21T20:45:27.381829+00:00",
+  "scope": "Local delta top-k optimization only. No native host operations or timing results in this evidence. Historical unpruned evidence remains unchanged.",
+  "source_sha256": {
+    "diskann-disk/src/filtered/view.rs": "f6759d17e8ff4ef02e404919da508b10413eb2e4b1a78ac3f6e968f89a79156f",
+    "diskann-disk/tests/filtered_delta_topk.rs": "0cf7dcf47f7112a345e367e884da0f7ae2a7476ff0d40cd8dca28efe959213bc",
+    "diskann-disk/tests/filtered_lifecycle.rs": "02a6b3c75fe7def61d6efdf53a6cf668de7e09329b8471e4b770e7d41f066b14"
+  },
+  "behavior": [
+    "Count every exact matching delta record before pruning, preserving delta_candidates.",
+    "Select delta top-k by total float distance then stable ID using select_nth_unstable_by, truncate, and sort retained k.",
+    "Every base search attempt clones at most k delta hits. The common merge helper also partially selects before sorting.",
+    "Any delta record below its own exact top-k has at least k better delta records and cannot enter the merged top-k; base/delta identities are disjoint after shadow filtering."
+  ],
+  "validation": [
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk --test filtered_lifecycle --test filtered_delta_topk --offline -- --nocapture",
+      "exit_code": 0,
+      "passed_tests": 8,
+      "large_delta_query_configurations": 45
+    },
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk --lib filtered:: --offline",
+      "exit_code": 0,
+      "passed_tests": 32
+    },
+    {
+      "command": "cargo +1.97.1 clippy -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "rustfmt +1.97.1 --edition 2021 --check diskann-disk/src/filtered/view.rs diskann-disk/src/filtered/native.rs diskann-disk/tests/filtered_delta_topk.rs",
+      "exit_code": 0
+    }
+  ],
+  "oracle_evidence": "benchmark-results/single-hop/results/large-delta-topk-review.json",
+  "unpruned_baseline_note": "Root archived lifecycle-v2-unpruned-sources.tar.gz and synchronized it before this edit. Native timing is separately coordinated.",
+  "limits": "This change retains all matching-delta distance evaluations. It reduces selection/sorting and retry clone work, not the O(number of matching delta records) scan."
+}

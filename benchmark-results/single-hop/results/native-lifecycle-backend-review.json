@@ -1,0 +1,66 @@
+{
+  "created_at_utc": "2026-10-21T19:59:46.804967+00:00",
+  "scope": "Native Rust filtered lifecycle backend only; public lifecycle integration belongs to the root agent.",
+  "source_sha256": {
+    "diskann-disk/src/filtered/native.rs": "28428daf48873022c6003c630da4573f4e39c120d5091e27243225a699c1e7b0",
+    "diskann-disk/src/storage/disk_index_writer.rs": "d0f75ab4b3db67088c232ba88f47d5bf0f7e200ca3686eeaacc3032f91c8d8dd"
+  },
+  "behavior": {
+    "vectors": "Sealed NativeVector supports u8 and f32 with Pod + owned serde bounds, stable encoding, finite f32 validation, and native SIMD squared-L2 kernels.",
+    "artifacts": "Consumes caller-written vectors.bin, writes a canonical 24-byte no-frozen-point memgraph header and adjacency rows, trains fresh fixed-256-centroid Rust PQ, compresses source vectors, invokes DiskIndexWriter for 4096-byte graph blocks, and removes the temporary memgraph.",
+    "reader": "Linux uses existing io_uring O_DIRECT aligned factory; Windows uses existing native aligned factory; macOS uses FileExt::read_exact_at with F_NOCACHE and A512 requests. Miri uses existing fallback.",
+    "isolated_nodes": "Removed only the positive-degree debug assertion from DiskIndexWriter; singleton-label and unlabeled rows may have empty adjacency in multi-row graphs."
+  },
+  "validation": [
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk filtered::native --offline -- --nocapture",
+      "exit_code": 0,
+      "passed": 3,
+      "tests": [
+        "native_scalar_validation_and_exact_l2",
+        "native_u8_pq_graph_and_vector_roundtrip_with_singleton_label",
+        "native_f32_pq_graph_and_vector_roundtrip_with_singleton_label"
+      ],
+      "roundtrip_rows": 300,
+      "roundtrip_dimensions": 4,
+      "pq_centroids": 256,
+      "labels": {
+        "singleton_rows": 1,
+        "other_label_rows": 299
+      },
+      "checks": [
+        "native PQ/graph write and reopen",
+        "empty adjacency singleton search",
+        "exact zero-distance winner",
+        "native indexed-vector bytes preserved",
+        "matching-only results in 299-row label",
+        "sorted full-precision distances",
+        "no frozen IDs",
+        "temporary memgraph removed"
+      ]
+    },
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk create_disk_layout_preserves_isolated_rows_in_multi_point_graph --offline -- --nocapture",
+      "exit_code": 0,
+      "passed": 1,
+      "checks": [
+        "three rows retain neighbor counts [0,1,0]",
+        "neighbor ID 2 preserved",
+        "no frozen rows"
+      ]
+    },
+    {
+      "command": "cargo +1.97.1 check -p diskann-disk --lib --offline --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "kind": "cross-target type check only; no Linux runtime or linker execution"
+    },
+    {
+      "command": "rustfmt +1.97.1 --check --edition 2021 diskann-disk/src/filtered/native.rs diskann-disk/src/storage/disk_index_writer.rs",
+      "exit_code": 0
+    }
+  ],
+  "temporary_integration_state": "At validation time filtered/mod.rs declares mod native; the root lifecycle integration is in progress. Dead-code warnings occur until integration consumes the backend. No permanent allow attributes were added. Full integration clippy remains to be run by the root agent once all modules are connected.",
+  "platform_execution": "Tests executed locally on aarch64 macOS with Rust 1.97.1; Linux branch was cross-checked, not run.",
+  "native_host_operations": false,
+  "benchmark_claim": "No native lifecycle performance or recall claim follows from these roundtrip tests."
+}

@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "rust_base_commit": "79c5fcf77b6b26c403c3803aa04839e633d15642",
+  "cpp_base_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "same_graph_search": {
+    "binary_sha256": "bbc1bce486eb85c705aa9e0389afa5d37fc0d3d5d6cb92c1accc999fdcdb4c61",
+    "source_and_original_checks": {
+      "path": "benchmark-results/single-hop/migration/results/source-provenance.json",
+      "sha256": "00d976fbb74275ef07da5feba8eaf26b885634c6c6de6cea171f96ff73f92e25",
+      "bytes": 3238
+    },
+    "ordered_result_parity": {
+      "path": "benchmark-results/single-hop/migration/results/recall-tie-analysis-final.json",
+      "sha256": "ce0752a36cdf8e60ea51d12edeb846e3e437fb96f3f10282f7fc4795184a9b56",
+      "bytes": 307949
+    }
+  },
+  "native_epochs": [
+    {
+      "version": "v1",
+      "source_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v1-sources.tar.gz",
+        "sha256": "1e3f1fc83e53615f59a3efece34d02205ab98f5078619e97f79b2433bb495ddc",
+        "bytes": 117530
+      },
+      "binary_sha256": "3e659099943ff9f15804905919d7cdf0cbec7b98bd0d0517be52f9310a92958e",
+      "logs": [
+        {
+          "path": "benchmark-results/single-hop/migration/results/lifecycle-1m.jsonl",
+          "sha256": "21e4fad3e03d0fc4c90c080fc345fcb5a5733d433ccc7b890d2503488c7b8f3a",
+          "bytes": 247705
+        },
+        {
+          "path": "benchmark-results/single-hop/migration/results/lifecycle-10m.jsonl",
+          "sha256": "cb9fe813a38ae62eee5c4ac57c2d1cb4dd86d1364fa13a97959d5f56cb7d4e9c",
+          "bytes": 260853
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "source_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v2-unpruned-complete-sources.tar.gz",
+        "sha256": "ecf93efd59321f8597d3baa0dba8b241974e440e3850ec95d7a82b8be384e03a",
+        "bytes": 132404
+      },
+      "binary_sha256": "1d71f73a46d9a9745ebc31f7035e0f14ab0e654f3eef46d91674edc49f4d4af4",
+      "logs": [
+        {
+          "path": "benchmark-results/single-hop/migration/results/lifecycle-1m-frozen.jsonl",
+          "sha256": "efd49a05e9edb3d9d5dac2b47653bc1d21ef28db55089eb629c4bcff560e02a4",
+          "bytes": 248620
+        },
+        {
+          "path": "benchmark-results/single-hop/migration/results/delta-unpruned.jsonl",
+          "sha256": "9c8db7d7e20e905f6a2c8e45332ab0217e8a62b89a17b3d625617150cf8e7e83",
+          "bytes": 251853
+        }
+      ]
+    },
+    {
+      "version": "v3",
+      "source_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v3-optimized-complete-sources.tar.gz",
+        "sha256": "f8f97ee8082a481decd4a0036c7e3b5fb9e88077e4901fa825c7df79064aefcd",
+        "bytes": 135583
+      },
+      "binary_sha256": "e4c1ccaecf2924e28bed26eebc1cead5e0f1a0cc831b9fc05fc345e22611414b",
+      "logs": [
+        {
+          "path": "benchmark-results/single-hop/migration/results/delta-optimized.jsonl",
+          "sha256": "ebe2303c2419982c541f8254b950880609ce396a5adce167eb721e7d52780a15",
+          "bytes": 61626
+        },
+        {
+          "path": "benchmark-results/single-hop/migration/results/lifecycle-10m-frozen-build.jsonl",
+          "sha256": "4c622d383ef469ecb681d8611d9bc3313882d7ab79c3fea46065aae4f560596e",
+          "bytes": 903
+        },
+        {
+          "path": "benchmark-results/single-hop/migration/results/lifecycle-10m-frozen-query.jsonl",
+          "sha256": "b1195844576c13f64ef90a81a0005c6c54dd066fac566b5e0d2d1569aff9acb7",
+          "bytes": 65010
+        },
+        {
+          "path": "benchmark-results/single-hop/migration/results/native-label-l-grid.jsonl",
+          "sha256": "fccdbaa95e33c6530aa1085e575a6c272b88c1b942df2ae1ea92c58f793c61c5",
+          "bytes": 57356
+        }
+      ]
+    },
+    {
+      "version": "v4",
+      "source_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v4-label-l-complete-sources.tar.gz",
+        "sha256": "abc1b0188adccb277234ed24f4e0805e3fc02888810eaee724726999032e5ae6",
+        "bytes": 138272
+      },
+      "binary_sha256": "b0d8033178118966c07e7d8bfe6b9952f844dc1d90953ecfca9c073d8623b55b",
+      "logs": [
+        {
+          "path": "benchmark-results/single-hop/migration/results/native-label-l-mixed.jsonl",
+          "sha256": "8dd9d2f3c5148b3b1b6b5f5b2bc5aa76738671541d8733e123690526b55e118a",
+          "bytes": 29685
+        }
+      ]
+    }
+  ],
+  "final_complete_archive_host_verified_files": 23,
+  "current_executable_source_files_match_final_bundle": true,
+  "documentation_updated_after_bundle_capture": [
+    {
+      "path": "diskann-disk/src/filtered/README.md",
+      "sha256": "36da7095181cd25c8ae0219aa1ec11a0d67c4cf76041feaac4c5e27bd33f2893",
+      "bytes": 6391
+    }
+  ],
+  "documentation_note": "Only this README differs in the current workspace; every Rust/Cargo file matches the complete v4 bundle compiled on Linux. Use the bundle for exact binary source reproduction.",
+  "runtime_environment": {
+    "path": "benchmark-results/single-hop/migration/results/final-runtime-environment.txt",
+    "sha256": "9ae450e2e89f0c75d86862f259f5a3ca87abfdef2e47a0b2aa89a70ecccb2204",
+    "bytes": 382
+  },
+  "summaries": [
+    {
+      "path": "benchmark-results/single-hop/migration/results/search-final-summary.json",
+      "sha256": "5155656f93ede16d96778c878be5036e6a7c35222812a7ddfda68f6cc2bb5572",
+      "bytes": 492302
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/pairing-summary.json",
+      "sha256": "0fadbcd8e7016e861988fcaed079a3119f1940cc3f387f49de06642cb9f5c831",
+      "bytes": 627745
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-1m-summary.json",
+      "sha256": "81f1504126e2ae47357a32ddbd2796570f7f147d9a3993fe8303838169e125f1",
+      "bytes": 331541
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-10m-summary.json",
+      "sha256": "fbd4d6e0316a2658d8d042d5b15a3c24fe1a4c1e6cfdfbf107db996fab575595",
+      "bytes": 343528
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-1m-frozen-summary.json",
+      "sha256": "198dbd83418d9a250387e5e6935968cf7f7f16aacdeffbd03386f4978b22e078",
+      "bytes": 331443
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-10m-frozen-summary.json",
+      "sha256": "10cc0acaaf7dbd2815e70d1913f37ff07541759b86504b76942d743a443e921f",
+      "bytes": 148602
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/delta-final-summary.json",
+      "sha256": "70af17103966e0e71a438f922df39158d3c2bae4b781c2d7024d69ae2ef825ad",
+      "bytes": 224557
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/native-label-l-summary.json",
+      "sha256": "47e8c5745c08e34ca3a1510a24ce1ad5f9e6f3c57a247d0344dc6faad025711b",
+      "bytes": 47531
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/final-test-summary.json",
+      "sha256": "99cb437bdb3740b72cdd3853da06dee28de1aa659afc56956a615272bdfbf0dc",
+      "bytes": 2520
+    }
+  ],
+  "analysis_scripts": [
+    {
+      "path": "tools/single-hop-benchmark/summarize_migration.py",
+      "sha256": "09e13c05e029879ca05dab6b01bbabfeb79e1bf91ecd5433ae476e14dec78fbd",
+      "bytes": 19323
+    },
+    {
+      "path": "tools/single-hop-benchmark/summarize_lifecycle.py",
+      "sha256": "6d58e798aca7f7602c4d4c7766fc0a7f5dfc49c767e9816909350c35cc157bdf",
+      "bytes": 19317
+    },
+    {
+      "path": "tools/single-hop-benchmark/summarize_native_build.py",
+      "sha256": "3c8f469b4c581fd25fe4d7a0132589c553085a68270a6288beedeebadb203285",
+      "bytes": 20428
+    },
+    {
+      "path": "tools/single-hop-benchmark/summarize_pairing.py",
+      "sha256": "976e4613882c4fe673cfb25b1962966c26ddd9ccf19c02a22731ab96bc73eeaa",
+      "bytes": 12004
+    },
+    {
+      "path": "tools/single-hop-benchmark/summarize_delta.py",
+      "sha256": "93169478c0b5a22b7a758ccd1e9da693d22e2887ba4132cc6e1314389ea4cbe7",
+      "bytes": 25178
+    },
+    {
+      "path": "tools/single-hop-benchmark/plan_label_l.py",
+      "sha256": "a65801b8a877d1537ac321841e944a58bd45111abd8c2d37fa4e2b4d3befb3f6",
+      "bytes": 22207
+    }
+  ],
+  "historical_inventory_retained": {
+    "path": "benchmark-results/single-hop/results/final-native-inventory.json",
+    "sha256": "d8a5e422e9c4809a5163efbf96bbd22f7d84659dbeed440743cce72b6312d503",
+    "bytes": 62543
+  },
+  "notes": [
+    "The v1/v2/v3/v4 epochs remain separate; current checks are not attributed retroactively to older binaries.",
+    "Version4 changes only the benchmark example relative to version3; library/runtime sources are identical.",
+    "Label breadth selection and evaluation reuse the same queries; no held-out or production per-label guarantee is asserted."
+  ]
+}

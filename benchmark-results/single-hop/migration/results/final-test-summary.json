@@ -1,0 +1,69 @@
+{
+  "status": "passed",
+  "local_rust_total": 639,
+  "native_linux_focused_total": 54,
+  "local_suites": [
+    {
+      "name": "core library",
+      "passed": 336,
+      "log": "benchmark-results/single-hop/migration/results/final-local-core-tests.log",
+      "log_sha256": "fe5928aded8d2ec5e52bc47cb7a959c88d5533752eb3d48f9531d76c4274a11b"
+    },
+    {
+      "name": "disk library",
+      "passed": 288,
+      "log": "benchmark-results/single-hop/migration/results/final-local-disk-tests.log",
+      "log_sha256": "e11d6eb82fe6d155027bdd12f904562cc80610b8aeb9e00488797b2449fe3006"
+    },
+    {
+      "name": "delta integration",
+      "passed": 1,
+      "log": "benchmark-results/single-hop/migration/results/final-local-disk-tests.log",
+      "log_sha256": "e11d6eb82fe6d155027bdd12f904562cc80610b8aeb9e00488797b2449fe3006"
+    },
+    {
+      "name": "lifecycle integration",
+      "passed": 8,
+      "log": "benchmark-results/single-hop/migration/results/final-local-disk-tests.log",
+      "log_sha256": "e11d6eb82fe6d155027bdd12f904562cc80610b8aeb9e00488797b2449fe3006"
+    },
+    {
+      "name": "example",
+      "passed": 6,
+      "log": "benchmark-results/single-hop/migration/results/final-local-example-v4.log",
+      "log_sha256": "5f92af9e19c01a8572662fec6582b00cfe2be781dd6acd319abd5288dba70ebd"
+    }
+  ],
+  "native_linux_suites": [
+    {
+      "name": "focused library",
+      "passed": 39,
+      "log": "benchmark-results/single-hop/migration/results/final-linux-filtered-lib.log",
+      "log_sha256": "2db8e7cf3d7ff0aaab2a9674ecd39902d505b0017f2629df01cf7674f806531e"
+    },
+    {
+      "name": "delta integration",
+      "passed": 1,
+      "log": "benchmark-results/single-hop/migration/results/final-linux-integration.log",
+      "log_sha256": "a6e593dac63055d473a76ba99416a089335a070293d208c4654d4717ea901458"
+    },
+    {
+      "name": "lifecycle integration",
+      "passed": 8,
+      "log": "benchmark-results/single-hop/migration/results/final-linux-integration.log",
+      "log_sha256": "a6e593dac63055d473a76ba99416a089335a070293d208c4654d4717ea901458"
+    },
+    {
+      "name": "example",
+      "passed": 6,
+      "log": "benchmark-results/single-hop/migration/results/final-linux-example-v4.log",
+      "log_sha256": "0e568fc8b0967a6dc7c2f8fbf5f320636dc38482c9b9e8385a8b9a130b3218bc"
+    }
+  ],
+  "additional_checks": {
+    "format_all": "passed",
+    "affected_crates_all_target_clippy_Dwarnings": "passed",
+    "git_diff_check": "passed",
+    "python_validator_and_planner_tests": 17
+  }
+}

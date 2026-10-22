@@ -1,0 +1,2105 @@
+{
+  "reference_kind": "native_upstream_cli",
+  "binaries": {
+    "build_disk_index": "ccae63b2ac3143ffb8e2e3fee41cb35a43510a0b90acb73eaae60aab92ba27a1",
+    "search_disk_index": "adfec335597f4c8834ed4f875cbef2971fddd476c2d66412f843e78d60cb8a4a"
+  },
+  "input_points": 10000000,
+  "dimensions": 192,
+  "metric": "uint8_l2",
+  "pq_bytes": 32,
+  "dummy_replica_threshold": 0,
+  "timing_authoritative": true,
+  "process_cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "in_process_warmup": "all queries, matching L/K/threads/filter, before each measured repeat",
+  "environment": {
+    "VECLIB_MAXIMUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OMP_TOOL": "disabled",
+    "LD_LIBRARY_PATH": "/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu:/usr/lib/llvm-18/lib"
+  },
+  "runs": [
+    {
+      "command": [
+        "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+        "--data_type",
+        "uint8",
+        "--dist_fn",
+        "l2",
+        "--index_path_prefix",
+        "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "--query_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+        "--query_filters_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+        "--label_type",
+        "uint",
+        "--gt_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+        "-K",
+        "1000",
+        "-L",
+        "4000",
+        "-W",
+        "4",
+        "-T",
+        "8",
+        "--num_nodes_to_cache",
+        "0",
+        "--result_path",
+        "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r0"
+      ],
+      "elapsed_seconds": 8.600361969000005,
+      "exit_code": 0,
+      "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r0.log",
+      "warmup": {
+        "command": [
+          "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+          "--data_type",
+          "uint8",
+          "--dist_fn",
+          "l2",
+          "--index_path_prefix",
+          "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+          "--query_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+          "--query_filters_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+          "--label_type",
+          "uint",
+          "--gt_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+          "-K",
+          "1000",
+          "-L",
+          "4000",
+          "-W",
+          "4",
+          "-T",
+          "8",
+          "--num_nodes_to_cache",
+          "0",
+          "--result_path",
+          "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup"
+        ],
+        "elapsed_seconds": 4.7679014850000385,
+        "exit_code": 0,
+        "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup.log"
+      },
+      "normalized": {
+        "implementation": "cpp_native_linux",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "prepared": "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000",
+        "mode": "single",
+        "starts": "label",
+        "n_base": 10000000,
+        "queries": 256,
+        "k": 1000,
+        "l": 4000,
+        "beam": 4,
+        "threads": 8,
+        "repeat": 0,
+        "timing_authoritative": true,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "storage": "linux_aio_direct",
+        "warmup_queries": 256,
+        "raw_stats": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r0.jsonl",
+        "result_ids": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r0_4000_idx_uint32.bin",
+        "result_ids_sha256": "0b9b4103b9d9cecaf977249e0f9d1bd1eaca8e68b57bad170b8ff54ed6e62b25",
+        "recall": 0.9880078125,
+        "filter_violations": 0,
+        "short_results": 0,
+        "duplicate_results": 0,
+        "labels": [
+          {
+            "label": 1,
+            "eligible": 266844,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 112881.34025000001,
+            "p50_us": 110508.717,
+            "p95_us": 118903.87
+          },
+          {
+            "label": 2,
+            "eligible": 581971,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 115394.11575,
+            "p50_us": 108518.014,
+            "p95_us": 130414.511
+          },
+          {
+            "label": 3,
+            "eligible": 948589,
+            "n": 4,
+            "recall": 0.99175,
+            "mean_us": 110184.48,
+            "p50_us": 109519.453,
+            "p95_us": 113256.214
+          },
+          {
+            "label": 4,
+            "eligible": 1133362,
+            "n": 4,
+            "recall": 0.98325,
+            "mean_us": 109594.07225,
+            "p50_us": 107887.483,
+            "p95_us": 113005.349
+          },
+          {
+            "label": 5,
+            "eligible": 1235270,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 110121.3855,
+            "p50_us": 109735.049,
+            "p95_us": 112989.008
+          },
+          {
+            "label": 6,
+            "eligible": 1284396,
+            "n": 4,
+            "recall": 0.95375,
+            "mean_us": 115552.7645,
+            "p50_us": 113308.171,
+            "p95_us": 119484.326
+          },
+          {
+            "label": 7,
+            "eligible": 1333819,
+            "n": 4,
+            "recall": 0.99475,
+            "mean_us": 109766.5865,
+            "p50_us": 109437.87,
+            "p95_us": 111570.672
+          },
+          {
+            "label": 8,
+            "eligible": 1379732,
+            "n": 4,
+            "recall": 0.98125,
+            "mean_us": 112357.35925,
+            "p50_us": 109452.196,
+            "p95_us": 118108.508
+          },
+          {
+            "label": 9,
+            "eligible": 1310314,
+            "n": 4,
+            "recall": 0.98025,
+            "mean_us": 114463.77625,
+            "p50_us": 110296.399,
+            "p95_us": 127019.362
+          },
+          {
+            "label": 10,
+            "eligible": 287690,
+            "n": 4,
+            "recall": 0.967,
+            "mean_us": 112451.5485,
+            "p50_us": 110562.1,
+            "p95_us": 118642.344
+          },
+          {
+            "label": 11,
+            "eligible": 679536,
+            "n": 4,
+            "recall": 0.97725,
+            "mean_us": 113830.18575,
+            "p50_us": 112754.437,
+            "p95_us": 116778.838
+          },
+          {
+            "label": 12,
+            "eligible": 648527,
+            "n": 4,
+            "recall": 0.9784999999999999,
+            "mean_us": 115345.59975,
+            "p50_us": 115877.769,
+            "p95_us": 117175.477
+          },
+          {
+            "label": 14,
+            "eligible": 863883,
+            "n": 4,
+            "recall": 0.93625,
+            "mean_us": 110927.98225,
+            "p50_us": 107320.514,
+            "p95_us": 116770.575
+          },
+          {
+            "label": 15,
+            "eligible": 905943,
+            "n": 4,
+            "recall": 0.977,
+            "mean_us": 117571.55350000001,
+            "p50_us": 117564.203,
+            "p95_us": 119966.815
+          },
+          {
+            "label": 17,
+            "eligible": 991156,
+            "n": 4,
+            "recall": 0.99125,
+            "mean_us": 109899.58675,
+            "p50_us": 109838.002,
+            "p95_us": 111094.214
+          },
+          {
+            "label": 20,
+            "eligible": 851688,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 114848.94425,
+            "p50_us": 114438.994,
+            "p95_us": 118200.19
+          },
+          {
+            "label": 21,
+            "eligible": 688177,
+            "n": 4,
+            "recall": 0.95425,
+            "mean_us": 116916.35175,
+            "p50_us": 114897.55,
+            "p95_us": 119934.576
+          },
+          {
+            "label": 22,
+            "eligible": 687483,
+            "n": 4,
+            "recall": 0.98425,
+            "mean_us": 116428.56625,
+            "p50_us": 115022.568,
+            "p95_us": 120301.395
+          },
+          {
+            "label": 24,
+            "eligible": 499079,
+            "n": 4,
+            "recall": 0.993,
+            "mean_us": 117876.70225,
+            "p50_us": 119433.65,
+            "p95_us": 120819.606
+          },
+          {
+            "label": 25,
+            "eligible": 176508,
+            "n": 4,
+            "recall": 0.9975,
+            "mean_us": 115242.6155,
+            "p50_us": 115216.009,
+            "p95_us": 116351.976
+          },
+          {
+            "label": 28,
+            "eligible": 705726,
+            "n": 4,
+            "recall": 0.98075,
+            "mean_us": 115103.882,
+            "p50_us": 114567.196,
+            "p95_us": 118564.629
+          },
+          {
+            "label": 29,
+            "eligible": 1915985,
+            "n": 4,
+            "recall": 0.9455,
+            "mean_us": 117287.03075,
+            "p50_us": 115767.512,
+            "p95_us": 120354.365
+          },
+          {
+            "label": 35,
+            "eligible": 368312,
+            "n": 4,
+            "recall": 0.98625,
+            "mean_us": 119989.62025,
+            "p50_us": 118485.68,
+            "p95_us": 121960.276
+          },
+          {
+            "label": 36,
+            "eligible": 146104,
+            "n": 4,
+            "recall": 0.962,
+            "mean_us": 118960.48075,
+            "p50_us": 116144.322,
+            "p95_us": 127717.49
+          },
+          {
+            "label": 44,
+            "eligible": 29097,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 118505.32,
+            "p50_us": 116565.636,
+            "p95_us": 124804.284
+          },
+          {
+            "label": 89,
+            "eligible": 1707412,
+            "n": 4,
+            "recall": 0.978,
+            "mean_us": 120381.5775,
+            "p50_us": 120224.17,
+            "p95_us": 123285.769
+          },
+          {
+            "label": 90,
+            "eligible": 180512,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 118186.81625,
+            "p50_us": 113676.715,
+            "p95_us": 129379.195
+          },
+          {
+            "label": 95,
+            "eligible": 110695,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 115907.73025,
+            "p50_us": 117000.387,
+            "p95_us": 117633.131
+          },
+          {
+            "label": 98,
+            "eligible": 180067,
+            "n": 4,
+            "recall": 0.994,
+            "mean_us": 118282.06150000001,
+            "p50_us": 118213.426,
+            "p95_us": 119220.338
+          },
+          {
+            "label": 103,
+            "eligible": 137207,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 117122.4755,
+            "p50_us": 118611.688,
+            "p95_us": 121798.201
+          },
+          {
+            "label": 107,
+            "eligible": 105398,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 126731.0655,
+            "p50_us": 119927.159,
+            "p95_us": 142255.794
+          },
+          {
+            "label": 132,
+            "eligible": 28818,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 117561.469,
+            "p50_us": 113822.372,
+            "p95_us": 129041.026
+          },
+          {
+            "label": 336,
+            "eligible": 145691,
+            "n": 4,
+            "recall": 0.9835,
+            "mean_us": 137117.87550000002,
+            "p50_us": 135940.295,
+            "p95_us": 149078.909
+          },
+          {
+            "label": 341,
+            "eligible": 32880,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 125329.59375,
+            "p50_us": 123356.662,
+            "p95_us": 130066.491
+          },
+          {
+            "label": 345,
+            "eligible": 348810,
+            "n": 4,
+            "recall": 0.96625,
+            "mean_us": 126250.33125,
+            "p50_us": 127647.907,
+            "p95_us": 133654.183
+          },
+          {
+            "label": 522,
+            "eligible": 36472,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 124973.16625000001,
+            "p50_us": 123096.88,
+            "p95_us": 129466.53
+          },
+          {
+            "label": 706,
+            "eligible": 16174,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 120866.89825,
+            "p50_us": 117141.063,
+            "p95_us": 130067.243
+          },
+          {
+            "label": 816,
+            "eligible": 22811,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 126814.30325,
+            "p50_us": 119914.948,
+            "p95_us": 145169.311
+          },
+          {
+            "label": 832,
+            "eligible": 12260,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 125678.928,
+            "p50_us": 124996.556,
+            "p95_us": 130923.289
+          },
+          {
+            "label": 1016,
+            "eligible": 9166,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 125463.6715,
+            "p50_us": 123254.117,
+            "p95_us": 130309.549
+          },
+          {
+            "label": 1227,
+            "eligible": 6333,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 124051.67075,
+            "p50_us": 123380.447,
+            "p95_us": 125704.32
+          },
+          {
+            "label": 1444,
+            "eligible": 26946,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 126945.69275,
+            "p50_us": 126651.388,
+            "p95_us": 129028.562
+          },
+          {
+            "label": 1548,
+            "eligible": 46790,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 122208.8965,
+            "p50_us": 122141.099,
+            "p95_us": 125307.293
+          },
+          {
+            "label": 1643,
+            "eligible": 27999,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 128937.76025,
+            "p50_us": 128563.748,
+            "p95_us": 133410.622
+          },
+          {
+            "label": 1835,
+            "eligible": 7781,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 126192.37675,
+            "p50_us": 125001.796,
+            "p95_us": 129292.61
+          },
+          {
+            "label": 2027,
+            "eligible": 36166,
+            "n": 4,
+            "recall": 0.98875,
+            "mean_us": 128984.0495,
+            "p50_us": 121859.827,
+            "p95_us": 151772.311
+          },
+          {
+            "label": 2314,
+            "eligible": 23858,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 102447.12975000001,
+            "p50_us": 98650.614,
+            "p95_us": 110903.123
+          },
+          {
+            "label": 2495,
+            "eligible": 48589,
+            "n": 4,
+            "recall": 0.98975,
+            "mean_us": 126307.74775,
+            "p50_us": 124434.958,
+            "p95_us": 131641.645
+          },
+          {
+            "label": 2556,
+            "eligible": 8744,
+            "n": 4,
+            "recall": 0.999,
+            "mean_us": 112869.4365,
+            "p50_us": 111762.303,
+            "p95_us": 115199.811
+          },
+          {
+            "label": 3030,
+            "eligible": 35681,
+            "n": 4,
+            "recall": 0.9984999999999999,
+            "mean_us": 121852.44475,
+            "p50_us": 122005.083,
+            "p95_us": 123122.712
+          },
+          {
+            "label": 3428,
+            "eligible": 20430,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 114757.50774999999,
+            "p50_us": 114607.862,
+            "p95_us": 116622.595
+          },
+          {
+            "label": 3677,
+            "eligible": 31056,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 121831.10725,
+            "p50_us": 123284.605,
+            "p95_us": 124930.25
+          },
+          {
+            "label": 3901,
+            "eligible": 12526,
+            "n": 4,
+            "recall": 0.99375,
+            "mean_us": 130126.70575,
+            "p50_us": 124016.076,
+            "p95_us": 149160.443
+          },
+          {
+            "label": 3908,
+            "eligible": 23248,
+            "n": 4,
+            "recall": 0.99925,
+            "mean_us": 117976.6875,
+            "p50_us": 117148.096,
+            "p95_us": 122589.764
+          },
+          {
+            "label": 3918,
+            "eligible": 16937,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 117498.50975,
+            "p50_us": 118319.356,
+            "p95_us": 120593.638
+          },
+          {
+            "label": 4736,
+            "eligible": 33444,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 133116.63325,
+            "p50_us": 125323.314,
+            "p95_us": 146965.992
+          },
+          {
+            "label": 5518,
+            "eligible": 39635,
+            "n": 4,
+            "recall": 0.99,
+            "mean_us": 129111.45025,
+            "p50_us": 126495.935,
+            "p95_us": 133512.283
+          },
+          {
+            "label": 6182,
+            "eligible": 17452,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 126311.74225,
+            "p50_us": 123992.049,
+            "p95_us": 136151.194
+          },
+          {
+            "label": 7546,
+            "eligible": 38059,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 125933.37,
+            "p50_us": 121203.82,
+            "p95_us": 140086.982
+          },
+          {
+            "label": 8663,
+            "eligible": 19597,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 123826.58575,
+            "p50_us": 121243.524,
+            "p95_us": 131392.724
+          },
+          {
+            "label": 8770,
+            "eligible": 7922,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 125737.5925,
+            "p50_us": 122910.701,
+            "p95_us": 132422.739
+          },
+          {
+            "label": 11614,
+            "eligible": 6964,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 117510.247,
+            "p50_us": 116597.617,
+            "p95_us": 118671.019
+          },
+          {
+            "label": 13604,
+            "eligible": 7469,
+            "n": 4,
+            "recall": 0.9995,
+            "mean_us": 114879.84875,
+            "p50_us": 113097.564,
+            "p95_us": 117708.062
+          },
+          {
+            "label": 17875,
+            "eligible": 5936,
+            "n": 4,
+            "recall": 1.0,
+            "mean_us": 125121.58475000001,
+            "p50_us": 124195.975,
+            "p95_us": 130219
+          }
+        ],
+        "strict_id_recall": true,
+        "qps": 65.99468071,
+        "latency_contract": "public_search_call",
+        "cpp_legacy_tie_aware_recall": 0.9880078125,
+        "mean_us": 119573.5404921875,
+        "p50_us": 118611.688,
+        "p95_us": 133512.283,
+        "p99_us": 149078.909,
+        "p999_us": 151772.311,
+        "reader_requests": 1025896,
+        "reader_bytes": 4202070016,
+        "mean_cmps": 349856.30859375,
+        "mean_full_cmps": 4007.40625,
+        "inner_mean_us": 117388.76171875,
+        "mean_hops": 1002.9296875,
+        "label_checks": 46676309,
+        "reader_time_us": 20558176
+      }
+    },
+    {
+      "command": [
+        "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+        "--data_type",
+        "uint8",
+        "--dist_fn",
+        "l2",
+        "--index_path_prefix",
+        "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "--query_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+        "--query_filters_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+        "--label_type",
+        "uint",
+        "--gt_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+        "-K",
+        "1000",
+        "-L",
+        "4000",
+        "-W",
+        "4",
+        "-T",
+        "8",
+        "--num_nodes_to_cache",
+        "0",
+        "--result_path",
+        "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r1"
+      ],
+      "elapsed_seconds": 8.593484196000645,
+      "exit_code": 0,
+      "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r1.log",
+      "warmup": {
+        "command": [
+          "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+          "--data_type",
+          "uint8",
+          "--dist_fn",
+          "l2",
+          "--index_path_prefix",
+          "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+          "--query_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+          "--query_filters_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+          "--label_type",
+          "uint",
+          "--gt_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+          "-K",
+          "1000",
+          "-L",
+          "4000",
+          "-W",
+          "4",
+          "-T",
+          "8",
+          "--num_nodes_to_cache",
+          "0",
+          "--result_path",
+          "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup"
+        ],
+        "elapsed_seconds": 4.7679014850000385,
+        "exit_code": 0,
+        "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup.log"
+      },
+      "normalized": {
+        "implementation": "cpp_native_linux",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "prepared": "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000",
+        "mode": "single",
+        "starts": "label",
+        "n_base": 10000000,
+        "queries": 256,
+        "k": 1000,
+        "l": 4000,
+        "beam": 4,
+        "threads": 8,
+        "repeat": 1,
+        "timing_authoritative": true,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "storage": "linux_aio_direct",
+        "warmup_queries": 256,
+        "raw_stats": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r1.jsonl",
+        "result_ids": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r1_4000_idx_uint32.bin",
+        "result_ids_sha256": "0b9b4103b9d9cecaf977249e0f9d1bd1eaca8e68b57bad170b8ff54ed6e62b25",
+        "recall": 0.9880078125,
+        "filter_violations": 0,
+        "short_results": 0,
+        "duplicate_results": 0,
+        "labels": [
+          {
+            "label": 1,
+            "eligible": 266844,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 116076.561,
+            "p50_us": 110468.726,
+            "p95_us": 125876.318
+          },
+          {
+            "label": 2,
+            "eligible": 581971,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 113292.2185,
+            "p50_us": 107567.783,
+            "p95_us": 128889.734
+          },
+          {
+            "label": 3,
+            "eligible": 948589,
+            "n": 4,
+            "recall": 0.99175,
+            "mean_us": 108898.137,
+            "p50_us": 106970.134,
+            "p95_us": 112675.991
+          },
+          {
+            "label": 4,
+            "eligible": 1133362,
+            "n": 4,
+            "recall": 0.98325,
+            "mean_us": 110129.08125,
+            "p50_us": 107654.285,
+            "p95_us": 113802.113
+          },
+          {
+            "label": 5,
+            "eligible": 1235270,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 109950.427,
+            "p50_us": 109016.576,
+            "p95_us": 113643.254
+          },
+          {
+            "label": 6,
+            "eligible": 1284396,
+            "n": 4,
+            "recall": 0.95375,
+            "mean_us": 113976.5695,
+            "p50_us": 113110.52,
+            "p95_us": 117634.567
+          },
+          {
+            "label": 7,
+            "eligible": 1333819,
+            "n": 4,
+            "recall": 0.99475,
+            "mean_us": 111384.99475,
+            "p50_us": 109791.108,
+            "p95_us": 116804.34
+          },
+          {
+            "label": 8,
+            "eligible": 1379732,
+            "n": 4,
+            "recall": 0.98125,
+            "mean_us": 109807.287,
+            "p50_us": 108696.603,
+            "p95_us": 112157.23
+          },
+          {
+            "label": 9,
+            "eligible": 1310314,
+            "n": 4,
+            "recall": 0.98025,
+            "mean_us": 114961.98325,
+            "p50_us": 112366.215,
+            "p95_us": 122143.234
+          },
+          {
+            "label": 10,
+            "eligible": 287690,
+            "n": 4,
+            "recall": 0.967,
+            "mean_us": 110308.272,
+            "p50_us": 109910,
+            "p95_us": 112712.528
+          },
+          {
+            "label": 11,
+            "eligible": 679536,
+            "n": 4,
+            "recall": 0.97725,
+            "mean_us": 113698.80475,
+            "p50_us": 112181.508,
+            "p95_us": 116358.015
+          },
+          {
+            "label": 12,
+            "eligible": 648527,
+            "n": 4,
+            "recall": 0.9784999999999999,
+            "mean_us": 118100.7325,
+            "p50_us": 117535.658,
+            "p95_us": 119947.248
+          },
+          {
+            "label": 14,
+            "eligible": 863883,
+            "n": 4,
+            "recall": 0.93625,
+            "mean_us": 110844.73225,
+            "p50_us": 107610.303,
+            "p95_us": 115775.57
+          },
+          {
+            "label": 15,
+            "eligible": 905943,
+            "n": 4,
+            "recall": 0.977,
+            "mean_us": 119285.76175,
+            "p50_us": 118307.337,
+            "p95_us": 125458.908
+          },
+          {
+            "label": 17,
+            "eligible": 991156,
+            "n": 4,
+            "recall": 0.99125,
+            "mean_us": 109927.421,
+            "p50_us": 110226.47,
+            "p95_us": 111678.456
+          },
+          {
+            "label": 20,
+            "eligible": 851688,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 115761.64624999999,
+            "p50_us": 114135.063,
+            "p95_us": 120258.697
+          },
+          {
+            "label": 21,
+            "eligible": 688177,
+            "n": 4,
+            "recall": 0.95425,
+            "mean_us": 116080.07325,
+            "p50_us": 113370.821,
+            "p95_us": 119038.626
+          },
+          {
+            "label": 22,
+            "eligible": 687483,
+            "n": 4,
+            "recall": 0.98425,
+            "mean_us": 114455.17225,
+            "p50_us": 114110.155,
+            "p95_us": 115238.647
+          },
+          {
+            "label": 24,
+            "eligible": 499079,
+            "n": 4,
+            "recall": 0.993,
+            "mean_us": 116614.36225,
+            "p50_us": 117487.569,
+            "p95_us": 118846.424
+          },
+          {
+            "label": 25,
+            "eligible": 176508,
+            "n": 4,
+            "recall": 0.9975,
+            "mean_us": 116157.70425,
+            "p50_us": 115152.242,
+            "p95_us": 117336.513
+          },
+          {
+            "label": 28,
+            "eligible": 705726,
+            "n": 4,
+            "recall": 0.98075,
+            "mean_us": 115695.42975,
+            "p50_us": 114704.667,
+            "p95_us": 119114.298
+          },
+          {
+            "label": 29,
+            "eligible": 1915985,
+            "n": 4,
+            "recall": 0.9455,
+            "mean_us": 116541.7285,
+            "p50_us": 114215.146,
+            "p95_us": 120488.87
+          },
+          {
+            "label": 35,
+            "eligible": 368312,
+            "n": 4,
+            "recall": 0.98625,
+            "mean_us": 118586.2665,
+            "p50_us": 116467.223,
+            "p95_us": 121184.002
+          },
+          {
+            "label": 36,
+            "eligible": 146104,
+            "n": 4,
+            "recall": 0.962,
+            "mean_us": 118038.976,
+            "p50_us": 115331.481,
+            "p95_us": 125917.684
+          },
+          {
+            "label": 44,
+            "eligible": 29097,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 116304.346,
+            "p50_us": 115406.452,
+            "p95_us": 118646.675
+          },
+          {
+            "label": 89,
+            "eligible": 1707412,
+            "n": 4,
+            "recall": 0.978,
+            "mean_us": 117377.59625,
+            "p50_us": 118622.759,
+            "p95_us": 120909.786
+          },
+          {
+            "label": 90,
+            "eligible": 180512,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 115304.9105,
+            "p50_us": 114646.488,
+            "p95_us": 118825.212
+          },
+          {
+            "label": 95,
+            "eligible": 110695,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 118934.7035,
+            "p50_us": 117809.675,
+            "p95_us": 125294.968
+          },
+          {
+            "label": 98,
+            "eligible": 180067,
+            "n": 4,
+            "recall": 0.994,
+            "mean_us": 117643.8445,
+            "p50_us": 117664.604,
+            "p95_us": 118662.706
+          },
+          {
+            "label": 103,
+            "eligible": 137207,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 116480.9975,
+            "p50_us": 116925.708,
+            "p95_us": 120069.422
+          },
+          {
+            "label": 107,
+            "eligible": 105398,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 124098.963,
+            "p50_us": 118423.924,
+            "p95_us": 142799.44
+          },
+          {
+            "label": 132,
+            "eligible": 28818,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 118042.383,
+            "p50_us": 115608.183,
+            "p95_us": 126586.257
+          },
+          {
+            "label": 336,
+            "eligible": 145691,
+            "n": 4,
+            "recall": 0.9835,
+            "mean_us": 133569.78275,
+            "p50_us": 127753.468,
+            "p95_us": 146673.178
+          },
+          {
+            "label": 341,
+            "eligible": 32880,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 125030.08924999999,
+            "p50_us": 122764.924,
+            "p95_us": 129255.701
+          },
+          {
+            "label": 345,
+            "eligible": 348810,
+            "n": 4,
+            "recall": 0.96625,
+            "mean_us": 125064.25425,
+            "p50_us": 125809.591,
+            "p95_us": 132526.145
+          },
+          {
+            "label": 522,
+            "eligible": 36472,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 128242.9565,
+            "p50_us": 123867.245,
+            "p95_us": 133733.01
+          },
+          {
+            "label": 706,
+            "eligible": 16174,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 119646.58924999999,
+            "p50_us": 117184.506,
+            "p95_us": 125994.76
+          },
+          {
+            "label": 816,
+            "eligible": 22811,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 126219.44675,
+            "p50_us": 119300.58,
+            "p95_us": 145316.919
+          },
+          {
+            "label": 832,
+            "eligible": 12260,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 125967.95275,
+            "p50_us": 123677.158,
+            "p95_us": 131707.991
+          },
+          {
+            "label": 1016,
+            "eligible": 9166,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 123942.4445,
+            "p50_us": 123613.054,
+            "p95_us": 124967.942
+          },
+          {
+            "label": 1227,
+            "eligible": 6333,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 126424.07325,
+            "p50_us": 124165.721,
+            "p95_us": 130473.741
+          },
+          {
+            "label": 1444,
+            "eligible": 26946,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 127159.63949999999,
+            "p50_us": 125702.618,
+            "p95_us": 132857.398
+          },
+          {
+            "label": 1548,
+            "eligible": 46790,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 125106.09700000001,
+            "p50_us": 122104.161,
+            "p95_us": 134076.76
+          },
+          {
+            "label": 1643,
+            "eligible": 27999,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 126985.27375,
+            "p50_us": 125470.991,
+            "p95_us": 129928.723
+          },
+          {
+            "label": 1835,
+            "eligible": 7781,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 126977.27425,
+            "p50_us": 123714.958,
+            "p95_us": 134385.402
+          },
+          {
+            "label": 2027,
+            "eligible": 36166,
+            "n": 4,
+            "recall": 0.98875,
+            "mean_us": 128114.6575,
+            "p50_us": 122002.378,
+            "p95_us": 148514.402
+          },
+          {
+            "label": 2314,
+            "eligible": 23858,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 98411.69099999999,
+            "p50_us": 92955.891,
+            "p95_us": 110962.477
+          },
+          {
+            "label": 2495,
+            "eligible": 48589,
+            "n": 4,
+            "recall": 0.98975,
+            "mean_us": 123859.67725000001,
+            "p50_us": 123811.633,
+            "p95_us": 124767.243
+          },
+          {
+            "label": 2556,
+            "eligible": 8744,
+            "n": 4,
+            "recall": 0.999,
+            "mean_us": 112536.70775,
+            "p50_us": 111377.229,
+            "p95_us": 115454.373
+          },
+          {
+            "label": 3030,
+            "eligible": 35681,
+            "n": 4,
+            "recall": 0.9984999999999999,
+            "mean_us": 121363.56325,
+            "p50_us": 121389.603,
+            "p95_us": 124361.38
+          },
+          {
+            "label": 3428,
+            "eligible": 20430,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 114517.1165,
+            "p50_us": 112372.319,
+            "p95_us": 117634.346
+          },
+          {
+            "label": 3677,
+            "eligible": 31056,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 122074.16225,
+            "p50_us": 122992.486,
+            "p95_us": 125631.944
+          },
+          {
+            "label": 3901,
+            "eligible": 12526,
+            "n": 4,
+            "recall": 0.99375,
+            "mean_us": 133464.83000000002,
+            "p50_us": 125894.761,
+            "p95_us": 148365.051
+          },
+          {
+            "label": 3908,
+            "eligible": 23248,
+            "n": 4,
+            "recall": 0.99925,
+            "mean_us": 117596.484,
+            "p50_us": 116688.5,
+            "p95_us": 122625.403
+          },
+          {
+            "label": 3918,
+            "eligible": 16937,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 123080.947,
+            "p50_us": 119131.5,
+            "p95_us": 134454.272
+          },
+          {
+            "label": 4736,
+            "eligible": 33444,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 129352.41125,
+            "p50_us": 124942.816,
+            "p95_us": 143986.91
+          },
+          {
+            "label": 5518,
+            "eligible": 39635,
+            "n": 4,
+            "recall": 0.99,
+            "mean_us": 127859.66625,
+            "p50_us": 124917.377,
+            "p95_us": 131937.283
+          },
+          {
+            "label": 6182,
+            "eligible": 17452,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 125519.8545,
+            "p50_us": 124486.885,
+            "p95_us": 128247.481
+          },
+          {
+            "label": 7546,
+            "eligible": 38059,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 125143.31275,
+            "p50_us": 119686.398,
+            "p95_us": 140378.752
+          },
+          {
+            "label": 8663,
+            "eligible": 19597,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 124678.62425,
+            "p50_us": 122132.334,
+            "p95_us": 129639.546
+          },
+          {
+            "label": 8770,
+            "eligible": 7922,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 127542.2835,
+            "p50_us": 124241.383,
+            "p95_us": 132204.999
+          },
+          {
+            "label": 11614,
+            "eligible": 6964,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 118111.6435,
+            "p50_us": 117421.703,
+            "p95_us": 120213.672
+          },
+          {
+            "label": 13604,
+            "eligible": 7469,
+            "n": 4,
+            "recall": 0.9995,
+            "mean_us": 116684.57075,
+            "p50_us": 116338.55,
+            "p95_us": 120420.624
+          },
+          {
+            "label": 17875,
+            "eligible": 5936,
+            "n": 4,
+            "recall": 1.0,
+            "mean_us": 122414.84125,
+            "p50_us": 121656.606,
+            "p95_us": 123734.315
+          }
+        ],
+        "strict_id_recall": true,
+        "qps": 66.20257121,
+        "latency_contract": "public_search_call",
+        "cpp_legacy_tie_aware_recall": 0.9880078125,
+        "mean_us": 119303.515703125,
+        "p50_us": 118646.675,
+        "p95_us": 133733.01,
+        "p99_us": 146673.178,
+        "p999_us": 148514.402,
+        "reader_requests": 1025896,
+        "reader_bytes": 4202070016,
+        "mean_cmps": 349856.30859375,
+        "mean_full_cmps": 4007.40625,
+        "inner_mean_us": 117289.42578125,
+        "mean_hops": 1002.9296875,
+        "label_checks": 46676309,
+        "reader_time_us": 20584777
+      }
+    },
+    {
+      "command": [
+        "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+        "--data_type",
+        "uint8",
+        "--dist_fn",
+        "l2",
+        "--index_path_prefix",
+        "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "--query_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+        "--query_filters_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+        "--label_type",
+        "uint",
+        "--gt_file",
+        "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+        "-K",
+        "1000",
+        "-L",
+        "4000",
+        "-W",
+        "4",
+        "-T",
+        "8",
+        "--num_nodes_to_cache",
+        "0",
+        "--result_path",
+        "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r2"
+      ],
+      "elapsed_seconds": 8.613992261999556,
+      "exit_code": 0,
+      "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r2.log",
+      "warmup": {
+        "command": [
+          "/home/alex/diskann-single-hop-benchmark/cpp/build-native/apps/search_disk_index",
+          "--data_type",
+          "uint8",
+          "--dist_fn",
+          "l2",
+          "--index_path_prefix",
+          "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+          "--query_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query.u8bin",
+          "--query_filters_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/query_labels.txt",
+          "--label_type",
+          "uint",
+          "--gt_file",
+          "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000/groundtruth.bin",
+          "-K",
+          "1000",
+          "-L",
+          "4000",
+          "-W",
+          "4",
+          "-T",
+          "8",
+          "--num_nodes_to_cache",
+          "0",
+          "--result_path",
+          "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup"
+        ],
+        "elapsed_seconds": 4.7679014850000385,
+        "exit_code": 0,
+        "log": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.warmup.log"
+      },
+      "normalized": {
+        "implementation": "cpp_native_linux",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "prepared": "/home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000",
+        "mode": "single",
+        "starts": "label",
+        "n_base": 10000000,
+        "queries": 256,
+        "k": 1000,
+        "l": 4000,
+        "beam": 4,
+        "threads": 8,
+        "repeat": 2,
+        "timing_authoritative": true,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "storage": "linux_aio_direct",
+        "warmup_queries": 256,
+        "raw_stats": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r2.jsonl",
+        "result_ids": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.t8.L4000.r2_4000_idx_uint32.bin",
+        "result_ids_sha256": "0b9b4103b9d9cecaf977249e0f9d1bd1eaca8e68b57bad170b8ff54ed6e62b25",
+        "recall": 0.9880078125,
+        "filter_violations": 0,
+        "short_results": 0,
+        "duplicate_results": 0,
+        "labels": [
+          {
+            "label": 1,
+            "eligible": 266844,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 112096.64125,
+            "p50_us": 110159.635,
+            "p95_us": 116667.582
+          },
+          {
+            "label": 2,
+            "eligible": 581971,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 113285.50525,
+            "p50_us": 107899.551,
+            "p95_us": 127630.981
+          },
+          {
+            "label": 3,
+            "eligible": 948589,
+            "n": 4,
+            "recall": 0.99175,
+            "mean_us": 109053.851,
+            "p50_us": 107512.79,
+            "p95_us": 113318.155
+          },
+          {
+            "label": 4,
+            "eligible": 1133362,
+            "n": 4,
+            "recall": 0.98325,
+            "mean_us": 110609.35,
+            "p50_us": 107850.659,
+            "p95_us": 116727.725
+          },
+          {
+            "label": 5,
+            "eligible": 1235270,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 109802.147,
+            "p50_us": 109073.404,
+            "p95_us": 112749.049
+          },
+          {
+            "label": 6,
+            "eligible": 1284396,
+            "n": 4,
+            "recall": 0.95375,
+            "mean_us": 114375.78675,
+            "p50_us": 112492.264,
+            "p95_us": 118961.453
+          },
+          {
+            "label": 7,
+            "eligible": 1333819,
+            "n": 4,
+            "recall": 0.99475,
+            "mean_us": 112280.35875,
+            "p50_us": 110585.72,
+            "p95_us": 117795.772
+          },
+          {
+            "label": 8,
+            "eligible": 1379732,
+            "n": 4,
+            "recall": 0.98125,
+            "mean_us": 113303.2225,
+            "p50_us": 108450.098,
+            "p95_us": 127157.213
+          },
+          {
+            "label": 9,
+            "eligible": 1310314,
+            "n": 4,
+            "recall": 0.98025,
+            "mean_us": 113094.702,
+            "p50_us": 110194.551,
+            "p95_us": 117707.544
+          },
+          {
+            "label": 10,
+            "eligible": 287690,
+            "n": 4,
+            "recall": 0.967,
+            "mean_us": 110165.7775,
+            "p50_us": 109639.842,
+            "p95_us": 111976.662
+          },
+          {
+            "label": 11,
+            "eligible": 679536,
+            "n": 4,
+            "recall": 0.97725,
+            "mean_us": 113374.45225,
+            "p50_us": 112345.789,
+            "p95_us": 115785.428
+          },
+          {
+            "label": 12,
+            "eligible": 648527,
+            "n": 4,
+            "recall": 0.9784999999999999,
+            "mean_us": 116527.18025,
+            "p50_us": 115874.437,
+            "p95_us": 118859.577
+          },
+          {
+            "label": 14,
+            "eligible": 863883,
+            "n": 4,
+            "recall": 0.93625,
+            "mean_us": 110804.70375,
+            "p50_us": 108514.692,
+            "p95_us": 115692.314
+          },
+          {
+            "label": 15,
+            "eligible": 905943,
+            "n": 4,
+            "recall": 0.977,
+            "mean_us": 120193.81925,
+            "p50_us": 120269.471,
+            "p95_us": 124556.947
+          },
+          {
+            "label": 17,
+            "eligible": 991156,
+            "n": 4,
+            "recall": 0.99125,
+            "mean_us": 110172.0095,
+            "p50_us": 110646.202,
+            "p95_us": 112815.877
+          },
+          {
+            "label": 20,
+            "eligible": 851688,
+            "n": 4,
+            "recall": 0.97525,
+            "mean_us": 117742.8235,
+            "p50_us": 113478.847,
+            "p95_us": 128850.147
+          },
+          {
+            "label": 21,
+            "eligible": 688177,
+            "n": 4,
+            "recall": 0.95425,
+            "mean_us": 116545.12525,
+            "p50_us": 113500.488,
+            "p95_us": 121463.944
+          },
+          {
+            "label": 22,
+            "eligible": 687483,
+            "n": 4,
+            "recall": 0.98425,
+            "mean_us": 116830.3205,
+            "p50_us": 114759.394,
+            "p95_us": 120889.307
+          },
+          {
+            "label": 24,
+            "eligible": 499079,
+            "n": 4,
+            "recall": 0.993,
+            "mean_us": 117250.84474999999,
+            "p50_us": 118983.684,
+            "p95_us": 119607.472
+          },
+          {
+            "label": 25,
+            "eligible": 176508,
+            "n": 4,
+            "recall": 0.9975,
+            "mean_us": 120507.428,
+            "p50_us": 116946.892,
+            "p95_us": 129790.722
+          },
+          {
+            "label": 28,
+            "eligible": 705726,
+            "n": 4,
+            "recall": 0.98075,
+            "mean_us": 115734.796,
+            "p50_us": 115504.928,
+            "p95_us": 118348.133
+          },
+          {
+            "label": 29,
+            "eligible": 1915985,
+            "n": 4,
+            "recall": 0.9455,
+            "mean_us": 120455.33425,
+            "p50_us": 114958.96,
+            "p95_us": 131624.752
+          },
+          {
+            "label": 35,
+            "eligible": 368312,
+            "n": 4,
+            "recall": 0.98625,
+            "mean_us": 119217.75975,
+            "p50_us": 118611.573,
+            "p95_us": 120941.575
+          },
+          {
+            "label": 36,
+            "eligible": 146104,
+            "n": 4,
+            "recall": 0.962,
+            "mean_us": 122365.24575,
+            "p50_us": 117434.551,
+            "p95_us": 129894.057
+          },
+          {
+            "label": 44,
+            "eligible": 29097,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 118101.22325,
+            "p50_us": 116218.295,
+            "p95_us": 122783.083
+          },
+          {
+            "label": 89,
+            "eligible": 1707412,
+            "n": 4,
+            "recall": 0.978,
+            "mean_us": 117817.06450000001,
+            "p50_us": 117461.97,
+            "p95_us": 122018.129
+          },
+          {
+            "label": 90,
+            "eligible": 180512,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 116268.816,
+            "p50_us": 114760.183,
+            "p95_us": 119628.009
+          },
+          {
+            "label": 95,
+            "eligible": 110695,
+            "n": 4,
+            "recall": 0.9795,
+            "mean_us": 118781.025,
+            "p50_us": 116468.919,
+            "p95_us": 126033.833
+          },
+          {
+            "label": 98,
+            "eligible": 180067,
+            "n": 4,
+            "recall": 0.994,
+            "mean_us": 118145.798,
+            "p50_us": 117903.144,
+            "p95_us": 119263.162
+          },
+          {
+            "label": 103,
+            "eligible": 137207,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 116768.52625,
+            "p50_us": 117863.331,
+            "p95_us": 120449.269
+          },
+          {
+            "label": 107,
+            "eligible": 105398,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 124343.46075,
+            "p50_us": 119024.349,
+            "p95_us": 143065.091
+          },
+          {
+            "label": 132,
+            "eligible": 28818,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 115431.56375,
+            "p50_us": 115601.331,
+            "p95_us": 117093.046
+          },
+          {
+            "label": 336,
+            "eligible": 145691,
+            "n": 4,
+            "recall": 0.9835,
+            "mean_us": 135166.76975,
+            "p50_us": 129911.363,
+            "p95_us": 147648.238
+          },
+          {
+            "label": 341,
+            "eligible": 32880,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 124805.72200000001,
+            "p50_us": 122068.523,
+            "p95_us": 130508.075
+          },
+          {
+            "label": 345,
+            "eligible": 348810,
+            "n": 4,
+            "recall": 0.96625,
+            "mean_us": 125223.28825,
+            "p50_us": 125577.584,
+            "p95_us": 133137.84
+          },
+          {
+            "label": 522,
+            "eligible": 36472,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 126322.627,
+            "p50_us": 124271.34,
+            "p95_us": 134285.644
+          },
+          {
+            "label": 706,
+            "eligible": 16174,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 119193.01775,
+            "p50_us": 116534.712,
+            "p95_us": 124631.971
+          },
+          {
+            "label": 816,
+            "eligible": 22811,
+            "n": 4,
+            "recall": 0.99675,
+            "mean_us": 127416.17875,
+            "p50_us": 122391.213,
+            "p95_us": 143232.817
+          },
+          {
+            "label": 832,
+            "eligible": 12260,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 125542.438,
+            "p50_us": 123830.439,
+            "p95_us": 131451.177
+          },
+          {
+            "label": 1016,
+            "eligible": 9166,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 124787.901,
+            "p50_us": 124258.557,
+            "p95_us": 127421.862
+          },
+          {
+            "label": 1227,
+            "eligible": 6333,
+            "n": 4,
+            "recall": 0.99875,
+            "mean_us": 125540.144,
+            "p50_us": 123851.978,
+            "p95_us": 129618.319
+          },
+          {
+            "label": 1444,
+            "eligible": 26946,
+            "n": 4,
+            "recall": 0.997,
+            "mean_us": 126827.38925000001,
+            "p50_us": 123350.652,
+            "p95_us": 134117.416
+          },
+          {
+            "label": 1548,
+            "eligible": 46790,
+            "n": 4,
+            "recall": 0.99575,
+            "mean_us": 121546.437,
+            "p50_us": 121832.791,
+            "p95_us": 124904.506
+          },
+          {
+            "label": 1643,
+            "eligible": 27999,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 126541.39,
+            "p50_us": 125220.169,
+            "p95_us": 131026.928
+          },
+          {
+            "label": 1835,
+            "eligible": 7781,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 125312.67925,
+            "p50_us": 123298.605,
+            "p95_us": 128655.793
+          },
+          {
+            "label": 2027,
+            "eligible": 36166,
+            "n": 4,
+            "recall": 0.98875,
+            "mean_us": 127468.487,
+            "p50_us": 120737.462,
+            "p95_us": 147944.508
+          },
+          {
+            "label": 2314,
+            "eligible": 23858,
+            "n": 4,
+            "recall": 0.99625,
+            "mean_us": 98099.6175,
+            "p50_us": 92735.909,
+            "p95_us": 110584.355
+          },
+          {
+            "label": 2495,
+            "eligible": 48589,
+            "n": 4,
+            "recall": 0.98975,
+            "mean_us": 126509.861,
+            "p50_us": 124937.687,
+            "p95_us": 132639.095
+          },
+          {
+            "label": 2556,
+            "eligible": 8744,
+            "n": 4,
+            "recall": 0.999,
+            "mean_us": 113004.51475,
+            "p50_us": 111874.36,
+            "p95_us": 114422.438
+          },
+          {
+            "label": 3030,
+            "eligible": 35681,
+            "n": 4,
+            "recall": 0.9984999999999999,
+            "mean_us": 122459.9555,
+            "p50_us": 122367.478,
+            "p95_us": 126262.087
+          },
+          {
+            "label": 3428,
+            "eligible": 20430,
+            "n": 4,
+            "recall": 0.996,
+            "mean_us": 118085.9015,
+            "p50_us": 112141.573,
+            "p95_us": 130739.311
+          },
+          {
+            "label": 3677,
+            "eligible": 31056,
+            "n": 4,
+            "recall": 0.9964999999999999,
+            "mean_us": 122563.4815,
+            "p50_us": 123846.017,
+            "p95_us": 126381.671
+          },
+          {
+            "label": 3901,
+            "eligible": 12526,
+            "n": 4,
+            "recall": 0.99375,
+            "mean_us": 131742.6115,
+            "p50_us": 123814.097,
+            "p95_us": 155497.889
+          },
+          {
+            "label": 3908,
+            "eligible": 23248,
+            "n": 4,
+            "recall": 0.99925,
+            "mean_us": 118445.39725000001,
+            "p50_us": 116994.649,
+            "p95_us": 123971.834
+          },
+          {
+            "label": 3918,
+            "eligible": 16937,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 118876.681,
+            "p50_us": 118306.694,
+            "p95_us": 120130.507
+          },
+          {
+            "label": 4736,
+            "eligible": 33444,
+            "n": 4,
+            "recall": 0.998,
+            "mean_us": 129841.38975,
+            "p50_us": 125038.447,
+            "p95_us": 146117.541
+          },
+          {
+            "label": 5518,
+            "eligible": 39635,
+            "n": 4,
+            "recall": 0.99,
+            "mean_us": 128509.14625,
+            "p50_us": 126809.089,
+            "p95_us": 132784.214
+          },
+          {
+            "label": 6182,
+            "eligible": 17452,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 125307.062,
+            "p50_us": 124781.793,
+            "p95_us": 127680.092
+          },
+          {
+            "label": 7546,
+            "eligible": 38059,
+            "n": 4,
+            "recall": 0.99975,
+            "mean_us": 126368.86175,
+            "p50_us": 123098.76,
+            "p95_us": 137941.865
+          },
+          {
+            "label": 8663,
+            "eligible": 19597,
+            "n": 4,
+            "recall": 0.99725,
+            "mean_us": 125334.3205,
+            "p50_us": 121382.16,
+            "p95_us": 132241.637
+          },
+          {
+            "label": 8770,
+            "eligible": 7922,
+            "n": 4,
+            "recall": 0.99775,
+            "mean_us": 125293.31875,
+            "p50_us": 124550.067,
+            "p95_us": 129105.842
+          },
+          {
+            "label": 11614,
+            "eligible": 6964,
+            "n": 4,
+            "recall": 0.99825,
+            "mean_us": 118150.87425,
+            "p50_us": 117329.231,
+            "p95_us": 119327.972
+          },
+          {
+            "label": 13604,
+            "eligible": 7469,
+            "n": 4,
+            "recall": 0.9995,
+            "mean_us": 119308.68825,
+            "p50_us": 116289.348,
+            "p95_us": 130517.022
+          },
+          {
+            "label": 17875,
+            "eligible": 5936,
+            "n": 4,
+            "recall": 1.0,
+            "mean_us": 122779.66075,
+            "p50_us": 122741.575,
+            "p95_us": 123410.807
+          }
+        ],
+        "strict_id_recall": true,
+        "qps": 66.15756891,
+        "latency_contract": "public_search_call",
+        "cpp_legacy_tie_aware_recall": 0.9880078125,
+        "mean_us": 119590.976171875,
+        "p50_us": 118785.349,
+        "p95_us": 132639.095,
+        "p99_us": 147648.238,
+        "p999_us": 155497.889,
+        "reader_requests": 1025896,
+        "reader_bytes": 4202070016,
+        "mean_cmps": 349856.30859375,
+        "mean_full_cmps": 4007.40625,
+        "inner_mean_us": 117389.53125,
+        "mean_hops": 1002.9296875,
+        "label_checks": 46676309,
+        "reader_time_us": 20552772
+      }
+    }
+  ],
+  "normalized_results": "/home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000/cpp-k1000.normalized.jsonl",
+  "local_artifact_directory": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/artifacts/native-cpp-k1000",
+  "local_normalized_results": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/results/native-cpp-k1000.jsonl"
+}

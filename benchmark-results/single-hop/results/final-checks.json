@@ -1,0 +1,49 @@
+{
+  "recorded_utc": "2026-10-21T19:21:19.806099+00:00",
+  "scope": "Final local code/tool checks; native focused tests and benchmark identity/validation are separate linked evidence.",
+  "commands": [
+    {
+      "command": "cargo fmt --all --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo clippy -p diskann -p diskann-disk --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m compileall -q tools/single-hop-benchmark",
+      "exit_code": 0
+    },
+    {
+      "command": "bash -n tools/single-hop-benchmark/native-rust-runs.sh tools/single-hop-benchmark/cpp-port/native-large-k.sh tools/single-hop-benchmark/cpp-port/native-build.sh",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- '*.rs' '*.toml' '*.md' '*.py' '*.sh'",
+      "exit_code": 0
+    }
+  ],
+  "native_test_evidence": [
+    "native-rust-build.json",
+    "rust-final-review.json",
+    "native-rust-final-harness.json"
+  ],
+  "authoritative_result_audit": "final-native-inventory.json",
+  "not_run": "Whole-workspace test/clippy/coverage CI; this change was checked with affected-crate clippy/all-targets, focused native tests, and full dataset integration benchmarks.",
+  "dependency_notice": "Cargo reports an existing future-incompatibility notice for proc-macro-error2 v2.0.1; targeted Clippy exits zero.",
+  "post_benchmark_verification": {
+    "recorded_utc": "2026-10-21T19:25:35.523036+00:00",
+    "native_host_check": "final-native-host-check.txt",
+    "final_binary_sha256": "5f5745b8d8d779de37e5f2a56aeb336772d80fa77133ca5f408108b5ce8d6d5e",
+    "matching_search_processes_remaining": 0,
+    "python_compileall_after_presentation_edit_exit_code": 0,
+    "diff_whitespace_check_after_presentation_edit_exit_code": 0,
+    "final_native_inventory_sha256": "d8a5e422e9c4809a5163efbf96bbd22f7d84659dbeed440743cce72b6312d503",
+    "excluded_diagnostic": {
+      "file": "rust-k1000-inline-quality.jsonl",
+      "timing_authoritative": false,
+      "queries": 256,
+      "short_results": 9
+    }
+  }
+}

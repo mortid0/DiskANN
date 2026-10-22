@@ -1,0 +1,62 @@
+{
+  "status": "all_three_pre_fix_failures_reproduced_and_post_fix_client_passes",
+  "source_files_edited_by_this_agent": [
+    "diskann-disk/src/filtered/persistence.rs"
+  ],
+  "persistence_sha256": "aeeb43005ef1e176f257cad8f04143a6207cb37ad03335d850a7e67954a092c5",
+  "repro_client": "/private/tmp/diskann-lifecycle-review-repro/src/main.rs",
+  "repro_command": "cargo run --offline --manifest-path /private/tmp/diskann-lifecycle-review-repro/Cargo.toml --target-dir /Users/mortid0/repos/github/DiskANN/target",
+  "before": {
+    "finite_f32_update": {
+      "acknowledged_sequence": 1,
+      "returned_distances": [
+        "0.0",
+        "1.0",
+        "inf"
+      ],
+      "compaction_error": "invalid squared L2 distance between rows 1 and 2"
+    },
+    "relative_root": {
+      "get_before_chdir": "Ok(Some(([0.0], [7])))",
+      "get_after_chdir": "ENOENT",
+      "compact_after_chdir": "ENOENT"
+    },
+    "partial_preparation": {
+      "callback_error": true,
+      "gc_removed": 0,
+      "staging_directories_left": 1
+    }
+  },
+  "focused_checks": {
+    "persistence_unit_tests_passed": 11,
+    "filtered_library_tests_passed": 34,
+    "filtered_integration_tests_passed": 8,
+    "clippy_lib_and_tests_warnings_as_errors": "passed"
+  },
+  "scope": "local client reproduction and correctness validation; no native host operations or performance claims",
+  "after": {
+    "finite_f32_update": {
+      "admission_rejected": true,
+      "reason": "f32 vector squared norm exceeds supported finite query-distance domain"
+    },
+    "relative_root": {
+      "get_before_chdir": "Ok(Some(([0.0], [7])))",
+      "get_after_chdir": "Ok(Some(([0.0], [7])))",
+      "compact_after_chdir_generation": 2
+    },
+    "partial_preparation": {
+      "callback_error": true,
+      "gc_removed": 0,
+      "staging_directories_left": 0,
+      "note": "normal preparation cleanup removed the staging directory before GC; separate integration tests cover crash-orphan GC"
+    }
+  },
+  "latest_combined_checks_reported_by_ads_agent": {
+    "filtered_builder_unit_tests": 35,
+    "lifecycle_integration_tests": 8,
+    "clippy_all_targets_warnings_as_errors": "passed",
+    "legacy_unsafe_f32_base_and_WAL_rejected": true,
+    "per_row_matrix_validation_regression": true,
+    "canonical_crash_orphan_staging_GC_tested": true
+  }
+}

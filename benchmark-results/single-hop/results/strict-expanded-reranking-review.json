@@ -1,0 +1,190 @@
+{
+  "created_at_utc": "2026-10-21T19:54:53.979571+00:00",
+  "scope": "Local implementation and focused regression review of experimental strict expanded reranking; no native build, operation, or performance run was performed for this fix by this agent.",
+  "status": "focused_regression_proven_and_local_checks_pass",
+  "source_sha256": {
+    "diskann/src/graph/search/single_hop_filter_search.rs": "505cffa43a381e95cb02957eac5976b400ac09654fedf177946912fe586ed466",
+    "diskann/src/graph/search/mod.rs": "6f76e1246ddfadf6e55b00cfe7b3eac2b174a389f01f1cab6296178d8087dbd1",
+    "diskann/src/graph/search/scratch.rs": "3003ab8d14a9a54335d17bcf9f195155698ef30a62c1980aac32e686feaa4edf",
+    "diskann/src/graph/ext/labeled.rs": "eb3e1576726162a7ac8d33fe6933fc874f822c5c6b8c9aa764d3b68aa0026ea6",
+    "diskann/src/neighbor/queue.rs": "d990262d1f9b534423909e2852dfad86ed7d459e1571304aad98882135c66d24",
+    "diskann-disk/src/search/search_mode.rs": "91fbd2cd76537b3ea9b259d452a17d4606069ee4e7f47369255c349ecffff706",
+    "diskann-disk/src/search/provider/disk_provider.rs": "fc528b96a6bfbea15910e54a9208b6024b519184aea5d9b4277b0a6a592a121d"
+  },
+  "behavior": {
+    "default": "SingleHopFilterSearch::new and SearchMode::single_hop_filter retain expanded candidates for exact reranking.",
+    "ablation": "SingleHopFilterSearch::with_frontier_reranking and SearchMode::single_hop_filter_frontier preserve the original final-PQ-frontier policy.",
+    "established_modes": "Graph, InlineFilter, MultihopFilter, FlatScan and DiverseGraph postprocessing defaults are unchanged.",
+    "pre_pq_filter": "expand_beam_accept_only is unchanged; rejected neighbor IDs do not reach PQ/vector distance evaluation.",
+    "traversal_state": "The strict traversal priority queue is fixed at exactly L. Matching dataset entry points consume ordinary frontier slots rather than adding frozen-point slots. Expanded candidate records are O(hops), unique under visited deduplication, and do not widen traversal. The disk exact-distance cache already retains O(hops) entries.",
+    "disk_io": "Expanded reranking accepts only IDs already present in the exact-distance cache; it performs no uncached rerank loads, including when the I/O budget truncates a selected beam."
+  },
+  "regression": {
+    "test": "exact_reranking_retains_expanded_winner_evicted_from_pq_frontier",
+    "l": 2,
+    "beam": 1,
+    "starting_ids": [
+      10
+    ],
+    "approximate_distances": {
+      "10": 100.0,
+      "0": 30.0,
+      "2": 20.0,
+      "4": 10.0,
+      "6": 5.0
+    },
+    "exact_distances": {
+      "10": 100.0,
+      "0": 0.0,
+      "2": 4.0,
+      "4": 16.0,
+      "6": 36.0
+    },
+    "rejected_neighbor": 1,
+    "matching_child_hidden_behind_rejected_neighbor": 8,
+    "expansion_trace_both_policies": [
+      10,
+      0,
+      2,
+      4,
+      6
+    ],
+    "frontier_candidates": [
+      6,
+      4
+    ],
+    "expanded_candidates": [
+      10,
+      0,
+      2,
+      4,
+      6
+    ],
+    "before_fix": {
+      "command": "cargo +1.97.1 test -p diskann exact_reranking_retains_expanded_winner_evicted_from_pq_frontier --offline -- --nocapture",
+      "exit_code": 101,
+      "failure": "assert exact winner ID 0; actual frontier-only winner ID 4"
+    },
+    "after_fix": {
+      "expanded_exact_winner": 0,
+      "frontier_exact_winner": 4,
+      "cmps_both": 5,
+      "hops_both": 5,
+      "provider_vector_distance_reads_both": 5
+    },
+    "causal_claim": "With no PQ or exact-distance ties and identical traversal, retaining expanded candidates recovers an exact winner evicted from the bounded PQ frontier. This proves the mechanism, not its numerical contribution to any benchmark label."
+  },
+  "finite_io_regression": {
+    "test": "single_hop_expanded_reranking_does_not_load_budget_truncated_beam",
+    "beam": 4,
+    "io_limit": 1,
+    "result_count": 1,
+    "result_id": 0,
+    "vertices_loaded": 1
+  },
+  "validation": {
+    "toolchain": "Rust 1.97.1, local aarch64-apple-darwin",
+    "tests": [
+      {
+        "command": "cargo +1.97.1 test -p diskann single_hop_filter_search --offline -- --nocapture",
+        "exit_code": 0,
+        "passed": 4
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk single_hop --offline -- --nocapture",
+        "exit_code": 0,
+        "passed": 3
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk test_search_with_vector_filter --offline",
+        "exit_code": 0,
+        "passed": 5
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk filtered_modes_respect_empty_entry_points --offline",
+        "exit_code": 0,
+        "passed": 1
+      }
+    ],
+    "total_focused_test_cases": 13,
+    "clippy": {
+      "command": "cargo +1.97.1 clippy -p diskann -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0,
+      "scope": "Full two-crate all-target check passed for the expanded-reranking change before the exact-L and separate lifecycle-module integration. The exact-L core was subsequently rechecked by the dedicated core all-target command below. The native lifecycle integration is independently in progress and must clear temporary dead-code warnings before its final whole-crate clippy."
+    },
+    "format": [
+      {
+        "command": "rustfmt +1.97.1 --check --edition 2024 diskann/src/graph/search/single_hop_filter_search.rs",
+        "exit_code": 0
+      },
+      {
+        "command": "rustfmt +1.97.1 --check --edition 2021 diskann-disk/src/search/search_mode.rs diskann-disk/src/search/provider/disk_provider.rs",
+        "exit_code": 0
+      }
+    ],
+    "note": "A dependency reports a future-incompatibility notice for proc-macro-error2; no denied warnings or test failures remain in the listed successful checks. Transient builder-module compilation failures during another agent's edits were retried after that owner corrected them.",
+    "core_clippy_after_exact_l": {
+      "command": "cargo +1.97.1 clippy -p diskann --all-targets --offline -- -D warnings",
+      "exit_code": 0,
+      "source_sha256": "505cffa43a381e95cb02957eac5976b400ac09654fedf177946912fe586ed466"
+    },
+    "disk_single_hop_after_exact_l": {
+      "command": "cargo +1.97.1 test -p diskann-disk single_hop --offline",
+      "exit_code": 0,
+      "passed": 3
+    }
+  },
+  "cpp_comparison": {
+    "pinned_commit": "78256bbab4685e1774e78d331e081a153be26823",
+    "source": {
+      "path": "/private/tmp/diskann-single-hop-cpp/src/pq_flash_index.cpp",
+      "sha256": "871804137ada6de1b848d5ecd287562da26495dc464e31c9912b64f511ea7b81",
+      "expanded_exact_candidates_lines": [
+        1507,
+        1572
+      ],
+      "sort_expanded_candidates_line": 1618
+    },
+    "separate_unmodified_differences": [
+      {
+        "kind": "PQ tie ordering",
+        "evidence": "C++ include/neighbor.h:25-28 orders by (distance, ID); Rust neighbor/queue.rs:142-168 and get_lower_bound:229 onward insert by distance alone. Ties can change boundary membership and traversal."
+      },
+      {
+        "kind": "Exact tie ordering",
+        "evidence": "C++ uses the same (distance, ID) comparator to sort full_retset. Rust disk_provider.rs:536 uses fast_distance with sort_unstable_by. Equal-distance results can differ in strict-ID recall without different distance quality."
+      },
+      {
+        "kind": "Multiple entry points",
+        "evidence": "C++ selects the closest PQ-scored label medoid, pq_flash_index.cpp:1383-1396; Rust accepts all supplied matching starts. Existing benchmark artifacts have one entry point per label, so this is not a difference for those artifacts."
+      }
+    ],
+    "performance_and_per_label_attribution": "Root is coordinating native expanded/frontier ablation; no native results are included in this local evidence. The test proves a candidate-loss mechanism and a queue-capacity difference without quantifying aggregate native performance.",
+    "resolved_capacity_difference": "Both strict policies now use exactly L, matching C++ retset.reserve(l_search); other Rust graph modes retain their existing L + frozen/start behavior."
+  },
+  "prior_native_evidence": {
+    "unchanged": true,
+    "note": "Existing frozen native results, rust-final-review.json and final-native-inventory.json describe the earlier frontier-only prototype and must not be presented as measurements of this change."
+  },
+  "updated_at_utc": "2026-10-21T19:58:03.815183+00:00",
+  "capacity_regression": {
+    "test": "dataset_entry_points_do_not_increase_strict_frontier_capacity",
+    "l": 1,
+    "starting_ids": [
+      10
+    ],
+    "before_fix_expansion_trace": [
+      10,
+      2,
+      0
+    ],
+    "before_fix_exit_code": 101,
+    "after_fix_expansion_trace_both_policies": [
+      10,
+      2
+    ],
+    "cmps_both": 3,
+    "hops_both": 2,
+    "scope": "Exact L applies to expanded and frontier strict policies only; established modes unchanged."
+  }
+}

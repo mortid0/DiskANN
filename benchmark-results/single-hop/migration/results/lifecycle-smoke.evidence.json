@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "timing_authoritative": false,
+  "scope": "functional512-row nativeRustPQ/SSD lifecycle; not capacity evidence",
+  "source": "diskann-disk/examples/filtered_lifecycle.rs",
+  "source_sha256": "b1580f6c2d595b16af06d9f38e6d2d158177dca7360a81b5d680735d623d7188",
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "diskann-disk",
+    "--example",
+    "filtered_lifecycle",
+    "--",
+    "--action",
+    "all",
+    "--root",
+    "/private/tmp/filtered-lifecycle-smoke-index",
+    "--prepared",
+    "/private/tmp/filtered-lifecycle-smoke-data",
+    "--out",
+    "benchmark-results/single-hop/migration/results/lifecycle-smoke.jsonl",
+    "--threads",
+    "2",
+    "--query-threads",
+    "2",
+    "--l",
+    "64",
+    "--reps",
+    "1",
+    "--pq-chunks",
+    "2",
+    "--label-degree",
+    "4",
+    "--degree",
+    "16",
+    "--build-l",
+    "12",
+    "--updates",
+    "100"
+  ],
+  "fixture": {
+    "base_rows": 512,
+    "dimensions": 8,
+    "seed": 17,
+    "generation": "Python random.Random(17);512vectors of8sequential randrange(256) values; queries vectors at i*7 for i0..15; label1 rows0..255; sentinel200386 rows256..511; exacttop10 sorted(integer squaredL2,ID)",
+    "files": {
+      "base.u8bin": {
+        "bytes": 4104,
+        "sha256": "c9bfc2bd24e27437b646f08dc30471c1c63f532c0aafbb288635f24845fae832"
+      },
+      "groundtruth.bin": {
+        "bytes": 1288,
+        "sha256": "8e1759056c79cce5838196649a028e9efe3c9ef2b465cdb1cc70a8f96a3e0aaa"
+      },
+      "label_1.u32bin": {
+        "bytes": 1032,
+        "sha256": "baaaf5a7e3f6df8a19b23406b54a2c73611bebc32b4bd5e6801c32e1fcadfdff"
+      },
+      "labels.txt": {
+        "bytes": 2304,
+        "sha256": "e978102e462a928a2dfb9f7267f15a6732746b23828ab469159a7e0932a039bd"
+      },
+      "query.u8bin": {
+        "bytes": 136,
+        "sha256": "ec005d070d29b64e5622f0dda41bb9cc2482a64e365dbc108b6c50a18b902fa0"
+      },
+      "query_labels.txt": {
+        "bytes": 32,
+        "sha256": "3ff41cf22d4c4544514802ce2aecc08eea6c0989c3fa2e735c545f1054b26b88"
+      },
+      "query_labels.u32bin": {
+        "bytes": 72,
+        "sha256": "4777a8fb5dbd712d5bececa10d0bd24a8ae109718f7358573344887f180be892"
+      }
+    }
+  },
+  "host": {
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.12.7 (main, Nov  9 2024, 15:23:03) [Clang 16.0.0 (clang-1600.0.26.4)]"
+  },
+  "checks": [
+    "cargo check -p diskann-disk --example filtered_lifecycle --no-default-features",
+    "cargo clippy -p diskann-disk --example filtered_lifecycle --no-default-features -- -D warnings"
+  ],
+  "outcome": {
+    "durable_mutations": 100,
+    "live_changed_records": 75,
+    "deletes": 25,
+    "probe_exact_recall_all_phases": 1.0,
+    "all_filter_violations": 0,
+    "all_duplicate_results": 0,
+    "all_short_results": 0,
+    "old_snapshots_consistent": true,
+    "durable_reopen_verified": true,
+    "collected_generations": 1,
+    "generation_after_compact": 2,
+    "sequence_after_reopen": 1
+  },
+  "output": "benchmark-results/single-hop/migration/results/lifecycle-smoke.jsonl"
+}

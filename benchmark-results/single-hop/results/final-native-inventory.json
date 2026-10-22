@@ -1,0 +1,2545 @@
+{
+  "frozen_at_utc": "2026-10-21T19:20:31.477566+00:00",
+  "status": "all_requested_checks_passed",
+  "scope": "Explicit authoritative native result allowlist only; diagnostic and smoke result JSONLs are excluded from the measurement inventory.",
+  "operations": {
+    "native_operations": false,
+    "builds_or_tests_run": false,
+    "local_read_only_analysis": true,
+    "written_artifact": "benchmark-results/single-hop/results/final-native-inventory.json"
+  },
+  "allowlist": [
+    "native-cpp-t8.jsonl",
+    "native-cpp-refine-t8.jsonl",
+    "native-cpp-midpoint-t8.jsonl",
+    "native-cpp-t1.jsonl",
+    "native-cpp-refine-t1.jsonl",
+    "native-cpp-k100.jsonl",
+    "native-cpp-k1000.jsonl",
+    "rust-main-t8-single.jsonl",
+    "rust-main-t8-single-refine.jsonl",
+    "rust-main-t8-multihop.jsonl",
+    "rust-main-t8-inline.jsonl",
+    "rust-main-t8-inline-high.jsonl",
+    "rust-main-t1-filtered.jsonl",
+    "rust-main-t1-inline.jsonl",
+    "rust-k100-filtered.jsonl",
+    "rust-k100-inline.jsonl",
+    "rust-k1000-filtered.jsonl"
+  ],
+  "files": [
+    {
+      "filename": "native-cpp-t8.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-t8.jsonl",
+      "sha256": "617e630da58d1d1afb4593cf6362fad625bb0c82b8ccb453a207a2ec9b966813",
+      "bytes": 159922,
+      "rows": 15,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.992,
+          "recall_max": 0.992
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 320,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9974500000000001,
+          "recall_max": 0.9974500000000001
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 40,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.91625,
+          "recall_max": 0.91625
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 640,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.99875,
+          "recall_max": 0.99875
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9721000000000001,
+          "recall_max": 0.9721000000000001
+        }
+      ],
+      "measured_query_executions": 30000
+    },
+    {
+      "filename": "native-cpp-refine-t8.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-refine-t8.jsonl",
+      "sha256": "5e478adac9a92328567323934999baf50003cf3e252a7c6e1487686da7277580",
+      "bytes": 129829,
+      "rows": 12,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 128,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9879,
+          "recall_max": 0.9879
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 144,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.99065,
+          "recall_max": 0.99065
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 56,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.94945,
+          "recall_max": 0.94945
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.96025,
+          "recall_max": 0.96025
+        }
+      ],
+      "measured_query_executions": 24000
+    },
+    {
+      "filename": "native-cpp-midpoint-t8.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-midpoint-t8.jsonl",
+      "sha256": "684b5285115b12774d6f8e80ef4034eb12b9e5b0af3f572fd058f19fc204bfd6",
+      "bytes": 32867,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9557,
+          "recall_max": 0.9557
+        }
+      ],
+      "measured_query_executions": 6000
+    },
+    {
+      "filename": "native-cpp-t1.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-t1.jsonl",
+      "sha256": "c2e8281e46754343e21a9813dd29620fde979167ef23e3dce8a74ad124223a7f",
+      "bytes": 32476,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 1,
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9721000000000001,
+          "recall_max": 0.9721000000000001
+        }
+      ],
+      "measured_query_executions": 6000
+    },
+    {
+      "filename": "native-cpp-refine-t1.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-refine-t1.jsonl",
+      "sha256": "049fede05f993bc3c277f150f328231279ff135530fa4b4564cab9d8c806b1cb",
+      "bytes": 32675,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 10,
+          "threads": 1,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.96025,
+          "recall_max": 0.96025
+        }
+      ],
+      "measured_query_executions": 6000
+    },
+    {
+      "filename": "native-cpp-k100.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-k100.jsonl",
+      "sha256": "f5c5026ea5eab2e3a2e97ac2278338cebea1aa387f1d80f7a3ec9508e0d526db",
+      "bytes": 30302,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 100,
+          "threads": 8,
+          "l": 400,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9703125,
+          "recall_max": 0.9703125
+        }
+      ],
+      "measured_query_executions": 768
+    },
+    {
+      "filename": "native-cpp-k1000.jsonl",
+      "path": "benchmark-results/single-hop/results/native-cpp-k1000.jsonl",
+      "sha256": "f551e93cd662d4d6551e754c7589afa7a56e446f35c36809e91bd2fa008c7a12",
+      "bytes": 31085,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "k": 1000,
+          "threads": 8,
+          "l": 4000,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9880078125,
+          "recall_max": 0.9880078125
+        }
+      ],
+      "measured_query_executions": 768
+    },
+    {
+      "filename": "rust-main-t8-single.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t8-single.jsonl",
+      "sha256": "afa3744c33bd6dcfe4c256156e9959758783dba9f40313e533a3f7ba0a83e6f9",
+      "bytes": 142960,
+      "rows": 15,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9892500000000024,
+          "recall_max": 0.9892500000000024
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 320,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.994550000000001,
+          "recall_max": 0.994550000000001
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 40,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9099000000000043,
+          "recall_max": 0.9099000000000043
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 640,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9958000000000009,
+          "recall_max": 0.9958000000000009
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9685500000000039,
+          "recall_max": 0.9685500000000039
+        }
+      ],
+      "measured_query_executions": 30000
+    },
+    {
+      "filename": "rust-main-t8-single-refine.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t8-single-refine.jsonl",
+      "sha256": "495ef19589e249c82431e81af9402afb4c5786c6f2e2a61370f42033a9dc4423",
+      "bytes": 143458,
+      "rows": 15,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 176,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.990550000000002,
+          "recall_max": 0.990550000000002
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 192,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9916500000000017,
+          "recall_max": 0.9916500000000017
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 56,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9447500000000048,
+          "recall_max": 0.9447500000000048
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9511000000000045,
+          "recall_max": 0.9511000000000045
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 8,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9561000000000047,
+          "recall_max": 0.9561000000000047
+        }
+      ],
+      "measured_query_executions": 30000
+    },
+    {
+      "filename": "rust-main-t8-multihop.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t8-multihop.jsonl",
+      "sha256": "ec75519fe64efe44f207ff749c6ac1247d91dd0e6d9a18ed9ce0364f759af88d",
+      "bytes": 204404,
+      "rows": 21,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 128,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9865000000000026,
+          "recall_max": 0.9865000000000026
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 144,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9890500000000022,
+          "recall_max": 0.9890500000000022
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9906500000000023,
+          "recall_max": 0.9906500000000023
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 48,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9353000000000044,
+          "recall_max": 0.9353000000000044
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 56,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9481000000000047,
+          "recall_max": 0.9481000000000047
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9585500000000047,
+          "recall_max": 0.9585500000000047
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 8,
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9713500000000036,
+          "recall_max": 0.9713500000000036
+        }
+      ],
+      "measured_query_executions": 42000
+    },
+    {
+      "filename": "rust-main-t8-inline.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t8-inline.jsonl",
+      "sha256": "aafe8a15de3285ed7331a08d03168db72ec2a304f78fe245af7fbb14677d5c9d",
+      "bytes": 146279,
+      "rows": 15,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 1024,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9838500000000013,
+          "recall_max": 0.9838500000000013
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 1280,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9858500000000017,
+          "recall_max": 0.9858500000000017
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 256,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.948750000000004,
+          "recall_max": 0.948750000000004
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 320,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9578000000000033,
+          "recall_max": 0.9578000000000033
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 640,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9767500000000017,
+          "recall_max": 0.9767500000000017
+        }
+      ],
+      "measured_query_executions": 30000
+    },
+    {
+      "filename": "rust-main-t8-inline-high.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t8-inline-high.jsonl",
+      "sha256": "74b22cf83802e3f270a991bc0dffdf04fd9cafc5d331b5acce7cef5ea7fc4054",
+      "bytes": 29364,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 8,
+          "l": 2560,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9911500000000015,
+          "recall_max": 0.9911500000000015
+        }
+      ],
+      "measured_query_executions": 6000
+    },
+    {
+      "filename": "rust-main-t1-filtered.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t1-filtered.jsonl",
+      "sha256": "873ab94185105a1a678ee97e03c8ddbd11b40bd56b0f0495521f8693066208bb",
+      "bytes": 57691,
+      "rows": 6,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 10,
+          "threads": 1,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9585500000000047,
+          "recall_max": 0.9585500000000047
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 10,
+          "threads": 1,
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9561000000000047,
+          "recall_max": 0.9561000000000047
+        }
+      ],
+      "measured_query_executions": 12000
+    },
+    {
+      "filename": "rust-main-t1-inline.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-main-t1-inline.jsonl",
+      "sha256": "0080d023098d7ce0d76d638f3b3bb29cc0191308470887d143af2205a6aca264",
+      "bytes": 29695,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 10,
+          "threads": 1,
+          "l": 320,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 2000,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9578000000000033,
+          "recall_max": 0.9578000000000033
+        }
+      ],
+      "measured_query_executions": 6000
+    },
+    {
+      "filename": "rust-k100-filtered.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-k100-filtered.jsonl",
+      "sha256": "52823cd5fbf04e6fd00babe2ebdb1682c6fac1342195b4b6eee0f14a09e8c8c1",
+      "bytes": 52996,
+      "rows": 6,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 100,
+          "threads": 8,
+          "l": 400,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9695703124999998,
+          "recall_max": 0.9695703124999998
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 100,
+          "threads": 8,
+          "l": 400,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9701171874999998,
+          "recall_max": 0.9701171874999998
+        }
+      ],
+      "measured_query_executions": 1536
+    },
+    {
+      "filename": "rust-k100-inline.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-k100-inline.jsonl",
+      "sha256": "56cfc4f1d977650d6e4daf61a634d2e48493721c7aba54c5288dd1717b6b3f5a",
+      "bytes": 27004,
+      "rows": 3,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "k": 100,
+          "threads": 8,
+          "l": 6400,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9631640625000006,
+          "recall_max": 0.9631640625000006
+        }
+      ],
+      "measured_query_executions": 768
+    },
+    {
+      "filename": "rust-k1000-filtered.jsonl",
+      "path": "benchmark-results/single-hop/results/rust-k1000-filtered.jsonl",
+      "sha256": "5a713e25ac14c392a03119d0da21dd5fe5e0b0775185423ea471a79153fae41c",
+      "bytes": 53957,
+      "rows": 6,
+      "profiles": [
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "k": 1000,
+          "threads": 8,
+          "l": 4000,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9879335937499998,
+          "recall_max": 0.9879335937499998
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "k": 1000,
+          "threads": 8,
+          "l": 4000,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "queries": 256,
+          "repetitions": 3,
+          "repeat_ids": [
+            0,
+            1,
+            2
+          ],
+          "recall_min": 0.9879882812500003,
+          "recall_max": 0.9879882812500003
+        }
+      ],
+      "measured_query_executions": 1536
+    }
+  ],
+  "identity_compatibility_strata": [
+    {
+      "k": 10,
+      "threads": 1,
+      "queries": 2000,
+      "compatible": true,
+      "identity": {
+        "prepared_identity": "01f27cfeab9a3568e21f7487eca3567574e4568e29335c36c20ddf70a5cf41d7:1382b41e0df681fbfac28efdcbc75508a8dc0f3c1bdba9a8a796a2cbaac8e248:1dc75cc5717a9985c628984ea4b0a4024e0bf5be184588efb58fa405d7d330b4:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "n_base": 10000000,
+        "queries": 2000,
+        "k": 10,
+        "threads": 1,
+        "beam": 4,
+        "starts": "label",
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true
+      },
+      "label_cohort": [
+        {
+          "label": 1,
+          "eligible": 266844,
+          "queries": 43
+        },
+        {
+          "label": 2,
+          "eligible": 581971,
+          "queries": 43
+        },
+        {
+          "label": 3,
+          "eligible": 948589,
+          "queries": 43
+        },
+        {
+          "label": 4,
+          "eligible": 1133362,
+          "queries": 43
+        },
+        {
+          "label": 5,
+          "eligible": 1235270,
+          "queries": 43
+        },
+        {
+          "label": 6,
+          "eligible": 1284396,
+          "queries": 43
+        },
+        {
+          "label": 7,
+          "eligible": 1333819,
+          "queries": 43
+        },
+        {
+          "label": 8,
+          "eligible": 1379732,
+          "queries": 43
+        },
+        {
+          "label": 9,
+          "eligible": 1310314,
+          "queries": 43
+        },
+        {
+          "label": 10,
+          "eligible": 287690,
+          "queries": 43
+        },
+        {
+          "label": 11,
+          "eligible": 679536,
+          "queries": 42
+        },
+        {
+          "label": 12,
+          "eligible": 648527,
+          "queries": 42
+        },
+        {
+          "label": 14,
+          "eligible": 863883,
+          "queries": 24
+        },
+        {
+          "label": 15,
+          "eligible": 905943,
+          "queries": 32
+        },
+        {
+          "label": 17,
+          "eligible": 991156,
+          "queries": 42
+        },
+        {
+          "label": 20,
+          "eligible": 851688,
+          "queries": 42
+        },
+        {
+          "label": 21,
+          "eligible": 688177,
+          "queries": 42
+        },
+        {
+          "label": 22,
+          "eligible": 687483,
+          "queries": 15
+        },
+        {
+          "label": 24,
+          "eligible": 499079,
+          "queries": 42
+        },
+        {
+          "label": 25,
+          "eligible": 176508,
+          "queries": 42
+        },
+        {
+          "label": 28,
+          "eligible": 705726,
+          "queries": 42
+        },
+        {
+          "label": 29,
+          "eligible": 1915985,
+          "queries": 42
+        },
+        {
+          "label": 35,
+          "eligible": 368312,
+          "queries": 42
+        },
+        {
+          "label": 36,
+          "eligible": 146104,
+          "queries": 42
+        },
+        {
+          "label": 44,
+          "eligible": 29097,
+          "queries": 23
+        },
+        {
+          "label": 89,
+          "eligible": 1707412,
+          "queries": 42
+        },
+        {
+          "label": 90,
+          "eligible": 180512,
+          "queries": 42
+        },
+        {
+          "label": 95,
+          "eligible": 110695,
+          "queries": 42
+        },
+        {
+          "label": 98,
+          "eligible": 180067,
+          "queries": 42
+        },
+        {
+          "label": 103,
+          "eligible": 137207,
+          "queries": 42
+        },
+        {
+          "label": 107,
+          "eligible": 105398,
+          "queries": 42
+        },
+        {
+          "label": 132,
+          "eligible": 28818,
+          "queries": 17
+        },
+        {
+          "label": 336,
+          "eligible": 145691,
+          "queries": 42
+        },
+        {
+          "label": 341,
+          "eligible": 32880,
+          "queries": 42
+        },
+        {
+          "label": 345,
+          "eligible": 348810,
+          "queries": 42
+        },
+        {
+          "label": 522,
+          "eligible": 36472,
+          "queries": 32
+        },
+        {
+          "label": 706,
+          "eligible": 16174,
+          "queries": 12
+        },
+        {
+          "label": 816,
+          "eligible": 22811,
+          "queries": 14
+        },
+        {
+          "label": 832,
+          "eligible": 12260,
+          "queries": 22
+        },
+        {
+          "label": 1016,
+          "eligible": 9166,
+          "queries": 10
+        },
+        {
+          "label": 1227,
+          "eligible": 6333,
+          "queries": 10
+        },
+        {
+          "label": 1444,
+          "eligible": 26946,
+          "queries": 10
+        },
+        {
+          "label": 1548,
+          "eligible": 46790,
+          "queries": 42
+        },
+        {
+          "label": 1643,
+          "eligible": 27999,
+          "queries": 42
+        },
+        {
+          "label": 1835,
+          "eligible": 7781,
+          "queries": 13
+        },
+        {
+          "label": 2027,
+          "eligible": 36166,
+          "queries": 42
+        },
+        {
+          "label": 2314,
+          "eligible": 23858,
+          "queries": 32
+        },
+        {
+          "label": 2495,
+          "eligible": 48589,
+          "queries": 42
+        },
+        {
+          "label": 2556,
+          "eligible": 8744,
+          "queries": 12
+        },
+        {
+          "label": 3030,
+          "eligible": 35681,
+          "queries": 14
+        },
+        {
+          "label": 3428,
+          "eligible": 20430,
+          "queries": 19
+        },
+        {
+          "label": 3677,
+          "eligible": 31056,
+          "queries": 27
+        },
+        {
+          "label": 3901,
+          "eligible": 12526,
+          "queries": 21
+        },
+        {
+          "label": 3908,
+          "eligible": 23248,
+          "queries": 22
+        },
+        {
+          "label": 3918,
+          "eligible": 16937,
+          "queries": 12
+        },
+        {
+          "label": 4736,
+          "eligible": 33444,
+          "queries": 34
+        },
+        {
+          "label": 5518,
+          "eligible": 39635,
+          "queries": 20
+        },
+        {
+          "label": 6182,
+          "eligible": 17452,
+          "queries": 15
+        },
+        {
+          "label": 7546,
+          "eligible": 38059,
+          "queries": 22
+        },
+        {
+          "label": 8663,
+          "eligible": 19597,
+          "queries": 25
+        },
+        {
+          "label": 8770,
+          "eligible": 7922,
+          "queries": 22
+        },
+        {
+          "label": 11614,
+          "eligible": 6964,
+          "queries": 10
+        },
+        {
+          "label": 13604,
+          "eligible": 7469,
+          "queries": 11
+        },
+        {
+          "label": 17875,
+          "eligible": 5936,
+          "queries": 10
+        }
+      ],
+      "files": [
+        "native-cpp-refine-t1.jsonl",
+        "native-cpp-t1.jsonl",
+        "rust-main-t1-filtered.jsonl",
+        "rust-main-t1-inline.jsonl"
+      ],
+      "rows": 15,
+      "profiles": 5
+    },
+    {
+      "k": 10,
+      "threads": 8,
+      "queries": 2000,
+      "compatible": true,
+      "identity": {
+        "prepared_identity": "01f27cfeab9a3568e21f7487eca3567574e4568e29335c36c20ddf70a5cf41d7:1382b41e0df681fbfac28efdcbc75508a8dc0f3c1bdba9a8a796a2cbaac8e248:1dc75cc5717a9985c628984ea4b0a4024e0bf5be184588efb58fa405d7d330b4:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "n_base": 10000000,
+        "queries": 2000,
+        "k": 10,
+        "threads": 8,
+        "beam": 4,
+        "starts": "label",
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true
+      },
+      "label_cohort": [
+        {
+          "label": 1,
+          "eligible": 266844,
+          "queries": 43
+        },
+        {
+          "label": 2,
+          "eligible": 581971,
+          "queries": 43
+        },
+        {
+          "label": 3,
+          "eligible": 948589,
+          "queries": 43
+        },
+        {
+          "label": 4,
+          "eligible": 1133362,
+          "queries": 43
+        },
+        {
+          "label": 5,
+          "eligible": 1235270,
+          "queries": 43
+        },
+        {
+          "label": 6,
+          "eligible": 1284396,
+          "queries": 43
+        },
+        {
+          "label": 7,
+          "eligible": 1333819,
+          "queries": 43
+        },
+        {
+          "label": 8,
+          "eligible": 1379732,
+          "queries": 43
+        },
+        {
+          "label": 9,
+          "eligible": 1310314,
+          "queries": 43
+        },
+        {
+          "label": 10,
+          "eligible": 287690,
+          "queries": 43
+        },
+        {
+          "label": 11,
+          "eligible": 679536,
+          "queries": 42
+        },
+        {
+          "label": 12,
+          "eligible": 648527,
+          "queries": 42
+        },
+        {
+          "label": 14,
+          "eligible": 863883,
+          "queries": 24
+        },
+        {
+          "label": 15,
+          "eligible": 905943,
+          "queries": 32
+        },
+        {
+          "label": 17,
+          "eligible": 991156,
+          "queries": 42
+        },
+        {
+          "label": 20,
+          "eligible": 851688,
+          "queries": 42
+        },
+        {
+          "label": 21,
+          "eligible": 688177,
+          "queries": 42
+        },
+        {
+          "label": 22,
+          "eligible": 687483,
+          "queries": 15
+        },
+        {
+          "label": 24,
+          "eligible": 499079,
+          "queries": 42
+        },
+        {
+          "label": 25,
+          "eligible": 176508,
+          "queries": 42
+        },
+        {
+          "label": 28,
+          "eligible": 705726,
+          "queries": 42
+        },
+        {
+          "label": 29,
+          "eligible": 1915985,
+          "queries": 42
+        },
+        {
+          "label": 35,
+          "eligible": 368312,
+          "queries": 42
+        },
+        {
+          "label": 36,
+          "eligible": 146104,
+          "queries": 42
+        },
+        {
+          "label": 44,
+          "eligible": 29097,
+          "queries": 23
+        },
+        {
+          "label": 89,
+          "eligible": 1707412,
+          "queries": 42
+        },
+        {
+          "label": 90,
+          "eligible": 180512,
+          "queries": 42
+        },
+        {
+          "label": 95,
+          "eligible": 110695,
+          "queries": 42
+        },
+        {
+          "label": 98,
+          "eligible": 180067,
+          "queries": 42
+        },
+        {
+          "label": 103,
+          "eligible": 137207,
+          "queries": 42
+        },
+        {
+          "label": 107,
+          "eligible": 105398,
+          "queries": 42
+        },
+        {
+          "label": 132,
+          "eligible": 28818,
+          "queries": 17
+        },
+        {
+          "label": 336,
+          "eligible": 145691,
+          "queries": 42
+        },
+        {
+          "label": 341,
+          "eligible": 32880,
+          "queries": 42
+        },
+        {
+          "label": 345,
+          "eligible": 348810,
+          "queries": 42
+        },
+        {
+          "label": 522,
+          "eligible": 36472,
+          "queries": 32
+        },
+        {
+          "label": 706,
+          "eligible": 16174,
+          "queries": 12
+        },
+        {
+          "label": 816,
+          "eligible": 22811,
+          "queries": 14
+        },
+        {
+          "label": 832,
+          "eligible": 12260,
+          "queries": 22
+        },
+        {
+          "label": 1016,
+          "eligible": 9166,
+          "queries": 10
+        },
+        {
+          "label": 1227,
+          "eligible": 6333,
+          "queries": 10
+        },
+        {
+          "label": 1444,
+          "eligible": 26946,
+          "queries": 10
+        },
+        {
+          "label": 1548,
+          "eligible": 46790,
+          "queries": 42
+        },
+        {
+          "label": 1643,
+          "eligible": 27999,
+          "queries": 42
+        },
+        {
+          "label": 1835,
+          "eligible": 7781,
+          "queries": 13
+        },
+        {
+          "label": 2027,
+          "eligible": 36166,
+          "queries": 42
+        },
+        {
+          "label": 2314,
+          "eligible": 23858,
+          "queries": 32
+        },
+        {
+          "label": 2495,
+          "eligible": 48589,
+          "queries": 42
+        },
+        {
+          "label": 2556,
+          "eligible": 8744,
+          "queries": 12
+        },
+        {
+          "label": 3030,
+          "eligible": 35681,
+          "queries": 14
+        },
+        {
+          "label": 3428,
+          "eligible": 20430,
+          "queries": 19
+        },
+        {
+          "label": 3677,
+          "eligible": 31056,
+          "queries": 27
+        },
+        {
+          "label": 3901,
+          "eligible": 12526,
+          "queries": 21
+        },
+        {
+          "label": 3908,
+          "eligible": 23248,
+          "queries": 22
+        },
+        {
+          "label": 3918,
+          "eligible": 16937,
+          "queries": 12
+        },
+        {
+          "label": 4736,
+          "eligible": 33444,
+          "queries": 34
+        },
+        {
+          "label": 5518,
+          "eligible": 39635,
+          "queries": 20
+        },
+        {
+          "label": 6182,
+          "eligible": 17452,
+          "queries": 15
+        },
+        {
+          "label": 7546,
+          "eligible": 38059,
+          "queries": 22
+        },
+        {
+          "label": 8663,
+          "eligible": 19597,
+          "queries": 25
+        },
+        {
+          "label": 8770,
+          "eligible": 7922,
+          "queries": 22
+        },
+        {
+          "label": 11614,
+          "eligible": 6964,
+          "queries": 10
+        },
+        {
+          "label": 13604,
+          "eligible": 7469,
+          "queries": 11
+        },
+        {
+          "label": 17875,
+          "eligible": 5936,
+          "queries": 10
+        }
+      ],
+      "files": [
+        "native-cpp-midpoint-t8.jsonl",
+        "native-cpp-refine-t8.jsonl",
+        "native-cpp-t8.jsonl",
+        "rust-main-t8-inline-high.jsonl",
+        "rust-main-t8-inline.jsonl",
+        "rust-main-t8-multihop.jsonl",
+        "rust-main-t8-single-refine.jsonl",
+        "rust-main-t8-single.jsonl"
+      ],
+      "rows": 99,
+      "profiles": 33
+    },
+    {
+      "k": 100,
+      "threads": 8,
+      "queries": 256,
+      "compatible": true,
+      "identity": {
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:355fb0ea2c8f34354a39727287f7fed3faa9e407de80fbaf8babe691ad00f288:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "n_base": 10000000,
+        "queries": 256,
+        "k": 100,
+        "threads": 8,
+        "beam": 4,
+        "starts": "label",
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true
+      },
+      "label_cohort": [
+        {
+          "label": 1,
+          "eligible": 266844,
+          "queries": 4
+        },
+        {
+          "label": 2,
+          "eligible": 581971,
+          "queries": 4
+        },
+        {
+          "label": 3,
+          "eligible": 948589,
+          "queries": 4
+        },
+        {
+          "label": 4,
+          "eligible": 1133362,
+          "queries": 4
+        },
+        {
+          "label": 5,
+          "eligible": 1235270,
+          "queries": 4
+        },
+        {
+          "label": 6,
+          "eligible": 1284396,
+          "queries": 4
+        },
+        {
+          "label": 7,
+          "eligible": 1333819,
+          "queries": 4
+        },
+        {
+          "label": 8,
+          "eligible": 1379732,
+          "queries": 4
+        },
+        {
+          "label": 9,
+          "eligible": 1310314,
+          "queries": 4
+        },
+        {
+          "label": 10,
+          "eligible": 287690,
+          "queries": 4
+        },
+        {
+          "label": 11,
+          "eligible": 679536,
+          "queries": 4
+        },
+        {
+          "label": 12,
+          "eligible": 648527,
+          "queries": 4
+        },
+        {
+          "label": 14,
+          "eligible": 863883,
+          "queries": 4
+        },
+        {
+          "label": 15,
+          "eligible": 905943,
+          "queries": 4
+        },
+        {
+          "label": 17,
+          "eligible": 991156,
+          "queries": 4
+        },
+        {
+          "label": 20,
+          "eligible": 851688,
+          "queries": 4
+        },
+        {
+          "label": 21,
+          "eligible": 688177,
+          "queries": 4
+        },
+        {
+          "label": 22,
+          "eligible": 687483,
+          "queries": 4
+        },
+        {
+          "label": 24,
+          "eligible": 499079,
+          "queries": 4
+        },
+        {
+          "label": 25,
+          "eligible": 176508,
+          "queries": 4
+        },
+        {
+          "label": 28,
+          "eligible": 705726,
+          "queries": 4
+        },
+        {
+          "label": 29,
+          "eligible": 1915985,
+          "queries": 4
+        },
+        {
+          "label": 35,
+          "eligible": 368312,
+          "queries": 4
+        },
+        {
+          "label": 36,
+          "eligible": 146104,
+          "queries": 4
+        },
+        {
+          "label": 44,
+          "eligible": 29097,
+          "queries": 4
+        },
+        {
+          "label": 89,
+          "eligible": 1707412,
+          "queries": 4
+        },
+        {
+          "label": 90,
+          "eligible": 180512,
+          "queries": 4
+        },
+        {
+          "label": 95,
+          "eligible": 110695,
+          "queries": 4
+        },
+        {
+          "label": 98,
+          "eligible": 180067,
+          "queries": 4
+        },
+        {
+          "label": 103,
+          "eligible": 137207,
+          "queries": 4
+        },
+        {
+          "label": 107,
+          "eligible": 105398,
+          "queries": 4
+        },
+        {
+          "label": 132,
+          "eligible": 28818,
+          "queries": 4
+        },
+        {
+          "label": 336,
+          "eligible": 145691,
+          "queries": 4
+        },
+        {
+          "label": 341,
+          "eligible": 32880,
+          "queries": 4
+        },
+        {
+          "label": 345,
+          "eligible": 348810,
+          "queries": 4
+        },
+        {
+          "label": 522,
+          "eligible": 36472,
+          "queries": 4
+        },
+        {
+          "label": 706,
+          "eligible": 16174,
+          "queries": 4
+        },
+        {
+          "label": 816,
+          "eligible": 22811,
+          "queries": 4
+        },
+        {
+          "label": 832,
+          "eligible": 12260,
+          "queries": 4
+        },
+        {
+          "label": 1016,
+          "eligible": 9166,
+          "queries": 4
+        },
+        {
+          "label": 1227,
+          "eligible": 6333,
+          "queries": 4
+        },
+        {
+          "label": 1444,
+          "eligible": 26946,
+          "queries": 4
+        },
+        {
+          "label": 1548,
+          "eligible": 46790,
+          "queries": 4
+        },
+        {
+          "label": 1643,
+          "eligible": 27999,
+          "queries": 4
+        },
+        {
+          "label": 1835,
+          "eligible": 7781,
+          "queries": 4
+        },
+        {
+          "label": 2027,
+          "eligible": 36166,
+          "queries": 4
+        },
+        {
+          "label": 2314,
+          "eligible": 23858,
+          "queries": 4
+        },
+        {
+          "label": 2495,
+          "eligible": 48589,
+          "queries": 4
+        },
+        {
+          "label": 2556,
+          "eligible": 8744,
+          "queries": 4
+        },
+        {
+          "label": 3030,
+          "eligible": 35681,
+          "queries": 4
+        },
+        {
+          "label": 3428,
+          "eligible": 20430,
+          "queries": 4
+        },
+        {
+          "label": 3677,
+          "eligible": 31056,
+          "queries": 4
+        },
+        {
+          "label": 3901,
+          "eligible": 12526,
+          "queries": 4
+        },
+        {
+          "label": 3908,
+          "eligible": 23248,
+          "queries": 4
+        },
+        {
+          "label": 3918,
+          "eligible": 16937,
+          "queries": 4
+        },
+        {
+          "label": 4736,
+          "eligible": 33444,
+          "queries": 4
+        },
+        {
+          "label": 5518,
+          "eligible": 39635,
+          "queries": 4
+        },
+        {
+          "label": 6182,
+          "eligible": 17452,
+          "queries": 4
+        },
+        {
+          "label": 7546,
+          "eligible": 38059,
+          "queries": 4
+        },
+        {
+          "label": 8663,
+          "eligible": 19597,
+          "queries": 4
+        },
+        {
+          "label": 8770,
+          "eligible": 7922,
+          "queries": 4
+        },
+        {
+          "label": 11614,
+          "eligible": 6964,
+          "queries": 4
+        },
+        {
+          "label": 13604,
+          "eligible": 7469,
+          "queries": 4
+        },
+        {
+          "label": 17875,
+          "eligible": 5936,
+          "queries": 4
+        }
+      ],
+      "files": [
+        "native-cpp-k100.jsonl",
+        "rust-k100-filtered.jsonl",
+        "rust-k100-inline.jsonl"
+      ],
+      "rows": 12,
+      "profiles": 4
+    },
+    {
+      "k": 1000,
+      "threads": 8,
+      "queries": 256,
+      "compatible": true,
+      "identity": {
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "n_base": 10000000,
+        "queries": 256,
+        "k": 1000,
+        "threads": 8,
+        "beam": 4,
+        "starts": "label",
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true
+      },
+      "label_cohort": [
+        {
+          "label": 1,
+          "eligible": 266844,
+          "queries": 4
+        },
+        {
+          "label": 2,
+          "eligible": 581971,
+          "queries": 4
+        },
+        {
+          "label": 3,
+          "eligible": 948589,
+          "queries": 4
+        },
+        {
+          "label": 4,
+          "eligible": 1133362,
+          "queries": 4
+        },
+        {
+          "label": 5,
+          "eligible": 1235270,
+          "queries": 4
+        },
+        {
+          "label": 6,
+          "eligible": 1284396,
+          "queries": 4
+        },
+        {
+          "label": 7,
+          "eligible": 1333819,
+          "queries": 4
+        },
+        {
+          "label": 8,
+          "eligible": 1379732,
+          "queries": 4
+        },
+        {
+          "label": 9,
+          "eligible": 1310314,
+          "queries": 4
+        },
+        {
+          "label": 10,
+          "eligible": 287690,
+          "queries": 4
+        },
+        {
+          "label": 11,
+          "eligible": 679536,
+          "queries": 4
+        },
+        {
+          "label": 12,
+          "eligible": 648527,
+          "queries": 4
+        },
+        {
+          "label": 14,
+          "eligible": 863883,
+          "queries": 4
+        },
+        {
+          "label": 15,
+          "eligible": 905943,
+          "queries": 4
+        },
+        {
+          "label": 17,
+          "eligible": 991156,
+          "queries": 4
+        },
+        {
+          "label": 20,
+          "eligible": 851688,
+          "queries": 4
+        },
+        {
+          "label": 21,
+          "eligible": 688177,
+          "queries": 4
+        },
+        {
+          "label": 22,
+          "eligible": 687483,
+          "queries": 4
+        },
+        {
+          "label": 24,
+          "eligible": 499079,
+          "queries": 4
+        },
+        {
+          "label": 25,
+          "eligible": 176508,
+          "queries": 4
+        },
+        {
+          "label": 28,
+          "eligible": 705726,
+          "queries": 4
+        },
+        {
+          "label": 29,
+          "eligible": 1915985,
+          "queries": 4
+        },
+        {
+          "label": 35,
+          "eligible": 368312,
+          "queries": 4
+        },
+        {
+          "label": 36,
+          "eligible": 146104,
+          "queries": 4
+        },
+        {
+          "label": 44,
+          "eligible": 29097,
+          "queries": 4
+        },
+        {
+          "label": 89,
+          "eligible": 1707412,
+          "queries": 4
+        },
+        {
+          "label": 90,
+          "eligible": 180512,
+          "queries": 4
+        },
+        {
+          "label": 95,
+          "eligible": 110695,
+          "queries": 4
+        },
+        {
+          "label": 98,
+          "eligible": 180067,
+          "queries": 4
+        },
+        {
+          "label": 103,
+          "eligible": 137207,
+          "queries": 4
+        },
+        {
+          "label": 107,
+          "eligible": 105398,
+          "queries": 4
+        },
+        {
+          "label": 132,
+          "eligible": 28818,
+          "queries": 4
+        },
+        {
+          "label": 336,
+          "eligible": 145691,
+          "queries": 4
+        },
+        {
+          "label": 341,
+          "eligible": 32880,
+          "queries": 4
+        },
+        {
+          "label": 345,
+          "eligible": 348810,
+          "queries": 4
+        },
+        {
+          "label": 522,
+          "eligible": 36472,
+          "queries": 4
+        },
+        {
+          "label": 706,
+          "eligible": 16174,
+          "queries": 4
+        },
+        {
+          "label": 816,
+          "eligible": 22811,
+          "queries": 4
+        },
+        {
+          "label": 832,
+          "eligible": 12260,
+          "queries": 4
+        },
+        {
+          "label": 1016,
+          "eligible": 9166,
+          "queries": 4
+        },
+        {
+          "label": 1227,
+          "eligible": 6333,
+          "queries": 4
+        },
+        {
+          "label": 1444,
+          "eligible": 26946,
+          "queries": 4
+        },
+        {
+          "label": 1548,
+          "eligible": 46790,
+          "queries": 4
+        },
+        {
+          "label": 1643,
+          "eligible": 27999,
+          "queries": 4
+        },
+        {
+          "label": 1835,
+          "eligible": 7781,
+          "queries": 4
+        },
+        {
+          "label": 2027,
+          "eligible": 36166,
+          "queries": 4
+        },
+        {
+          "label": 2314,
+          "eligible": 23858,
+          "queries": 4
+        },
+        {
+          "label": 2495,
+          "eligible": 48589,
+          "queries": 4
+        },
+        {
+          "label": 2556,
+          "eligible": 8744,
+          "queries": 4
+        },
+        {
+          "label": 3030,
+          "eligible": 35681,
+          "queries": 4
+        },
+        {
+          "label": 3428,
+          "eligible": 20430,
+          "queries": 4
+        },
+        {
+          "label": 3677,
+          "eligible": 31056,
+          "queries": 4
+        },
+        {
+          "label": 3901,
+          "eligible": 12526,
+          "queries": 4
+        },
+        {
+          "label": 3908,
+          "eligible": 23248,
+          "queries": 4
+        },
+        {
+          "label": 3918,
+          "eligible": 16937,
+          "queries": 4
+        },
+        {
+          "label": 4736,
+          "eligible": 33444,
+          "queries": 4
+        },
+        {
+          "label": 5518,
+          "eligible": 39635,
+          "queries": 4
+        },
+        {
+          "label": 6182,
+          "eligible": 17452,
+          "queries": 4
+        },
+        {
+          "label": 7546,
+          "eligible": 38059,
+          "queries": 4
+        },
+        {
+          "label": 8663,
+          "eligible": 19597,
+          "queries": 4
+        },
+        {
+          "label": 8770,
+          "eligible": 7922,
+          "queries": 4
+        },
+        {
+          "label": 11614,
+          "eligible": 6964,
+          "queries": 4
+        },
+        {
+          "label": 13604,
+          "eligible": 7469,
+          "queries": 4
+        },
+        {
+          "label": 17875,
+          "eligible": 5936,
+          "queries": 4
+        }
+      ],
+      "files": [
+        "native-cpp-k1000.jsonl",
+        "rust-k1000-filtered.jsonl"
+      ],
+      "rows": 9,
+      "profiles": 3
+    }
+  ],
+  "totals": {
+    "files": 17,
+    "rows": 135,
+    "profiles": 45,
+    "repetitions_per_profile": 3,
+    "measured_query_executions": 233376,
+    "strata": 4,
+    "short_results": 0,
+    "filter_violations": 0,
+    "duplicate_results": 0,
+    "by_implementation": {
+      "cpp_native_linux": {
+        "files": 7,
+        "rows": 42,
+        "profiles": 14,
+        "measured_query_executions": 73536
+      },
+      "rust": {
+        "files": 10,
+        "rows": 93,
+        "profiles": 31,
+        "measured_query_executions": 159840
+      }
+    }
+  },
+  "checks": {
+    "all_rows_authoritative": true,
+    "all_public_search_call": true,
+    "all_configurations_have_exactly_repeats_0_1_2": true,
+    "all_short_violation_duplicate_counts_zero": true,
+    "query_identity_and_label_cohort_compatible_within_each_k_threads_queries_stratum": true,
+    "same_index_prefix_and_cache_contract": true,
+    "all_cpp_full_query_same_process_warmup": true,
+    "all_rust_dynamic_one_scheduling": true,
+    "all_recorded_reader_requests_and_bytes_positive": true,
+    "source_hashes_unchanged_since_final_review": true,
+    "final_harness_binary_identity_unchanged_between_provenance_records": true
+  },
+  "current_code_source_checks": {
+    "Cargo.lock": {
+      "frozen_review_sha256": "885d1cfdcb946d481b8323439ab8b940d4075a6866ff0b5d0c7258bd29ff71d8",
+      "current_sha256": "885d1cfdcb946d481b8323439ab8b940d4075a6866ff0b5d0c7258bd29ff71d8",
+      "matches": true
+    },
+    ".cargo/config.toml": {
+      "frozen_review_sha256": "1695db85f57f4a2e8e1c362cac98732d6b5e5c421375d921488e0555b22a07ff",
+      "current_sha256": "1695db85f57f4a2e8e1c362cac98732d6b5e5c421375d921488e0555b22a07ff",
+      "matches": true
+    },
+    "diskann/src/graph/search/mod.rs": {
+      "frozen_review_sha256": "6f76e1246ddfadf6e55b00cfe7b3eac2b174a389f01f1cab6296178d8087dbd1",
+      "current_sha256": "6f76e1246ddfadf6e55b00cfe7b3eac2b174a389f01f1cab6296178d8087dbd1",
+      "matches": true
+    },
+    "diskann/src/graph/search/single_hop_filter_search.rs": {
+      "frozen_review_sha256": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+      "current_sha256": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+      "matches": true
+    },
+    "diskann/src/graph/ext/labeled.rs": {
+      "frozen_review_sha256": "eb3e1576726162a7ac8d33fe6933fc874f822c5c6b8c9aa764d3b68aa0026ea6",
+      "current_sha256": "eb3e1576726162a7ac8d33fe6933fc874f822c5c6b8c9aa764d3b68aa0026ea6",
+      "matches": true
+    },
+    "diskann-disk/src/search/search_mode.rs": {
+      "frozen_review_sha256": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+      "current_sha256": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+      "matches": true
+    },
+    "diskann-disk/src/search/provider/disk_provider.rs": {
+      "frozen_review_sha256": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+      "current_sha256": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+      "matches": true
+    },
+    "diskann-disk/examples/filtered_ssd_bench.rs": {
+      "frozen_review_sha256": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+      "current_sha256": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+      "matches": true
+    }
+  },
+  "current_supporting_code_sha256": {
+    "tools/single-hop-benchmark/cpp-port/native-query-metrics.patch": "4f847d6d05f404431ee34e9b4e068a4268476d10d408a73a193f14cfecfcc0c2",
+    "tools/single-hop-benchmark/cpp-port/run_reference.py": "b9b2cba05bf11825ccbacb498c723517060067294ff3da87911e4845cf277dad",
+    "tools/single-hop-benchmark/summarize.py": "22b26b55261effdb9a00a6f2293fa0dde9ac895661b523af6c1d7a7ccc766613",
+    "tools/single-hop-benchmark/verify_prepared.py": "0e905806f5c8254685b247d3b878d4b6bcdb84a2338a9af1cc3ca241f616501c"
+  },
+  "native_rust_binary_identity": {
+    "sha256": "5f5745b8d8d779de37e5f2a56aeb336772d80fa77133ca5f408108b5ce8d6d5e",
+    "source_sha256": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+    "verification": "Recorded binary identity agrees between rust-final-review.json and native-rust-final-harness.json; this local-only audit does not rehash the remote executable."
+  },
+  "evidence_references": [
+    {
+      "path": "benchmark-results/single-hop/results/rust-final-review.json",
+      "sha256": "1e5be6d2443a4be7fc98b347e8dcfc3d95a99569c970987ea5f9ab2c5f1243f4"
+    },
+    {
+      "path": "benchmark-results/single-hop/results/native-rust-final-harness.json",
+      "sha256": "82155298be9b29f0c7e959426179f1a26147ed2cd7c241f34148e442eed76496"
+    },
+    {
+      "path": "benchmark-results/single-hop/results/native-rust-build.json",
+      "sha256": "7243630cfaead243247e453bcb4ed25109a53f5e2c0c9e7e80c40d6bf2a8fb2d"
+    }
+  ],
+  "interpretation_limits": [
+    "Results are measurements of this fixed native host, graph/PQ artifacts, query cohorts, cache policy and closed-loop concurrency.",
+    "They are not a production latency, capacity, recall or Microsoft Ads service guarantee.",
+    "Queries across repetitions and configurations are reused; measured_query_executions is a sum of executions, not a count of independent unique samples.",
+    "Different K strata use distinct ground-truth identities and cannot be combined as one recall/latency cohort.",
+    "Read requests and requested bytes are logical submission counters rather than independently measured physical SSD IOPS.",
+    "Performance must be compared at matched recall within a compatible stratum, not at equal L alone."
+  ],
+  "presentation_scope": {
+    "included_in_native_source_contract": false,
+    "excluded": "plot_results.py, generated plots, plot footer wording and presentation-only provenance hashes",
+    "reason": "The frozen inventory covers the allowlisted native measurement JSONLs, benchmark/validation sources and recorded binary identity. Presentation-only changes do not alter the native measurement or source contract.",
+    "wording_correction": "Plot footers describe selection among measured configurations meeting the common recall floor; they do not claim exhaustive optimization or tuning."
+  },
+  "presentation_scope_refresh": {
+    "refreshed_at_utc": "2026-10-21T19:24:27.048868+00:00",
+    "trigger": "Confirmed plot-only footer wording correction",
+    "measurement_file_hashes_rechecked": 17,
+    "native_source_hashes_rechecked": 8,
+    "supporting_script_hashes_rechecked": 4,
+    "supporting_script_hashes_changed": [],
+    "native_binary_identity_unchanged": true,
+    "measurement_rows_unchanged": 135,
+    "native_operations_or_builds": false
+  }
+}

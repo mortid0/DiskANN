@@ -1,0 +1,23 @@
+{
+  "rust_base_commit": "79c5fcf77b6b26c403c3803aa04839e633d15642",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: aarch64-apple-darwin\nrelease: 1.97.1\nLLVM version: 22.1.6\n",
+  "build_command": "cargo +1.97.1 build --release --offline -p diskann-disk --example filtered_ssd_bench",
+  "source_sha256": {
+    "diskann/src/graph/search/mod.rs": "6f76e1246ddfadf6e55b00cfe7b3eac2b174a389f01f1cab6296178d8087dbd1",
+    "diskann/src/graph/search/single_hop_filter_search.rs": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+    "diskann-disk/src/search/search_mode.rs": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+    "diskann-disk/src/search/provider/disk_provider.rs": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+    "diskann-disk/examples/filtered_ssd_bench.rs": "12a69a6799f165524ae58c7d2ae31125e467f25774584d8467344028a7a8eef6",
+    "diskann-disk/Cargo.toml": "ae4f01f469c7e872f4c64eb174c54578a44160d5167db65685944d13984157c7"
+  },
+  "mac_binary_sha256": "8039baef4b4604590172601f2b7f7d71a509da4b5e8aff5e875bd02465fffc06",
+  "mac_hardware": {
+    "model": "Apple M3 Max",
+    "ram_bytes": 38654705664,
+    "physical_cores": 14
+  },
+  "linux_host": "alex@100.83.201.102",
+  "linux_workdir": "/home/alex/diskann-single-hop-benchmark",
+  "notes": "Mac hardware values were inspected earlier in this session. Native Linux build and timing provenance are recorded separately."
+}

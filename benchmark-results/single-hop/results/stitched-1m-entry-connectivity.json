@@ -1,0 +1,450 @@
+[
+  {
+    "label": 14,
+    "eligible": 85991,
+    "seed": 26123,
+    "degree": 93,
+    "matching_neighbors": 39
+  },
+  {
+    "label": 28,
+    "eligible": 67433,
+    "seed": 907722,
+    "degree": 91,
+    "matching_neighbors": 35
+  },
+  {
+    "label": 29,
+    "eligible": 192699,
+    "seed": 574101,
+    "degree": 92,
+    "matching_neighbors": 37
+  },
+  {
+    "label": 7546,
+    "eligible": 2936,
+    "seed": 139842,
+    "degree": 50,
+    "matching_neighbors": 19
+  },
+  {
+    "label": 6,
+    "eligible": 123994,
+    "seed": 785141,
+    "degree": 53,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 12,
+    "eligible": 65978,
+    "seed": 163430,
+    "degree": 60,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 11,
+    "eligible": 70033,
+    "seed": 27124,
+    "degree": 57,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 2495,
+    "eligible": 3850,
+    "seed": 596906,
+    "degree": 94,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 1,
+    "eligible": 28301,
+    "seed": 350179,
+    "degree": 29,
+    "matching_neighbors": 29
+  },
+  {
+    "label": 25,
+    "eligible": 16216,
+    "seed": 522484,
+    "degree": 92,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 17875,
+    "eligible": 364,
+    "seed": 614543,
+    "degree": 93,
+    "matching_neighbors": 18
+  },
+  {
+    "label": 2,
+    "eligible": 55213,
+    "seed": 245284,
+    "degree": 62,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 7,
+    "eligible": 129253,
+    "seed": 699647,
+    "degree": 46,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 107,
+    "eligible": 3381,
+    "seed": 396749,
+    "degree": 89,
+    "matching_neighbors": 30
+  },
+  {
+    "label": 3030,
+    "eligible": 3212,
+    "seed": 288983,
+    "degree": 120,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 8770,
+    "eligible": 621,
+    "seed": 360149,
+    "degree": 59,
+    "matching_neighbors": 27
+  },
+  {
+    "label": 13604,
+    "eligible": 569,
+    "seed": 634491,
+    "degree": 28,
+    "matching_neighbors": 28
+  },
+  {
+    "label": 11614,
+    "eligible": 618,
+    "seed": 194384,
+    "degree": 75,
+    "matching_neighbors": 28
+  },
+  {
+    "label": 3901,
+    "eligible": 1009,
+    "seed": 754107,
+    "degree": 86,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 95,
+    "eligible": 3422,
+    "seed": 406408,
+    "degree": 92,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 2314,
+    "eligible": 1792,
+    "seed": 598109,
+    "degree": 37,
+    "matching_neighbors": 12
+  },
+  {
+    "label": 103,
+    "eligible": 4307,
+    "seed": 338923,
+    "degree": 64,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 1548,
+    "eligible": 3871,
+    "seed": 417231,
+    "degree": 64,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 3918,
+    "eligible": 1028,
+    "seed": 32384,
+    "degree": 95,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 522,
+    "eligible": 2546,
+    "seed": 999565,
+    "degree": 70,
+    "matching_neighbors": 21
+  },
+  {
+    "label": 1444,
+    "eligible": 2582,
+    "seed": 105185,
+    "degree": 126,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 132,
+    "eligible": 911,
+    "seed": 934139,
+    "degree": 85,
+    "matching_neighbors": 22
+  },
+  {
+    "label": 345,
+    "eligible": 11065,
+    "seed": 368088,
+    "degree": 108,
+    "matching_neighbors": 27
+  },
+  {
+    "label": 2556,
+    "eligible": 759,
+    "seed": 52105,
+    "degree": 58,
+    "matching_neighbors": 27
+  },
+  {
+    "label": 36,
+    "eligible": 14351,
+    "seed": 453688,
+    "degree": 30,
+    "matching_neighbors": 30
+  },
+  {
+    "label": 20,
+    "eligible": 84973,
+    "seed": 391141,
+    "degree": 76,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 3428,
+    "eligible": 1429,
+    "seed": 793428,
+    "degree": 116,
+    "matching_neighbors": 22
+  },
+  {
+    "label": 35,
+    "eligible": 26547,
+    "seed": 457072,
+    "degree": 91,
+    "matching_neighbors": 35
+  },
+  {
+    "label": 90,
+    "eligible": 5745,
+    "seed": 418837,
+    "degree": 90,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 1016,
+    "eligible": 688,
+    "seed": 675157,
+    "degree": 56,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 3908,
+    "eligible": 2333,
+    "seed": 647924,
+    "degree": 33,
+    "matching_neighbors": 25
+  },
+  {
+    "label": 89,
+    "eligible": 53940,
+    "seed": 258065,
+    "degree": 58,
+    "matching_neighbors": 27
+  },
+  {
+    "label": 1643,
+    "eligible": 2476,
+    "seed": 65676,
+    "degree": 128,
+    "matching_neighbors": 29
+  },
+  {
+    "label": 336,
+    "eligible": 4578,
+    "seed": 294300,
+    "degree": 94,
+    "matching_neighbors": 22
+  },
+  {
+    "label": 22,
+    "eligible": 70762,
+    "seed": 815012,
+    "degree": 68,
+    "matching_neighbors": 25
+  },
+  {
+    "label": 98,
+    "eligible": 5841,
+    "seed": 573989,
+    "degree": 123,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 3,
+    "eligible": 90620,
+    "seed": 858931,
+    "degree": 87,
+    "matching_neighbors": 37
+  },
+  {
+    "label": 8663,
+    "eligible": 1135,
+    "seed": 158207,
+    "degree": 83,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 5,
+    "eligible": 121178,
+    "seed": 931729,
+    "degree": 54,
+    "matching_neighbors": 40
+  },
+  {
+    "label": 6182,
+    "eligible": 1477,
+    "seed": 340441,
+    "degree": 60,
+    "matching_neighbors": 28
+  },
+  {
+    "label": 8,
+    "eligible": 142274,
+    "seed": 574871,
+    "degree": 92,
+    "matching_neighbors": 38
+  },
+  {
+    "label": 5518,
+    "eligible": 3135,
+    "seed": 804750,
+    "degree": 122,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 21,
+    "eligible": 70290,
+    "seed": 960093,
+    "degree": 117,
+    "matching_neighbors": 34
+  },
+  {
+    "label": 816,
+    "eligible": 1921,
+    "seed": 481246,
+    "degree": 128,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 9,
+    "eligible": 143646,
+    "seed": 409847,
+    "degree": 61,
+    "matching_neighbors": 31
+  },
+  {
+    "label": 4736,
+    "eligible": 2968,
+    "seed": 198226,
+    "degree": 84,
+    "matching_neighbors": 35
+  },
+  {
+    "label": 1227,
+    "eligible": 558,
+    "seed": 99313,
+    "degree": 128,
+    "matching_neighbors": 4
+  },
+  {
+    "label": 3677,
+    "eligible": 2742,
+    "seed": 539795,
+    "degree": 87,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 17,
+    "eligible": 96924,
+    "seed": 340111,
+    "degree": 75,
+    "matching_neighbors": 36
+  },
+  {
+    "label": 4,
+    "eligible": 110727,
+    "seed": 750993,
+    "degree": 53,
+    "matching_neighbors": 24
+  },
+  {
+    "label": 832,
+    "eligible": 1157,
+    "seed": 346817,
+    "degree": 92,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 1835,
+    "eligible": 687,
+    "seed": 85069,
+    "degree": 93,
+    "matching_neighbors": 32
+  },
+  {
+    "label": 706,
+    "eligible": 1209,
+    "seed": 504566,
+    "degree": 128,
+    "matching_neighbors": 27
+  },
+  {
+    "label": 15,
+    "eligible": 90600,
+    "seed": 222628,
+    "degree": 18,
+    "matching_neighbors": 11
+  },
+  {
+    "label": 44,
+    "eligible": 2636,
+    "seed": 211079,
+    "degree": 90,
+    "matching_neighbors": 29
+  },
+  {
+    "label": 24,
+    "eligible": 46640,
+    "seed": 760186,
+    "degree": 62,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 341,
+    "eligible": 1043,
+    "seed": 209755,
+    "degree": 111,
+    "matching_neighbors": 31
+  },
+  {
+    "label": 10,
+    "eligible": 32069,
+    "seed": 296672,
+    "degree": 63,
+    "matching_neighbors": 33
+  },
+  {
+    "label": 2027,
+    "eligible": 2744,
+    "seed": 264968,
+    "degree": 128,
+    "matching_neighbors": 20
+  }
+]

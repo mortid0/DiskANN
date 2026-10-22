@@ -1,0 +1,223 @@
+{
+  "after_fix": {
+    "behavior": "Affected original-base labels request the full L result pool and continue base resolution independently of the count of matching delta hits. Unaffected labels retain the k-result path.",
+    "clippy": {
+      "command": "cargo clippy -p diskann-disk --test filtered_lifecycle -- -D warnings",
+      "command_sha256": "4025a3a7bfafe3ca0a22b947f0afedb53c0a4a267bf4da9100ced631cf6a9299",
+      "exit_code": 0
+    },
+    "integration_tests": {
+      "command": "cargo test -p diskann-disk --test filtered_lifecycle -- --nocapture",
+      "command_sha256": "0c640404d7a168aa20bb22532082ab1aa935946b1c76bc33213c48f027a4b8c7",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 7,
+      "reported_test_seconds": 0.76
+    },
+    "mutation_staging": "The successor View, including shadow-label bookkeeping, is constructed before WAL append/fsync and is published only after durable append succeeds.",
+    "shadow_membership": "Each immutable view records labels of original base rows shadowed by its delta. Normal batches incrementally add original labels; reopen/compaction catchup reconstruct them. New stable IDs absent from the base do not shadow base labels.",
+    "threshold_review": "The strict worst-merged-distance < exact-sorted returned-base cutoff test conservatively excludes omitted members of that explored ANN pool, including distance ties. This is not a global exact-recall guarantee beyond the explored pool; native per-label connectivity supports pool-exhaustion reasoning."
+  },
+  "before_fix": {
+    "actual": [
+      {
+        "distance": 520200,
+        "id": 300
+      },
+      {
+        "distance": 520200,
+        "id": 301
+      },
+      {
+        "distance": 520200,
+        "id": 302
+      },
+      {
+        "distance": 520200,
+        "id": 303
+      },
+      {
+        "distance": 520200,
+        "id": 304
+      }
+    ],
+    "assertion": "matching delta hits cannot stop base retries while the base result pool is shadowed",
+    "command": "cargo test -p diskann-disk --test filtered_lifecycle matching_far_delta_does_not_hide -- --nocapture",
+    "command_sha256": "7af99a3ffbb67a82ccebbeef9b3972b18bf29798b75deaaaaf38076338040b0d",
+    "evidence": "Failing command output observed in this session; actual and expected tuples transcribed without rerunning the old implementation.",
+    "exit_code": 101,
+    "expected": [
+      {
+        "distance": 137027,
+        "id": 56
+      },
+      {
+        "distance": 137123,
+        "id": 110
+      },
+      {
+        "distance": 137223,
+        "id": 292
+      },
+      {
+        "distance": 137803,
+        "id": 220
+      },
+      {
+        "distance": 138379,
+        "id": 188
+      }
+    ],
+    "failure": "Merged far delta hits satisfied k even though the bounded base pool was completely shadowed, stopping retries prematurely.",
+    "observed": true,
+    "old_source_snapshot_preserved": false
+  },
+  "created_at_utc": "2026-10-21T20:26:21.756214+00:00",
+  "delta_action_smoke": {
+    "command": "cargo run -p diskann-disk --example filtered_lifecycle -- --action delta --root /private/tmp/filtered-lifecycle-delta-smoke-index --prepared /private/tmp/filtered-lifecycle-smoke-data --out /private/tmp/filtered-lifecycle-delta-smoke.jsonl --threads 2 --query-threads 2 --reps 1 --delta-sizes 10,100 --timing-authoritative false",
+    "command_sha256": "3e84812f7685eb7092bef47d07921de6dd500d11bfdea872a06292e73d552fab",
+    "dimensions": 8,
+    "evidence_path": "/private/tmp/filtered-lifecycle-delta-smoke.jsonl",
+    "minimum_far_minus_published_kth": 82153.0,
+    "native_base_rows": 512,
+    "note": "Checks action delta separately on a fresh local native index. Query timings are diagnostic and are not performance evidence. Smoke preceded the hot-shadow fix; all stress rows are new-ID-only inserts and do not shadow base rows.",
+    "phases": {
+      "delta_0": {
+        "by_l": {
+          "144": {
+            "delta_candidates": 0,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 1.0,
+            "short_results": 0
+          },
+          "60": {
+            "delta_candidates": 0,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          },
+          "64": {
+            "delta_candidates": 0,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          }
+        },
+        "queries": 16
+      },
+      "delta_10": {
+        "by_l": {
+          "144": {
+            "delta_candidates": 160,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 1.0,
+            "short_results": 0
+          },
+          "60": {
+            "delta_candidates": 160,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          },
+          "64": {
+            "delta_candidates": 160,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          }
+        },
+        "queries": 16
+      },
+      "delta_100": {
+        "by_l": {
+          "144": {
+            "delta_candidates": 1600,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 1.0,
+            "short_results": 0
+          },
+          "60": {
+            "delta_candidates": 1600,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          },
+          "64": {
+            "delta_candidates": 1600,
+            "duplicate_results": 0,
+            "filter_violations": 0,
+            "recall": 0.98125,
+            "short_results": 0
+          }
+        },
+        "queries": 16
+      }
+    },
+    "query_rows": 9,
+    "repeats": 1,
+    "sha256": "7211e8f99ada41da84d6bbceab6ff409b1af2209535a59186983659e8d775508",
+    "sizes": [
+      10,
+      100
+    ],
+    "source_file": "diskann-disk/examples/filtered_lifecycle.rs",
+    "source_sha256_at_review": "4e80954fc6f6f2db4073687a4727a77d263f0022abe013bb149cd2bfd6ce6792",
+    "threads": 2,
+    "timing_authoritative": false
+  },
+  "environment": {
+    "machine": "arm64",
+    "system": "Darwin"
+  },
+  "kind": "hot_shadow_correctness_regression_review",
+  "regression": {
+    "additional_phase": "Relabel the next 30 nearest surviving base IDs to label 11, retain their original navigation rows, and compare label7 search with independently recomputed live truth; the earlier snapshot must preserve its original results.",
+    "deleted_exact_nearest_base_records": 60,
+    "dimensions": 8,
+    "far_vector": [
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255
+    ],
+    "k": 5,
+    "l": 10,
+    "label": 7,
+    "matching_far_delta_records": 5,
+    "native_base_rows": 300,
+    "original_label_members": 150,
+    "scalar": "u8",
+    "setup_validation": "The original native graph query at k10/L10 returns only IDs among the independently ranked 60 deleted records.",
+    "test": "matching_far_delta_does_not_hide_live_base_neighbors_after_mass_deletion",
+    "truth": "Enumerate live stable IDs through snapshot.get, filter current label membership, rank u64 integer squared-L2 to zero by (distance, stable_id)."
+  },
+  "schema_version": 1,
+  "scope": "Local synthetic correctness regression; no native-host performance operation performed.",
+  "source_hashes_at_review": {
+    "diskann-disk/src/filtered/index.rs": {
+      "bytes": 23958,
+      "sha256": "c6a036055a1dc5d7b7e60538eb522d1fd2c8db3d190b8aeab3168a2466893bc4"
+    },
+    "diskann-disk/src/filtered/view.rs": {
+      "bytes": 12432,
+      "sha256": "32f4e14a53841ba0174bdbb3ad74d79bac5d6fd8dbf0894d7b32b10a771d83bc"
+    },
+    "diskann-disk/tests/filtered_lifecycle.rs": {
+      "bytes": 22215,
+      "sha256": "920ba60ecd9a8e0d6fdc57ba5ee3b859967d820f504e29ae4c395895840e0f64"
+    }
+  },
+  "test_file": "diskann-disk/tests/filtered_lifecycle.rs"
+}

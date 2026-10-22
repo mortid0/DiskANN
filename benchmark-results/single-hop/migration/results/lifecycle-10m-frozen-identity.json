@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "host": "alex@100.83.201.102",
+  "root": "/home/alex/diskann-single-hop-benchmark/indexes/rust-native-10m-frozen",
+  "binary_sha256": "e4c1ccaecf2924e28bed26eebc1cead5e0f1a0cc831b9fc05fc345e22611414b",
+  "source_archive_sha256": "f8f97ee8082a481decd4a0036c7e3b5fb9e88077e4901fa825c7df79064aefcd",
+  "codebook_sha256": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523",
+  "committed_codebook_sha256": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523",
+  "cpp_compressed_codes_sha256": "afef7915eb783215f5db689b597feb478c528e6793bc8199b51e7da0f382dedc",
+  "committed_compressed_codes_sha256": "56abb4f970dbab905f6c0e37a5ffb278b8fabceb9d8397801125c6023d507ab9",
+  "current_sha256": "89944146f8f87b25acab66bccfbee3e4e4e10f75c7469474d20f63b2ab7dabdc",
+  "catalog_sha256": "d62463ada5a6c6029074520c2ef6e2eafff4115ccc4dc15ef45203c1b95a8546",
+  "build_log_sha256": "4c622d383ef469ecb681d8611d9bc3313882d7ab79c3fea46065aae4f560596e",
+  "query_log_sha256": "b1195844576c13f64ef90a81a0005c6c54dd066fac566b5e0d2d1569aff9acb7"
+}

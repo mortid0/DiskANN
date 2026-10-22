@@ -1,0 +1,13 @@
+{
+  "reason": "Final harness uses dynamic scheduling matching the C++ driver; algorithm sources and their passing native regression tests are unchanged.",
+  "sha256": {
+    "rust/diskann-disk/examples/filtered_ssd_bench.rs": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+    "rust/target/release/examples/filtered_ssd_bench": "5f5745b8d8d779de37e5f2a56aeb336772d80fa77133ca5f408108b5ce8d6d5e"
+  },
+  "build_command": "cargo +1.97.1 build --release --offline -p diskann-disk --example filtered_ssd_bench -j8",
+  "core_validation": "native-rust-build.json",
+  "smoke": "rust-final-harness-smoke.jsonl",
+  "affinity": "0-7",
+  "scheduling": "dynamic_one",
+  "smoke_passed": true
+}

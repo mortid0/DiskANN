@@ -1,0 +1,147 @@
+{
+  "created_at_utc": "2026-10-21T20:05:08.784855+00:00",
+  "scope": "Strict-single-hop-only PQ and exact-rerank tie policy after expanded retention and exact-L capacity fixes. Local code/tests only; no native operations or benchmark run by this agent.",
+  "status": "implemented_and_focused_checks_pass",
+  "source_sha256": {
+    "diskann/src/neighbor/queue.rs": "b78ad270958c47aeb08be49b6065fedd044aeb7505c2ddd47443eefc7fafd852",
+    "diskann/src/graph/search/single_hop_filter_search.rs": "36e54a13ee7f245b8b3966fd7be70dbdf1e7b1655328948c7e4c3752e4d0c70f",
+    "diskann-disk/src/search/provider/disk_provider.rs": "76c8f80c669a422378ec73b888b2c0b9d96ab9865ce10717265d34eda4c0e7c7",
+    "diskann-disk/src/search/search_mode.rs": "91fbd2cd76537b3ea9b259d452a17d4606069ee4e7f47369255c349ecffff706"
+  },
+  "implementation": {
+    "pq": "A stateless crate-private NeighborPriorityQueue::insert_with_id_ties orders by distance then ID. It retains the SIMD distance lower bound and refines equal-distance suffixes with a binary search. Only SingleHopFilterSearch calls it, for seeds and discovered matching neighbors.",
+    "exact": "RerankAndFilter opts into distance-then-dataset-ID ordering only in strict expanded/frontier constructors. Associated data is not a tie key.",
+    "unchanged_defaults": "Existing NeighborPriorityQueue::insert comparisons and all established disk-mode postprocessor sort policies are unchanged. Common buffer insertion was factored into an inline helper without a policy branch on ordinary insert.",
+    "scratch_reuse": "There is no stored queue ordering flag. Strict and ordinary insertion methods choose the policy per call on a cleared queue; reuse cannot leak a strict policy into another mode.",
+    "retained_guards": "Exact-L queue capacity, pre-PQ membership checks, visited deduplication, and cache-only strict expanded reranking remain in place."
+  },
+  "before_after_regressions": [
+    {
+      "test": "equal_pq_distances_expand_lower_dataset_id_first",
+      "l": 1,
+      "pq_tie_ids": [
+        0,
+        2
+      ],
+      "before_exit_code": 101,
+      "before_expanded": [
+        10,
+        2
+      ],
+      "after_expanded_both_strict_policies": [
+        10,
+        0
+      ],
+      "cmps_both": 3,
+      "hops_both": 2
+    },
+    {
+      "test": "strict_reranking_orders_equal_exact_distances_by_dataset_id",
+      "input_candidate_ids": [
+        7,
+        3,
+        5
+      ],
+      "cached_exact_distances": {
+        "7": 1.0,
+        "3": 1.0,
+        "5": 0.0
+      },
+      "before_exit_code": 101,
+      "before_ids": [
+        5,
+        7,
+        3
+      ],
+      "after_ids_both_strict_processors": [
+        5,
+        3,
+        7
+      ],
+      "rerank_io_requests": 0
+    },
+    {
+      "test": "strict_id_ties_keep_smallest_ids_and_preserve_visited_cursor",
+      "checks": [
+        "higher tied ID rejected at full boundary",
+        "lower tied ID inserts before already expanded tie",
+        "visited cursor skips expanded ID",
+        "ordinary insert after clear retains its legacy tie policy"
+      ]
+    },
+    {
+      "test": "strict_id_ties_match_lexicographic_order_across_simd_boundaries",
+      "input_count": 101,
+      "distance_buckets": 7,
+      "capacities": [
+        1,
+        7,
+        8,
+        15,
+        16,
+        31,
+        64
+      ],
+      "oracle": "independent full sort by (distance, ID), truncated to capacity"
+    }
+  ],
+  "validation": {
+    "toolchain": "Rust 1.97.1, local aarch64-apple-darwin",
+    "tests": [
+      {
+        "command": "cargo +1.97.1 test -p diskann single_hop_filter_search --offline -- --nocapture",
+        "exit_code": 0,
+        "passed": 5
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann neighbor::queue:: --offline",
+        "exit_code": 0,
+        "passed": 31
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk strict_reranking_orders_equal_exact_distances_by_dataset_id --offline -- --nocapture",
+        "exit_code": 0,
+        "passed": 1
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk test_search_with_vector_filter --offline",
+        "exit_code": 0,
+        "passed": 5
+      },
+      {
+        "command": "cargo +1.97.1 test -p diskann-disk single_hop --offline",
+        "exit_code": 0,
+        "passed": 3
+      }
+    ],
+    "total_focused_test_cases": 45,
+    "clippy": {
+      "command": "cargo +1.97.1 clippy -p diskann -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0
+    },
+    "format": [
+      {
+        "command": "rustfmt +1.97.1 --check --edition 2024 diskann/src/neighbor/queue.rs diskann/src/graph/search/single_hop_filter_search.rs",
+        "exit_code": 0
+      },
+      {
+        "command": "rustfmt +1.97.1 --check --edition 2021 diskann-disk/src/search/provider/disk_provider.rs",
+        "exit_code": 0
+      }
+    ],
+    "dependency_notice": "proc-macro-error2 reports a future-incompatibility notice; the successful clippy check has no denied warnings."
+  },
+  "context_evidence": {
+    "previous_expanded_exact_l_review": {
+      "path": "benchmark-results/single-hop/results/strict-expanded-reranking-review.json",
+      "sha256": "48e8bc30f1ba5d6bae074482ffda44a63f0d4354e2539b21628adb7fe8cdd273",
+      "scope": "Preserved as intermediate implementation evidence; its source hashes are not the current tie-order source hashes."
+    },
+    "native_dump_tie_analysis": {
+      "path": "benchmark-results/single-hop/migration/results/recall-tie-analysis-before-exact-l.json",
+      "sha256": "db4a45b71607696231d034630a13fb595b73d42cd52e5ac924eb138ffcd109ab",
+      "scope": "Independent C++ agent analysis of the earlier expanded candidate build before exact-L/tie-policy fixes; does not benchmark this new implementation."
+    }
+  },
+  "performance_claim": "Pending root-coordinated native measurements. Matching tie semantics can affect both traversal and strict-ID recall; the local tests do not establish numerical throughput or recall changes on the 10M dataset."
+}

@@ -1,0 +1,21 @@
+{
+  "host": "alex@100.83.201.102",
+  "workdir": "/home/alex/diskann-single-hop-benchmark",
+  "cpu": "AMD Ryzen 9 7950X 16-Core Processor",
+  "physical_cores": 16,
+  "hardware_threads": 32,
+  "ram_reported": "61 GiB",
+  "ssd": "WD_BLACK SN850X 2000GB",
+  "filesystem": {
+    "source": "/dev/nvme0n1p2",
+    "type": "ext4",
+    "mount_options": "rw,relatime"
+  },
+  "cpu_governor": "performance",
+  "affinity_plan": "0-7 (eight distinct physical cores, one hardware thread per core)",
+  "io_uring_disabled": 0,
+  "aio_max_nr": 65536,
+  "scheduler": "none",
+  "os": "Ubuntu 24.04.1, kernel 7.0.0-34-generic x86_64",
+  "provenance": "Read-only SSH inspection during setup on 2026-10-21. No system settings changed. Host is a desktop; background services are present."
+}

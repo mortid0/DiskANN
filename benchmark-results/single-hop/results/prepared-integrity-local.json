@@ -1,0 +1,129 @@
+{
+  "verified": true,
+  "verification_utc": "2026-10-21T18:22:33.660120+00:00",
+  "python": "3.12.7",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "verifier_sha256": "0e905806f5c8254685b247d3b878d4b6bcdb84a2338a9af1cc3ca241f616501c",
+  "scope": "transfer/integrity, dimensions and all recorded memberships; no new exhaustive nearest-neighbor calculation",
+  "datasets": [
+    {
+      "directory": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-1m",
+      "verified": true,
+      "base_vectors": 1000000,
+      "dimensions": 192,
+      "queries": 1000,
+      "k": 10,
+      "labels": 64,
+      "verified_truth_memberships": 10000,
+      "verified_posting_memberships": 2125997,
+      "manifest_sha256": "6f110a8b3b7391c7d29a03ffc68551d1b5a3317dd258e523d28c1a2409055014",
+      "prepared_identity": "4ec5ef046dd409a3a496933d0f5ff365ca8706e155e33b33d1028437c94a146c:86f0e292255c12dcbd18ba3ffc2c48d76bef5050166734ff31aa1aec5f0bc558:ae9323427c4fa80816dfbdae60921bde2287591c06913b12ad3031f0f0d02844:785f82a63a6fc7e3ac280754e3066a5150e38abc88442445fbb7f84db8eb559e",
+      "verified_artifact_files": [
+        "groundtruth.bin",
+        "labels.txt",
+        "query.u8bin",
+        "query_ids.u32bin",
+        "query_labels.txt",
+        "query_labels.u32bin"
+      ],
+      "base": {
+        "sha256": "3ea51347cb66416abf75c670b69997e41c01713e10fc54fabba36795c746f90f",
+        "bytes": 192000008,
+        "method": "prefix reconstructed from authenticated full-base source"
+      },
+      "cpp_label_crosscheck": "all base label rows and all posting memberships cross-checked",
+      "seconds": 2.1584521250333637
+    },
+    {
+      "directory": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-10m",
+      "verified": true,
+      "base_vectors": 10000000,
+      "dimensions": 192,
+      "queries": 2000,
+      "k": 10,
+      "labels": 64,
+      "verified_truth_memberships": 20000,
+      "verified_posting_memberships": 23543126,
+      "manifest_sha256": "b14068575d712fe832ead7cf0d57a3646d160dd4c82f431e5101da260f0e24b7",
+      "prepared_identity": "01f27cfeab9a3568e21f7487eca3567574e4568e29335c36c20ddf70a5cf41d7:1382b41e0df681fbfac28efdcbc75508a8dc0f3c1bdba9a8a796a2cbaac8e248:1dc75cc5717a9985c628984ea4b0a4024e0bf5be184588efb58fa405d7d330b4:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+      "verified_artifact_files": [
+        "groundtruth.bin",
+        "labels.txt",
+        "query.u8bin",
+        "query_ids.u32bin",
+        "query_labels.txt",
+        "query_labels.u32bin"
+      ],
+      "base": {
+        "sha256": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+        "bytes": 1920000008,
+        "method": "full-base SHA-256 equals recorded source"
+      },
+      "cpp_label_crosscheck": "all base label rows and all posting memberships cross-checked",
+      "seconds": 8.457812333013862
+    },
+    {
+      "directory": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-10m-k100",
+      "verified": true,
+      "base_vectors": 10000000,
+      "dimensions": 192,
+      "queries": 256,
+      "k": 100,
+      "labels": 64,
+      "verified_truth_memberships": 25600,
+      "verified_posting_memberships": 23543126,
+      "manifest_sha256": "a1b4a02f495c390d49a2813d80740d2741a04737eac20676dc6b4bc5c9f0dd1b",
+      "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:355fb0ea2c8f34354a39727287f7fed3faa9e407de80fbaf8babe691ad00f288:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+      "verified_artifact_files": [
+        "groundtruth.bin",
+        "labels.txt",
+        "query.u8bin",
+        "query_ids.u32bin",
+        "query_labels.txt",
+        "query_labels.u32bin",
+        "source_prepared_query_rows.u32bin"
+      ],
+      "base": {
+        "sha256": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+        "bytes": 1920000008,
+        "method": "full-base SHA-256 equals recorded source"
+      },
+      "cpp_label_crosscheck": "same authenticated label/posting files already checked",
+      "seconds": 0.022769040893763304
+    },
+    {
+      "directory": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-10m-k1000",
+      "verified": true,
+      "base_vectors": 10000000,
+      "dimensions": 192,
+      "queries": 256,
+      "k": 1000,
+      "labels": 64,
+      "verified_truth_memberships": 256000,
+      "verified_posting_memberships": 23543126,
+      "manifest_sha256": "2c626242b2224fdac82ce8efa1f8dc2c0d72e0855049ac0af14812e1081a3113",
+      "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+      "verified_artifact_files": [
+        "groundtruth.bin",
+        "labels.txt",
+        "query.u8bin",
+        "query_ids.u32bin",
+        "query_labels.txt",
+        "query_labels.u32bin",
+        "source_prepared_query_rows.u32bin"
+      ],
+      "base": {
+        "sha256": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+        "bytes": 1920000008,
+        "method": "full-base SHA-256 equals recorded source"
+      },
+      "cpp_label_crosscheck": "same authenticated label/posting files already checked",
+      "seconds": 0.15162258315831423
+    }
+  ],
+  "negative_test_checks": [
+    "truncated artifact rejected",
+    "sorted/ranged but incorrect posting membership rejected",
+    "ground-truth ID with wrong predicate membership rejected"
+  ]
+}

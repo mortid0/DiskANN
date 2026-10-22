@@ -1,0 +1,39 @@
+{
+  "scope": "quality-only code assignment comparison on final native graph and centroid entries; public APIs differ but traversal semantics are the same; timing excluded",
+  "inputs": [
+    {
+      "path": "benchmark-results/single-hop/migration/results/lifecycle-10m-frozen-query.jsonl",
+      "sha256": "b1195844576c13f64ef90a81a0005c6c54dd066fac566b5e0d2d1569aff9acb7"
+    },
+    {
+      "path": "benchmark-results/single-hop/migration/results/pq-original-codes-final-graph.jsonl",
+      "sha256": "5e8bd7882b46379e6b47e7746316d9550ed9031c46db3297194e429b26faad20"
+    }
+  ],
+  "comparisons": [
+    {
+      "l": 60,
+      "rust_reencoded_recall": 0.9573,
+      "original_CPP_codes_recall": 0.9574000000000052,
+      "labels_with_changed_hit_counts": [
+        1,
+        14
+      ],
+      "aggregate_hit_difference": -2
+    },
+    {
+      "l": 64,
+      "rust_reencoded_recall": 0.9618,
+      "original_CPP_codes_recall": 0.9618000000000049,
+      "labels_with_changed_hit_counts": [],
+      "aggregate_hit_difference": 0
+    },
+    {
+      "l": 144,
+      "rust_reencoded_recall": 0.99255,
+      "original_CPP_codes_recall": 0.992550000000001,
+      "labels_with_changed_hit_counts": [],
+      "aggregate_hit_difference": 0
+    }
+  ]
+}

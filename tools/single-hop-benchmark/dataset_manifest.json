@@ -1,0 +1,26 @@
+{
+  "dataset": "BigANN NeurIPS23 YFCC10M filtered",
+  "license": "CC BY 4.0",
+  "attribution": "https://big-ann-benchmarks.com/neurips23.html",
+  "base_url": "https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/yfcc100M/",
+  "files": {
+    "base.10M.u8bin": 1920000008,
+    "base.metadata.10M.spmat": 945683840,
+    "query.public.100K.u8bin": 19200008,
+    "query.metadata.public.100K.spmat": 1907024,
+    "GT.public.ibin": 8000008
+  },
+  "formats": {
+    "vectors": "little-endian u32 rows,columns then row-major uint8 values",
+    "metadata": "little-endian i64 rows,columns,nnz then i64 CSR offsets, i32 tag IDs, f32 values",
+    "truth": "little-endian u32 queries,k then all i32 IDs then all f32 distances"
+  },
+  "semantics": "Each query requires every tag in its metadata row; one-tag queries can be retained without conversion; two-tag queries are AND",
+  "sha256": {
+    "base.10M.u8bin": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+    "base.metadata.10M.spmat": "2f9c9a533fde31cb062edfdf5c9410f088bb5d7bf4a721ab98c47e3d2954287d",
+    "query.public.100K.u8bin": "77a937d67baf7523a7d9089a6e49c0ac8c6a3e7eb5499d759afeacf0a843df82",
+    "query.metadata.public.100K.spmat": "93eae99029c34d167f7d030c60c6b4075c039247b3204cc6c34f8a44066983bd",
+    "GT.public.ibin": "db8a37bbbf1d32681fb01e0c4694044cf731d91c8e34ccf4e407d7ee9a14e251"
+  }
+}

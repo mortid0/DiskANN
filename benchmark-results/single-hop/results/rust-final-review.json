@@ -1,0 +1,268 @@
+{
+  "reviewed_at_utc": "2026-10-21T19:01:40.806977+00:00",
+  "review_kind": "independent local read-only source and existing-evidence audit",
+  "operations": {
+    "source_modified": false,
+    "native_operations": false,
+    "builds_or_tests_run_during_this_review": false,
+    "local_json_artifact_only": true
+  },
+  "status": "no_concrete_issue_found",
+  "key_source_sha256": {
+    "Cargo.lock": "885d1cfdcb946d481b8323439ab8b940d4075a6866ff0b5d0c7258bd29ff71d8",
+    ".cargo/config.toml": "1695db85f57f4a2e8e1c362cac98732d6b5e5c421375d921488e0555b22a07ff",
+    "diskann/src/graph/search/mod.rs": "6f76e1246ddfadf6e55b00cfe7b3eac2b174a389f01f1cab6296178d8087dbd1",
+    "diskann/src/graph/search/single_hop_filter_search.rs": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+    "diskann/src/graph/ext/labeled.rs": "eb3e1576726162a7ac8d33fe6933fc874f822c5c6b8c9aa764d3b68aa0026ea6",
+    "diskann-disk/src/search/search_mode.rs": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+    "diskann-disk/src/search/provider/disk_provider.rs": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+    "diskann-disk/examples/filtered_ssd_bench.rs": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6"
+  },
+  "native_core_evidence": {
+    "path": "benchmark-results/single-hop/results/native-rust-build.json",
+    "sha256": "7243630cfaead243247e453bcb4ed25109a53f5e2c0c9e7e80c40d6bf2a8fb2d",
+    "host": "alex@100.83.201.102",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6\n",
+    "target_cpu": "x86-64-v3",
+    "all_final_checks_passed": true,
+    "source_checks": {
+      "Cargo.lock": {
+        "native_evidence_sha256": "885d1cfdcb946d481b8323439ab8b940d4075a6866ff0b5d0c7258bd29ff71d8",
+        "current_sha256": "885d1cfdcb946d481b8323439ab8b940d4075a6866ff0b5d0c7258bd29ff71d8",
+        "matches": true
+      },
+      ".cargo/config.toml": {
+        "native_evidence_sha256": "1695db85f57f4a2e8e1c362cac98732d6b5e5c421375d921488e0555b22a07ff",
+        "current_sha256": "1695db85f57f4a2e8e1c362cac98732d6b5e5c421375d921488e0555b22a07ff",
+        "matches": true
+      },
+      "diskann-disk/src/search/provider/disk_provider.rs": {
+        "native_evidence_sha256": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+        "current_sha256": "94954e65b0ce0dd959217f339ce7f9fc70684160867333d3c5beb6fbddeba2d3",
+        "matches": true
+      },
+      "diskann-disk/src/search/search_mode.rs": {
+        "native_evidence_sha256": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+        "current_sha256": "e37ab974c7e1092018c6ab464eb20a23486c11af6903fcebbc75c1562bd01583",
+        "matches": true
+      },
+      "diskann/src/graph/search/single_hop_filter_search.rs": {
+        "native_evidence_sha256": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+        "current_sha256": "e6294449bd4cf68197492de9858ce4527ff2dd77aba8490d66cb1b2063254683",
+        "matches": true
+      }
+    },
+    "all_recorded_core_sources_match": true,
+    "initial_release_binary_sha256": "a80b570b44859d7ffac0d21937377c108ea54a658040b5b24528a251760a31ff"
+  },
+  "final_harness_identity": {
+    "path": "benchmark-results/single-hop/results/native-rust-final-harness.json",
+    "evidence_sha256": "82155298be9b29f0c7e959426179f1a26147ed2cd7c241f34148e442eed76496",
+    "source_path": "diskann-disk/examples/filtered_ssd_bench.rs",
+    "native_source_sha256": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+    "current_source_sha256": "1c93265a6873ff55a0e1a1fc95c255cb8dd331e4c1b24e464a19902914b91de6",
+    "source_matches": true,
+    "binary_sha256": "5f5745b8d8d779de37e5f2a56aeb336772d80fa77133ca5f408108b5ce8d6d5e",
+    "build_command": "cargo +1.97.1 build --release --offline -p diskann-disk --example filtered_ssd_bench -j8",
+    "affinity": "0-7",
+    "scheduling": "dynamic_one"
+  },
+  "focused_native_tests": [
+    {
+      "name": "seed-tests",
+      "command": [
+        "cargo",
+        "+1.97.1",
+        "test",
+        "--release",
+        "-p",
+        "diskann-disk",
+        "--lib",
+        "entry_points",
+        "-j",
+        "12",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "summary": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 253 filtered out; finished in 0.00s",
+      "passed": 3,
+      "failed": 0,
+      "native_log": "/home/alex/diskann-single-hop-benchmark/results/native-rust-seed-tests.log",
+      "local_log": "benchmark-results/single-hop/results/native-rust-seed-tests.log",
+      "local_log_sha256": "a752698ba82eb2d0100a665fe7d766e197407c95b851c0ae645b0deaf9c4301a"
+    },
+    {
+      "name": "filter-tests",
+      "command": [
+        "cargo",
+        "+1.97.1",
+        "test",
+        "--release",
+        "-p",
+        "diskann-disk",
+        "--lib",
+        "filter",
+        "-j",
+        "12",
+        "--offline",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "summary": "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 240 filtered out; finished in 0.01s",
+      "passed": 16,
+      "failed": 0,
+      "native_log": "/home/alex/diskann-single-hop-benchmark/results/native-rust-filter-tests.log",
+      "local_log": "benchmark-results/single-hop/results/native-rust-filter-tests.log",
+      "local_log_sha256": "1c1465836053f79d5c0d73269525dc65fe0c3ef0300e6c54b0b3840ceabebd22"
+    },
+    {
+      "name": "seed-replacement-test",
+      "command": [
+        "cargo",
+        "+1.97.1",
+        "test",
+        "--release",
+        "-p",
+        "diskann-disk",
+        "--lib",
+        "starting_point_override",
+        "-j",
+        "12",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "summary": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 255 filtered out; finished in 0.00s",
+      "passed": 1,
+      "failed": 0,
+      "native_log": "/home/alex/diskann-single-hop-benchmark/results/native-rust-seed-replacement-test.log",
+      "local_log": "benchmark-results/single-hop/results/native-rust-seed-replacement-test.log",
+      "local_log_sha256": "34987aad92ff7ff1d3ddf7f1dc0670413b0eb6669f3d14cd1bd96687f10878ba"
+    },
+    {
+      "name": "linux-reader-tests",
+      "command": [
+        "cargo",
+        "+1.97.1",
+        "test",
+        "--release",
+        "-p",
+        "diskann-disk",
+        "--lib",
+        "search::provider::aligned_file_reader::reader::linux::tests",
+        "-j",
+        "12",
+        "--offline",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "summary": "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 250 filtered out; finished in 0.13s",
+      "passed": 6,
+      "failed": 0,
+      "native_log": "/home/alex/diskann-single-hop-benchmark/results/native-rust-linux-reader-tests.log",
+      "local_log": "benchmark-results/single-hop/results/native-rust-linux-reader-tests.log",
+      "local_log_sha256": "e770c9c3ff29a92e12bdc68e79edd9d0299e8ef541c1b99ab6d8ea9f6ee0d9dd"
+    },
+    {
+      "name": "core-tests",
+      "command": [
+        "cargo",
+        "+1.97.1",
+        "test",
+        "--release",
+        "-p",
+        "diskann",
+        "--lib",
+        "single_hop_filter_search",
+        "--no-default-features",
+        "-j",
+        "12"
+      ],
+      "exit_code": 0,
+      "summary": "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 328 filtered out; finished in 0.00s",
+      "passed": 2,
+      "failed": 0,
+      "native_log": "/home/alex/diskann-single-hop-benchmark/results/native-rust-core-tests.log",
+      "local_log": "benchmark-results/single-hop/results/native-rust-core-tests.log",
+      "local_log_sha256": "d3f004c9f19f01b0fdb565d49f9dad394b7443f153cec3ba6b441b7d488bbbf9"
+    }
+  ],
+  "test_count_note": "Listed commands overlap: the empty-entry-point test also appears in the filter group.",
+  "final_harness_smoke": {
+    "path": "benchmark-results/single-hop/results/rust-final-harness-smoke.jsonl",
+    "sha256": "496d325b292502b5a3eda41fbb8c6325e4c4d49656e85a8e4d8ac91440cc8f44",
+    "rows": 6,
+    "modes": [
+      "inline",
+      "multihop",
+      "single"
+    ],
+    "threads": [
+      1,
+      8
+    ],
+    "query_scheduling": [
+      "dynamic_one"
+    ],
+    "latency_contracts": [
+      "public_search_call"
+    ],
+    "minimum_recall": 0.996875,
+    "filter_violations": 0,
+    "duplicate_results": 0,
+    "short_results": 0,
+    "all_native_io_uring": true,
+    "all_with_reader_requests": true,
+    "all_cache_bypass": true,
+    "all_non_authoritative": true
+  },
+  "findings": [
+    {
+      "check": "strict classification before neighbor PQ and SSD frontier expansion",
+      "result": "Accepted-only traversal composes EvalFiltered with the backend predicate; rejected adjacency IDs are excluded before PQ distance computation and cannot enter the strict frontier or reranking candidates.",
+      "files": [
+        "diskann/src/graph/search/single_hop_filter_search.rs",
+        "diskann/src/graph/ext/labeled.rs",
+        "diskann-disk/src/search/provider/disk_provider.rs"
+      ]
+    },
+    {
+      "check": "bitmap membership and imported seed mapping",
+      "result": "Bitmap construction and lookup use raw dataset IDs; imported entries are checked against postings, required to contain one entry per benchmark label, and validated inside the dataset ID range.",
+      "files": [
+        "diskann-disk/examples/filtered_ssd_bench.rs",
+        "diskann-disk/src/search/provider/disk_provider.rs"
+      ]
+    },
+    {
+      "check": "short-result and duplicate validation",
+      "result": "Harness validation inspects only stats.result_count valid entries, excludes the API's preserved padded tail, records shortages and counts duplicate returned IDs.",
+      "files": [
+        "diskann-disk/examples/filtered_ssd_bench.rs"
+      ]
+    },
+    {
+      "check": "warmup, timing and dynamic scheduling",
+      "result": "Warmup run_batch completes before counters reset and timing begins. Atomic one-query scheduling plus ordered OnceLock results preserves query correspondence. Correctness checks and JSON serialization occur after the throughput timer.",
+      "files": [
+        "diskann-disk/examples/filtered_ssd_bench.rs"
+      ]
+    },
+    {
+      "check": "native test and final harness identity",
+      "result": "Current core sources match their passing native regression-test evidence; the current example matches the later final native harness identity and its six passing dynamic-scheduling smoke rows.",
+      "files": [
+        "benchmark-results/single-hop/results/native-rust-build.json",
+        "benchmark-results/single-hop/results/native-rust-final-harness.json",
+        "benchmark-results/single-hop/results/rust-final-harness-smoke.jsonl"
+      ]
+    }
+  ],
+  "scope_limits": [
+    "This audit is not an additional benchmark or a new native execution.",
+    "The prototype imports a C++ label-connected graph; it does not implement a Rust filtered index builder.",
+    "Reader request/byte counters describe submitted logical reads, not independently measured physical SSD IOPS.",
+    "The initial native build evidence predates the final harness-only scheduling update; the separate final harness identity is used for that source and binary."
+  ]
+}

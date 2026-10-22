@@ -1,0 +1,7 @@
+{
+  "path": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/base.10M.u8bin",
+  "bytes": 1920000008,
+  "sha256": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+  "expected_sha256": "589030afcbcc44a50ff798cec935f0980815a02eb7075b224d4f7c12febe96bf",
+  "verified": true
+}

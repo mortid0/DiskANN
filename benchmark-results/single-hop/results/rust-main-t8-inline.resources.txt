@@ -1,0 +1,23 @@
+	Command being timed: "taskset -c 0-7 rust/target/release/examples/filtered_ssd_bench --prefix /home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100 --prepared data/prepared-10m --out results/rust-main-t8-inline.jsonl --modes inline --starts label --ls 256,320,640,1024,1280 --threads 8 --reps 3 --limit 2000 --k 10 --bypass true --timing-authoritative true"
+	User time (seconds): 153.45
+	System time (seconds): 237.68
+	Percent of CPU this job got: 207%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:08.79
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 641524
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 166571
+	Voluntary context switches: 35359983
+	Involuntary context switches: 50397
+	Swaps: 0
+	File system inputs: 635940096
+	File system outputs: 320
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

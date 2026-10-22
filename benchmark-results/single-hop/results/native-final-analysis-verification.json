@@ -1,0 +1,29 @@
+{
+  "verified": true,
+  "scope": "Analysis integrity only: normalized-row contracts, repeat identities, weighted label recall, summaries, input/code/figure hashes and report local references; vector truth and C++ saved outputs have separate verification evidence.",
+  "authoritative_rows": 135,
+  "configurations": 45,
+  "repeats_each": 3,
+  "normalized_input_files": 17,
+  "figure_files": 20,
+  "result_error_counters_total": 0,
+  "profiles": [
+    "native-10m-t8-95",
+    "native-10m-t8-99",
+    "native-10m-t1-95",
+    "native-10m-k100-t8-95",
+    "native-10m-k1000-t8-95"
+  ],
+  "all_local_report_links_exist": true,
+  "plot_selection_description": "Highest median QPS among measured qualifying configurations; no exhaustive tuning claim.",
+  "all_local_readme_links_exist": true,
+  "final_diagnostic": {
+    "queries": 256,
+    "k": 1000,
+    "l": 64000,
+    "recall": 0.9571562499999992,
+    "short_results": 9,
+    "timing_authoritative": false,
+    "included_in_performance": false
+  }
+}

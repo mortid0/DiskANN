@@ -1,0 +1,2775 @@
+{
+  "status": "complete native T8 main comparison",
+  "scope": "10M base vectors, 2000 top10 queries, 8 physical cores, same stitched graph/PQ/label starts and query identity; C++ Linux AIO versus Rust io_uring",
+  "interpretation": "Observed label checks over 10-43 queries/label; not significance tests or guarantees. Baselines are independently selected maximum-median-QPS configurations at each common global floor. No confidence intervals or interpolated configurations.",
+  "label_drop_threshold_percentage_points": 1.0,
+  "minimum_repeats": 3,
+  "source_provenance": [
+    {
+      "path": "benchmark-results/single-hop/results/native-10m-t8-95-provenance.json",
+      "sha256": "c6f07e384406d140dfc49a4a5f056bebf7e978e5bd5e8af7f6505d46a8475752",
+      "retained_rows": 99,
+      "configurations": 33
+    },
+    {
+      "path": "benchmark-results/single-hop/results/native-10m-t8-99-provenance.json",
+      "sha256": "5e5601cd1e994f98da5252c6af8f3fbfb93148d35ac408794bd8a4070680444c",
+      "retained_rows": 99,
+      "configurations": 33
+    }
+  ],
+  "floors": [
+    {
+      "floor": 0.95,
+      "selected": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9511000000000045,
+          "recall_min": 0.9511000000000045,
+          "recall_max": 0.9511000000000045,
+          "qps": 4302.387756151341,
+          "qps_min": 4225.5919745359915,
+          "qps_max": 4395.394324736295,
+          "mean_us": 1855.7447419999974,
+          "p50_us": 1799.857,
+          "p95_us": 2137.1020000000003,
+          "p99_us": 2640.018,
+          "p99_us_min": 2314.4860000000003,
+          "p99_us_max": 3143.2650000000003,
+          "requests_per_query": 78.1495,
+          "bytes_per_query": 320100.352,
+          "mean_cmps": 1492.045,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8627906976744185,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 6,
+              "maximum_observed_drop_percentage_points": 1.8181818181818188,
+              "maximum_drop_label": 13604,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 13604,
+                  "queries": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.9363636363636364,
+                  "reference_recall": 0.9545454545454546,
+                  "drop_percentage_points": 1.8181818181818188
+                },
+                {
+                  "label": 29,
+                  "queries": 42,
+                  "eligible": 1915985,
+                  "candidate_recall": 0.933333333333333,
+                  "reference_recall": 0.9476190476190476,
+                  "drop_percentage_points": 1.4285714285714568
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8627906976744185,
+                  "reference_recall": 0.8767441860465117,
+                  "drop_percentage_points": 1.3953488372093203
+                },
+                {
+                  "label": 7546,
+                  "queries": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.968181818181818,
+                  "reference_recall": 0.9818181818181819,
+                  "drop_percentage_points": 1.363636363636389
+                },
+                {
+                  "label": 6,
+                  "queries": 43,
+                  "eligible": 1284396,
+                  "candidate_recall": 0.916279069767442,
+                  "reference_recall": 0.927906976744186,
+                  "drop_percentage_points": 1.1627906976743985
+                },
+                {
+                  "label": 3677,
+                  "queries": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.9703703703703703,
+                  "reference_recall": 0.9814814814814815,
+                  "drop_percentage_points": 1.1111111111111183
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 14,
+              "maximum_observed_drop_percentage_points": 3.7209302325581395,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.897674418604651,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.7209302325581395
+                },
+                {
+                  "label": 336,
+                  "queries": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9071428571428568,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 3.571428571428592
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8627906976744185,
+                  "reference_recall": 0.8883720930232556,
+                  "drop_percentage_points": 2.5581395348837077
+                },
+                {
+                  "label": 17,
+                  "queries": 42,
+                  "eligible": 991156,
+                  "candidate_recall": 0.9214285714285714,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 2.1428571428571352
+                },
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 2.000000000000013
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 103,
+                  "queries": 42,
+                  "eligible": 137207,
+                  "candidate_recall": 0.9499999999999996,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 1.666666666666694
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.97,
+                  "reference_recall": 0.985,
+                  "drop_percentage_points": 1.5000000000000013
+                },
+                {
+                  "label": 2314,
+                  "queries": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.965625,
+                  "reference_recall": 0.978125,
+                  "drop_percentage_points": 1.2500000000000067
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9666666666666666,
+                  "reference_recall": 0.9785714285714284,
+                  "drop_percentage_points": 1.1904761904761862
+                },
+                {
+                  "label": 28,
+                  "queries": 42,
+                  "eligible": 705726,
+                  "candidate_recall": 0.9476190476190476,
+                  "reference_recall": 0.9595238095238093,
+                  "drop_percentage_points": 1.1904761904761751
+                },
+                {
+                  "label": 132,
+                  "queries": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                },
+                {
+                  "label": 5,
+                  "queries": 43,
+                  "eligible": 1235270,
+                  "candidate_recall": 0.9348837209302324,
+                  "reference_recall": 0.9465116279069768,
+                  "drop_percentage_points": 1.1627906976744429
+                },
+                {
+                  "label": 1,
+                  "queries": 43,
+                  "eligible": 266844,
+                  "candidate_recall": 0.9604651162790698,
+                  "reference_recall": 0.9720930232558139,
+                  "drop_percentage_points": 1.1627906976744096
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9585500000000047,
+          "recall_min": 0.9585500000000047,
+          "recall_max": 0.9585500000000047,
+          "qps": 585.4547357401082,
+          "qps_min": 583.9843620200351,
+          "qps_max": 585.7630846368855,
+          "mean_us": 13647.799956999992,
+          "p50_us": 13685.744999999999,
+          "p95_us": 15163.366,
+          "p99_us": 15926.461,
+          "p99_us_min": 15809.561,
+          "p99_us_max": 16016.811,
+          "requests_per_query": 1638.2125,
+          "bytes_per_query": 6710118.4,
+          "mean_cmps": 7241.883,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8883720930232556,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.1904761904762085,
+              "maximum_drop_label": 89,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 89,
+                  "queries": 42,
+                  "eligible": 1707412,
+                  "candidate_recall": 0.8928571428571427,
+                  "reference_recall": 0.9047619047619048,
+                  "drop_percentage_points": 1.1904761904762085
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "l": 320,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "repetitions": 3,
+          "recall": 0.9578000000000033,
+          "recall_min": 0.9578000000000033,
+          "recall_max": 0.9578000000000033,
+          "qps": 455.51880972625264,
+          "qps_min": 454.17711422204667,
+          "qps_max": 455.79968215652394,
+          "mean_us": 17522.726944499995,
+          "p50_us": 16987.958000000002,
+          "p95_us": 21863.964,
+          "p99_us": 26428.403,
+          "p99_us_min": 26426.409,
+          "p99_us_max": 26593.684,
+          "requests_per_query": 935.2785,
+          "bytes_per_query": 3830900.736,
+          "mean_cmps": 22839.5665,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.7200000000000001,
+          "minimum_label_ids": [
+            1227
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 32,
+              "maximum_observed_drop_percentage_points": 24.00000000000001,
+              "maximum_drop_label": 1016,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 1016,
+                  "queries": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.7499999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 24.00000000000001
+                },
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.7200000000000001,
+                  "reference_recall": 0.96,
+                  "drop_percentage_points": 23.99999999999999
+                },
+                {
+                  "label": 8770,
+                  "queries": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.7772727272727272,
+                  "reference_recall": 0.9954545454545454,
+                  "drop_percentage_points": 21.818181818181813
+                },
+                {
+                  "label": 2556,
+                  "queries": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.7916666666666666,
+                  "reference_recall": 0.975,
+                  "drop_percentage_points": 18.333333333333336
+                },
+                {
+                  "label": 11614,
+                  "queries": 10,
+                  "eligible": 6964,
+                  "candidate_recall": 0.82,
+                  "reference_recall": 0.96,
+                  "drop_percentage_points": 14.000000000000002
+                },
+                {
+                  "label": 3901,
+                  "queries": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8571428571428571,
+                  "reference_recall": 0.9904761904761905,
+                  "drop_percentage_points": 13.333333333333341
+                },
+                {
+                  "label": 17875,
+                  "queries": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.8700000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 12.99999999999999
+                },
+                {
+                  "label": 832,
+                  "queries": 22,
+                  "eligible": 12260,
+                  "candidate_recall": 0.8454545454545453,
+                  "reference_recall": 0.9727272727272727,
+                  "drop_percentage_points": 12.727272727272732
+                },
+                {
+                  "label": 706,
+                  "queries": 12,
+                  "eligible": 16174,
+                  "candidate_recall": 0.8833333333333334,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 11.666666666666659
+                },
+                {
+                  "label": 44,
+                  "queries": 23,
+                  "eligible": 29097,
+                  "candidate_recall": 0.8739130434782609,
+                  "reference_recall": 0.982608695652174,
+                  "drop_percentage_points": 10.869565217391308
+                },
+                {
+                  "label": 1643,
+                  "queries": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.8809523809523808,
+                  "reference_recall": 0.9761904761904762,
+                  "drop_percentage_points": 9.523809523809534
+                },
+                {
+                  "label": 6182,
+                  "queries": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9000000000000001,
+                  "reference_recall": 0.9866666666666667,
+                  "drop_percentage_points": 8.666666666666655
+                },
+                {
+                  "label": 3677,
+                  "queries": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.8962962962962963,
+                  "reference_recall": 0.9814814814814815,
+                  "drop_percentage_points": 8.518518518518526
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 7.500000000000007
+                },
+                {
+                  "label": 3908,
+                  "queries": 22,
+                  "eligible": 23248,
+                  "candidate_recall": 0.9227272727272726,
+                  "reference_recall": 0.9954545454545454,
+                  "drop_percentage_points": 7.272727272727275
+                },
+                {
+                  "label": 3918,
+                  "queries": 12,
+                  "eligible": 16937,
+                  "candidate_recall": 0.9416666666666668,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 5.833333333333323
+                },
+                {
+                  "label": 13604,
+                  "queries": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.8999999999999999,
+                  "reference_recall": 0.9545454545454546,
+                  "drop_percentage_points": 5.4545454545454675
+                },
+                {
+                  "label": 7546,
+                  "queries": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9318181818181818,
+                  "reference_recall": 0.9818181818181819,
+                  "drop_percentage_points": 5.000000000000016
+                },
+                {
+                  "label": 3030,
+                  "queries": 14,
+                  "eligible": 35681,
+                  "candidate_recall": 0.9357142857142858,
+                  "reference_recall": 0.9857142857142858,
+                  "drop_percentage_points": 4.999999999999993
+                },
+                {
+                  "label": 341,
+                  "queries": 42,
+                  "eligible": 32880,
+                  "candidate_recall": 0.9452380952380951,
+                  "reference_recall": 0.9904761904761905,
+                  "drop_percentage_points": 4.5238095238095415
+                },
+                {
+                  "label": 816,
+                  "queries": 14,
+                  "eligible": 22811,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9714285714285714,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.9100000000000001,
+                  "reference_recall": 0.95,
+                  "drop_percentage_points": 3.9999999999999813
+                },
+                {
+                  "label": 2314,
+                  "queries": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9375,
+                  "reference_recall": 0.971875,
+                  "drop_percentage_points": 3.4375000000000044
+                },
+                {
+                  "label": 3428,
+                  "queries": 19,
+                  "eligible": 20430,
+                  "candidate_recall": 0.9473684210526315,
+                  "reference_recall": 0.9789473684210527,
+                  "drop_percentage_points": 3.157894736842115
+                },
+                {
+                  "label": 522,
+                  "queries": 32,
+                  "eligible": 36472,
+                  "candidate_recall": 0.9531249999999998,
+                  "reference_recall": 0.984375,
+                  "drop_percentage_points": 3.125000000000022
+                },
+                {
+                  "label": 2027,
+                  "queries": 42,
+                  "eligible": 36166,
+                  "candidate_recall": 0.9309523809523809,
+                  "reference_recall": 0.9619047619047618,
+                  "drop_percentage_points": 3.0952380952380953
+                },
+                {
+                  "label": 1835,
+                  "queries": 13,
+                  "eligible": 7781,
+                  "candidate_recall": 0.9461538461538462,
+                  "reference_recall": 0.9769230769230769,
+                  "drop_percentage_points": 3.076923076923066
+                },
+                {
+                  "label": 8663,
+                  "queries": 25,
+                  "eligible": 19597,
+                  "candidate_recall": 0.9719999999999999,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 2.8000000000000136
+                },
+                {
+                  "label": 4736,
+                  "queries": 34,
+                  "eligible": 33444,
+                  "candidate_recall": 0.9617647058823531,
+                  "reference_recall": 0.9882352941176471,
+                  "drop_percentage_points": 2.6470588235294024
+                },
+                {
+                  "label": 1548,
+                  "queries": 42,
+                  "eligible": 46790,
+                  "candidate_recall": 0.9547619047619046,
+                  "reference_recall": 0.9785714285714286,
+                  "drop_percentage_points": 2.380952380952406
+                },
+                {
+                  "label": 107,
+                  "queries": 42,
+                  "eligible": 105398,
+                  "candidate_recall": 0.9595238095238094,
+                  "reference_recall": 0.980952380952381,
+                  "drop_percentage_points": 2.1428571428571574
+                },
+                {
+                  "label": 2495,
+                  "queries": 42,
+                  "eligible": 48589,
+                  "candidate_recall": 0.9547619047619048,
+                  "reference_recall": 0.9666666666666667,
+                  "drop_percentage_points": 1.1904761904761862
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 34,
+              "maximum_observed_drop_percentage_points": 26.0,
+              "maximum_drop_label": 1227,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.7200000000000001,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 26.0
+                },
+                {
+                  "label": 1016,
+                  "queries": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.7499999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 24.00000000000001
+                },
+                {
+                  "label": 8770,
+                  "queries": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.7772727272727272,
+                  "reference_recall": 0.9954545454545454,
+                  "drop_percentage_points": 21.818181818181813
+                },
+                {
+                  "label": 2556,
+                  "queries": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.7916666666666666,
+                  "reference_recall": 0.9750000000000001,
+                  "drop_percentage_points": 18.333333333333346
+                },
+                {
+                  "label": 11614,
+                  "queries": 10,
+                  "eligible": 6964,
+                  "candidate_recall": 0.82,
+                  "reference_recall": 0.9600000000000002,
+                  "drop_percentage_points": 14.000000000000023
+                },
+                {
+                  "label": 832,
+                  "queries": 22,
+                  "eligible": 12260,
+                  "candidate_recall": 0.8454545454545453,
+                  "reference_recall": 0.9772727272727273,
+                  "drop_percentage_points": 13.181818181818194
+                },
+                {
+                  "label": 17875,
+                  "queries": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.8700000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 12.99999999999999
+                },
+                {
+                  "label": 3901,
+                  "queries": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8571428571428571,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 12.857142857142856
+                },
+                {
+                  "label": 706,
+                  "queries": 12,
+                  "eligible": 16174,
+                  "candidate_recall": 0.8833333333333334,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 11.666666666666659
+                },
+                {
+                  "label": 44,
+                  "queries": 23,
+                  "eligible": 29097,
+                  "candidate_recall": 0.8739130434782609,
+                  "reference_recall": 0.9869565217391304,
+                  "drop_percentage_points": 11.304347826086946
+                },
+                {
+                  "label": 1643,
+                  "queries": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.8809523809523808,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 10.476190476190483
+                },
+                {
+                  "label": 6182,
+                  "queries": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9000000000000001,
+                  "reference_recall": 0.9866666666666667,
+                  "drop_percentage_points": 8.666666666666655
+                },
+                {
+                  "label": 3677,
+                  "queries": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.8962962962962963,
+                  "reference_recall": 0.9777777777777777,
+                  "drop_percentage_points": 8.148148148148149
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.985,
+                  "drop_percentage_points": 7.9999999999999964
+                },
+                {
+                  "label": 3908,
+                  "queries": 22,
+                  "eligible": 23248,
+                  "candidate_recall": 0.9227272727272726,
+                  "reference_recall": 0.9863636363636363,
+                  "drop_percentage_points": 6.363636363636371
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.9100000000000001,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 5.999999999999983
+                },
+                {
+                  "label": 3918,
+                  "queries": 12,
+                  "eligible": 16937,
+                  "candidate_recall": 0.9416666666666668,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 5.833333333333323
+                },
+                {
+                  "label": 13604,
+                  "queries": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.8999999999999999,
+                  "reference_recall": 0.9454545454545454,
+                  "drop_percentage_points": 4.545454545454552
+                },
+                {
+                  "label": 816,
+                  "queries": 14,
+                  "eligible": 22811,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9714285714285714,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 341,
+                  "queries": 42,
+                  "eligible": 32880,
+                  "candidate_recall": 0.9452380952380951,
+                  "reference_recall": 0.9880952380952379,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 3030,
+                  "queries": 14,
+                  "eligible": 35681,
+                  "candidate_recall": 0.9357142857142858,
+                  "reference_recall": 0.9785714285714285,
+                  "drop_percentage_points": 4.2857142857142705
+                },
+                {
+                  "label": 7546,
+                  "queries": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9318181818181818,
+                  "reference_recall": 0.9727272727272726,
+                  "drop_percentage_points": 4.090909090909078
+                },
+                {
+                  "label": 2314,
+                  "queries": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9375,
+                  "reference_recall": 0.978125,
+                  "drop_percentage_points": 4.062500000000002
+                },
+                {
+                  "label": 1835,
+                  "queries": 13,
+                  "eligible": 7781,
+                  "candidate_recall": 0.9461538461538462,
+                  "reference_recall": 0.9846153846153847,
+                  "drop_percentage_points": 3.8461538461538436
+                },
+                {
+                  "label": 2027,
+                  "queries": 42,
+                  "eligible": 36166,
+                  "candidate_recall": 0.9309523809523809,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 3.57142857142857
+                },
+                {
+                  "label": 3428,
+                  "queries": 19,
+                  "eligible": 20430,
+                  "candidate_recall": 0.9473684210526315,
+                  "reference_recall": 0.9789473684210527,
+                  "drop_percentage_points": 3.157894736842115
+                },
+                {
+                  "label": 522,
+                  "queries": 32,
+                  "eligible": 36472,
+                  "candidate_recall": 0.9531249999999998,
+                  "reference_recall": 0.984375,
+                  "drop_percentage_points": 3.125000000000022
+                },
+                {
+                  "label": 1548,
+                  "queries": 42,
+                  "eligible": 46790,
+                  "candidate_recall": 0.9547619047619046,
+                  "reference_recall": 0.9833333333333333,
+                  "drop_percentage_points": 2.857142857142869
+                },
+                {
+                  "label": 107,
+                  "queries": 42,
+                  "eligible": 105398,
+                  "candidate_recall": 0.9595238095238094,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 2.619047619047621
+                },
+                {
+                  "label": 8663,
+                  "queries": 25,
+                  "eligible": 19597,
+                  "candidate_recall": 0.9719999999999999,
+                  "reference_recall": 0.996,
+                  "drop_percentage_points": 2.4000000000000132
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9571428571428571,
+                  "reference_recall": 0.9785714285714284,
+                  "drop_percentage_points": 2.1428571428571352
+                },
+                {
+                  "label": 4736,
+                  "queries": 34,
+                  "eligible": 33444,
+                  "candidate_recall": 0.9617647058823531,
+                  "reference_recall": 0.9794117647058823,
+                  "drop_percentage_points": 1.7647058823529238
+                },
+                {
+                  "label": 2495,
+                  "queries": 42,
+                  "eligible": 48589,
+                  "candidate_recall": 0.9547619047619048,
+                  "reference_recall": 0.9690476190476189,
+                  "drop_percentage_points": 1.4285714285714124
+                },
+                {
+                  "label": 132,
+                  "queries": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9557,
+          "recall_min": 0.9557,
+          "recall_max": 0.9557,
+          "qps": 3476.375574,
+          "qps_min": 3471.128033,
+          "qps_max": 3482.370739,
+          "mean_us": 2297.325534,
+          "p50_us": 2255.826,
+          "p95_us": 2628.707,
+          "p99_us": 3387.886,
+          "p99_us_min": 2841.367,
+          "p99_us_max": 3417.131,
+          "requests_per_query": 77.112,
+          "bytes_per_query": 315850.752,
+          "mean_cmps": 6599.842,
+          "mean_full_cmps": 77.112,
+          "minimum_label_recall": 0.8767441860465117,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 7,
+              "maximum_observed_drop_percentage_points": 3.2558139534883623,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9023255813953488,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.2558139534883623
+                },
+                {
+                  "label": 336,
+                  "queries": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9119047619047619,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 3.0952380952380842
+                },
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 2.000000000000013
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 17,
+                  "queries": 42,
+                  "eligible": 991156,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.4285714285714124
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9666666666666667,
+                  "reference_recall": 0.9785714285714284,
+                  "drop_percentage_points": 1.1904761904761751
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8767441860465117,
+                  "reference_recall": 0.8883720930232556,
+                  "drop_percentage_points": 1.1627906976743874
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "strict_config_label_checks": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 40,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9099000000000043,
+          "recall_min": 0.9099000000000043,
+          "recall_max": 0.9099000000000043,
+          "qps": 5647.069517085994,
+          "qps_min": 5607.892709706952,
+          "qps_max": 5770.5053240456555,
+          "mean_us": 1413.504746000002,
+          "p50_us": 1373.626,
+          "p95_us": 1691.915,
+          "p99_us": 2050.35,
+          "p99_us_min": 1861.864,
+          "p99_us_max": 2551.232,
+          "requests_per_query": 58.86,
+          "bytes_per_query": 241090.56,
+          "mean_cmps": 1234.5695,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.7906976744186045,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 60,
+              "maximum_observed_drop_percentage_points": 9.761904761904761,
+              "maximum_drop_label": 89,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 60,
+              "maximum_observed_drop_percentage_points": 10.000000000000009,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 56,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9447500000000048,
+          "recall_min": 0.9447500000000048,
+          "recall_max": 0.9447500000000048,
+          "qps": 4613.422867322678,
+          "qps_min": 4532.038075038672,
+          "qps_max": 4624.753084432822,
+          "mean_us": 1730.183912500002,
+          "p50_us": 1715.6689999999999,
+          "p95_us": 2022.746,
+          "p99_us": 2238.6929999999998,
+          "p99_us_min": 2225.979,
+          "p99_us_max": 2895.5389999999998,
+          "requests_per_query": 74.287,
+          "bytes_per_query": 304279.552,
+          "mean_cmps": 1442.261,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8488372093023254,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 25,
+              "maximum_observed_drop_percentage_points": 2.8571428571428803,
+              "maximum_drop_label": 29,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 31,
+              "maximum_observed_drop_percentage_points": 4.285714285714315,
+              "maximum_drop_label": 336,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9511000000000045,
+          "recall_min": 0.9511000000000045,
+          "recall_max": 0.9511000000000045,
+          "qps": 4302.387756151341,
+          "qps_min": 4225.5919745359915,
+          "qps_max": 4395.394324736295,
+          "mean_us": 1855.7447419999974,
+          "p50_us": 1799.857,
+          "p95_us": 2137.1020000000003,
+          "p99_us": 2640.018,
+          "p99_us_min": 2314.4860000000003,
+          "p99_us_max": 3143.2650000000003,
+          "requests_per_query": 78.1495,
+          "bytes_per_query": 320100.352,
+          "mean_cmps": 1492.045,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8627906976744185,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 6,
+              "maximum_observed_drop_percentage_points": 1.8181818181818188,
+              "maximum_drop_label": 13604,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 13604,
+                  "queries": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.9363636363636364,
+                  "reference_recall": 0.9545454545454546,
+                  "drop_percentage_points": 1.8181818181818188
+                },
+                {
+                  "label": 29,
+                  "queries": 42,
+                  "eligible": 1915985,
+                  "candidate_recall": 0.933333333333333,
+                  "reference_recall": 0.9476190476190476,
+                  "drop_percentage_points": 1.4285714285714568
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8627906976744185,
+                  "reference_recall": 0.8767441860465117,
+                  "drop_percentage_points": 1.3953488372093203
+                },
+                {
+                  "label": 7546,
+                  "queries": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.968181818181818,
+                  "reference_recall": 0.9818181818181819,
+                  "drop_percentage_points": 1.363636363636389
+                },
+                {
+                  "label": 6,
+                  "queries": 43,
+                  "eligible": 1284396,
+                  "candidate_recall": 0.916279069767442,
+                  "reference_recall": 0.927906976744186,
+                  "drop_percentage_points": 1.1627906976743985
+                },
+                {
+                  "label": 3677,
+                  "queries": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.9703703703703703,
+                  "reference_recall": 0.9814814814814815,
+                  "drop_percentage_points": 1.1111111111111183
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 14,
+              "maximum_observed_drop_percentage_points": 3.7209302325581395,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.897674418604651,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.7209302325581395
+                },
+                {
+                  "label": 336,
+                  "queries": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9071428571428568,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 3.571428571428592
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8627906976744185,
+                  "reference_recall": 0.8883720930232556,
+                  "drop_percentage_points": 2.5581395348837077
+                },
+                {
+                  "label": 17,
+                  "queries": 42,
+                  "eligible": 991156,
+                  "candidate_recall": 0.9214285714285714,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 2.1428571428571352
+                },
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 2.000000000000013
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 103,
+                  "queries": 42,
+                  "eligible": 137207,
+                  "candidate_recall": 0.9499999999999996,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 1.666666666666694
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.97,
+                  "reference_recall": 0.985,
+                  "drop_percentage_points": 1.5000000000000013
+                },
+                {
+                  "label": 2314,
+                  "queries": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.965625,
+                  "reference_recall": 0.978125,
+                  "drop_percentage_points": 1.2500000000000067
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9666666666666666,
+                  "reference_recall": 0.9785714285714284,
+                  "drop_percentage_points": 1.1904761904761862
+                },
+                {
+                  "label": 28,
+                  "queries": 42,
+                  "eligible": 705726,
+                  "candidate_recall": 0.9476190476190476,
+                  "reference_recall": 0.9595238095238093,
+                  "drop_percentage_points": 1.1904761904761751
+                },
+                {
+                  "label": 132,
+                  "queries": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                },
+                {
+                  "label": 5,
+                  "queries": 43,
+                  "eligible": 1235270,
+                  "candidate_recall": 0.9348837209302324,
+                  "reference_recall": 0.9465116279069768,
+                  "drop_percentage_points": 1.1627906976744429
+                },
+                {
+                  "label": 1,
+                  "queries": 43,
+                  "eligible": 266844,
+                  "candidate_recall": 0.9604651162790698,
+                  "reference_recall": 0.9720930232558139,
+                  "drop_percentage_points": 1.1627906976744096
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9561000000000047,
+          "recall_min": 0.9561000000000047,
+          "recall_max": 0.9561000000000047,
+          "qps": 4134.463784760874,
+          "qps_min": 4045.6820290059864,
+          "qps_max": 4212.705659287699,
+          "mean_us": 1930.634227999999,
+          "p50_us": 1886.701,
+          "p95_us": 2223.8050000000003,
+          "p99_us": 2659.395,
+          "p99_us_min": 2420.895,
+          "p99_us_max": 2799.0879999999997,
+          "requests_per_query": 82.0155,
+          "bytes_per_query": 335935.488,
+          "mean_cmps": 1541.3165,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8767441860465115,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.9523809523809823,
+              "maximum_drop_label": 29,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 8,
+              "maximum_observed_drop_percentage_points": 3.2558139534883623,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9023255813953488,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.2558139534883623
+                },
+                {
+                  "label": 1444,
+                  "queries": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 336,
+                  "queries": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9238095238095235,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.9047619047619202
+                },
+                {
+                  "label": 103,
+                  "queries": 42,
+                  "eligible": 137207,
+                  "candidate_recall": 0.9547619047619045,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 1.1904761904762085
+                },
+                {
+                  "label": 17,
+                  "queries": 42,
+                  "eligible": 991156,
+                  "candidate_recall": 0.930952380952381,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.1904761904761751
+                },
+                {
+                  "label": 132,
+                  "queries": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                },
+                {
+                  "label": 5,
+                  "queries": 43,
+                  "eligible": 1235270,
+                  "candidate_recall": 0.9348837209302324,
+                  "reference_recall": 0.9465116279069768,
+                  "drop_percentage_points": 1.1627906976744429
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8767441860465115,
+                  "reference_recall": 0.8883720930232556,
+                  "drop_percentage_points": 1.1627906976744096
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9685500000000039,
+          "recall_min": 0.9685500000000039,
+          "recall_max": 0.9685500000000039,
+          "qps": 3515.5919314633948,
+          "qps_min": 3457.5011905905353,
+          "qps_max": 3518.1570210437458,
+          "mean_us": 2270.8918129999984,
+          "p50_us": 2233.264,
+          "p95_us": 2549.108,
+          "p99_us": 3074.688,
+          "p99_us_min": 3058.557,
+          "p99_us_max": 3238.806,
+          "requests_per_query": 97.4655,
+          "bytes_per_query": 399218.688,
+          "mean_cmps": 1731.0855,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9116279069767439,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.4545454545454408,
+              "maximum_drop_label": 3908,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 2.3255813953488524,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9116279069767439,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 2.3255813953488524
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9892500000000024,
+          "recall_min": 0.9892500000000024,
+          "recall_max": 0.9892500000000024,
+          "qps": 1973.6643057322538,
+          "qps_min": 1962.7634373733974,
+          "qps_max": 1997.6005800656535,
+          "mean_us": 4044.727262000008,
+          "p50_us": 3951.758,
+          "p95_us": 4309.492,
+          "p99_us": 5297.451,
+          "p99_us_min": 4718.120999999999,
+          "p99_us_max": 7854.883999999999,
+          "requests_per_query": 176.0795,
+          "bytes_per_query": 721221.632,
+          "mean_cmps": 2600.748,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9511627906976742,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8000000000000118,
+              "maximum_drop_label": 8663,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.454545454545463,
+              "maximum_drop_label": 8770,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": true
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 176,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.990550000000002,
+          "recall_min": 0.990550000000002,
+          "recall_max": 0.990550000000002,
+          "qps": 1841.1182433014467,
+          "qps_min": 1809.7516904404167,
+          "qps_max": 1842.004733325883,
+          "mean_us": 4336.837584000002,
+          "p50_us": 4293.68,
+          "p95_us": 4637.045999999999,
+          "p99_us": 4943.293,
+          "p99_us_min": 4888.029,
+          "p99_us_max": 5606.571,
+          "requests_per_query": 191.919,
+          "bytes_per_query": 786100.224,
+          "mean_cmps": 2760.839,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9604651162790697,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8000000000000118,
+              "maximum_drop_label": 8663,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.454545454545463,
+              "maximum_drop_label": 8770,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": true
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 192,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9916500000000017,
+          "recall_min": 0.9916500000000017,
+          "recall_max": 0.9916500000000017,
+          "qps": 1704.7192259714855,
+          "qps_min": 1678.3742839707043,
+          "qps_max": 1707.9454465042456,
+          "mean_us": 4686.206848999989,
+          "p50_us": 4642.436,
+          "p95_us": 4992.656,
+          "p99_us": 5371.117,
+          "p99_us_min": 5277.071,
+          "p99_us_max": 6070.985,
+          "requests_per_query": 207.7655,
+          "bytes_per_query": 851007.488,
+          "mean_cmps": 2917.437,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9674418604651162,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8333333333333304,
+              "maximum_drop_label": 3918,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8333333333333304,
+              "maximum_drop_label": 3918,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": true
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 320,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.994550000000001,
+          "recall_min": 0.994550000000001,
+          "recall_max": 0.994550000000001,
+          "qps": 1058.2480908896225,
+          "qps_min": 1057.9669323580108,
+          "qps_max": 1068.426260439207,
+          "mean_us": 7543.853157000018,
+          "p50_us": 7417.16,
+          "p95_us": 8681.128999999999,
+          "p99_us": 11433.22,
+          "p99_us_min": 11371.554,
+          "p99_us_max": 11509.383,
+          "requests_per_query": 334.783,
+          "bytes_per_query": 1371271.168,
+          "mean_cmps": 4080.239,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9674418604651162,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8000000000000118,
+              "maximum_drop_label": 8663,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.454545454545463,
+              "maximum_drop_label": 8770,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": true
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 640,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9958000000000009,
+          "recall_min": 0.9958000000000009,
+          "recall_max": 0.9958000000000009,
+          "qps": 555.3246116295193,
+          "qps_min": 552.8181930428536,
+          "qps_max": 555.4368884700782,
+          "mean_us": 14377.428388999992,
+          "p50_us": 14303.653,
+          "p95_us": 14947.554,
+          "p99_us": 17319.148,
+          "p99_us_min": 17257.150999999998,
+          "p99_us_max": 17545.986,
+          "requests_per_query": 653.674,
+          "bytes_per_query": 2677448.704,
+          "mean_cmps": 6564.6215,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.984375,
+          "minimum_label_ids": [
+            15
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 60,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8333333333333304,
+              "maximum_drop_label": 3918,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8333333333333304,
+              "maximum_drop_label": 3918,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": true
+        }
+      ],
+      "fastest_strict_with_no_observed_gt1pp_drop_vs_both": {
+        "implementation": "rust",
+        "mode": "single",
+        "l": 160,
+        "adaptive_sample": null,
+        "adaptive_scale": null,
+        "repetitions": 3,
+        "recall": 0.9892500000000024,
+        "recall_min": 0.9892500000000024,
+        "recall_max": 0.9892500000000024,
+        "qps": 1973.6643057322538,
+        "qps_min": 1962.7634373733974,
+        "qps_max": 1997.6005800656535,
+        "mean_us": 4044.727262000008,
+        "p50_us": 3951.758,
+        "p95_us": 4309.492,
+        "p99_us": 5297.451,
+        "p99_us_min": 4718.120999999999,
+        "p99_us_max": 7854.883999999999,
+        "requests_per_query": 176.0795,
+        "bytes_per_query": 721221.632,
+        "mean_cmps": 2600.748,
+        "mean_full_cmps": null,
+        "minimum_label_recall": 0.9511627906976742,
+        "minimum_label_ids": [
+          8
+        ],
+        "meets_global_floor_every_repeat": true,
+        "comparisons": [
+          {
+            "reference_implementation": "cpp_native_linux",
+            "reference_mode": "single",
+            "reference_l": 60,
+            "warning_count": 0,
+            "maximum_observed_drop_percentage_points": 0.8000000000000118,
+            "maximum_drop_label": 8663,
+            "no_observed_drop_above_one_pp": true,
+            "warnings": []
+          },
+          {
+            "reference_implementation": "rust",
+            "reference_mode": "multihop",
+            "reference_l": 64,
+            "warning_count": 0,
+            "maximum_observed_drop_percentage_points": 0.454545454545463,
+            "maximum_drop_label": 8770,
+            "no_observed_drop_above_one_pp": true,
+            "warnings": []
+          }
+        ],
+        "meets_both_label_diagnostics": true
+      },
+      "strict_qps_ratios": {
+        "cpp": 1.2376072908603806,
+        "multihop": 7.3487965738503025,
+        "inline": 9.445027657006946
+      }
+    },
+    {
+      "floor": 0.99,
+      "selected": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 176,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.990550000000002,
+          "recall_min": 0.990550000000002,
+          "recall_max": 0.990550000000002,
+          "qps": 1841.1182433014467,
+          "qps_min": 1809.7516904404167,
+          "qps_max": 1842.004733325883,
+          "mean_us": 4336.837584000002,
+          "p50_us": 4293.68,
+          "p95_us": 4637.045999999999,
+          "p99_us": 4943.293,
+          "p99_us_min": 4888.029,
+          "p99_us_max": 5606.571,
+          "requests_per_query": 191.919,
+          "bytes_per_query": 786100.224,
+          "mean_cmps": 2760.839,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9604651162790697,
+          "minimum_label_ids": [
+            8
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.909090909090926,
+              "maximum_drop_label": 8770,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 2,
+              "maximum_observed_drop_percentage_points": 2.3255813953488302,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9604651162790697,
+                  "reference_recall": 0.983720930232558,
+                  "drop_percentage_points": 2.3255813953488302
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9833333333333333,
+                  "reference_recall": 0.9952380952380951,
+                  "drop_percentage_points": 1.1904761904761862
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9906500000000023,
+          "recall_min": 0.9906500000000023,
+          "recall_max": 0.9906500000000023,
+          "qps": 267.852204702807,
+          "qps_min": 264.7710825123557,
+          "qps_max": 267.9553415397255,
+          "mean_us": 29826.114765499984,
+          "p50_us": 30083.493,
+          "p95_us": 32055.703999999998,
+          "p99_us": 33104.958,
+          "p99_us_min": 32936.512,
+          "p99_us_max": 33507.345,
+          "requests_per_query": 3611.065,
+          "bytes_per_query": 14790922.24,
+          "mean_cmps": 13732.76,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9619047619047618,
+          "minimum_label_ids": [
+            89
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.6279069767441978,
+              "maximum_drop_label": 6,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 6,
+                  "queries": 43,
+                  "eligible": 1284396,
+                  "candidate_recall": 0.9767441860465116,
+                  "reference_recall": 0.9930232558139536,
+                  "drop_percentage_points": 1.6279069767441978
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "l": 2560,
+          "adaptive_sample": 1000,
+          "adaptive_scale": 16.0,
+          "repetitions": 3,
+          "recall": 0.9911500000000015,
+          "recall_min": 0.9911500000000015,
+          "recall_max": 0.9911500000000015,
+          "qps": 58.759477117714354,
+          "qps_min": 58.21997475216389,
+          "qps_max": 59.08732867126477,
+          "mean_us": 135818.52674699988,
+          "p50_us": 130955.062,
+          "p95_us": 171326.092,
+          "p99_us": 208878.388,
+          "p99_us_min": 208847.94100000002,
+          "p99_us_max": 209972.577,
+          "requests_per_query": 6978.404,
+          "bytes_per_query": 28583542.784,
+          "mean_cmps": 104352.3815,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9099999999999999,
+          "minimum_label_ids": [
+            1227
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 12,
+              "maximum_observed_drop_percentage_points": 8.000000000000007,
+              "maximum_drop_label": 1227,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.9099999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 8.000000000000007
+                },
+                {
+                  "label": 2556,
+                  "queries": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.9249999999999999,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 7.500000000000007
+                },
+                {
+                  "label": 8770,
+                  "queries": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.9363636363636363,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 6.363636363636371
+                },
+                {
+                  "label": 1016,
+                  "queries": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.93,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 5.999999999999995
+                },
+                {
+                  "label": 3901,
+                  "queries": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.9571428571428572,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 1643,
+                  "queries": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.9666666666666666,
+                  "reference_recall": 0.9952380952380951,
+                  "drop_percentage_points": 2.857142857142858
+                },
+                {
+                  "label": 17875,
+                  "queries": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.9800000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.9999999999999907
+                },
+                {
+                  "label": 11614,
+                  "queries": 10,
+                  "eligible": 6964,
+                  "candidate_recall": 0.9800000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.9999999999999907
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.985,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.5000000000000013
+                },
+                {
+                  "label": 3030,
+                  "queries": 14,
+                  "eligible": 35681,
+                  "candidate_recall": 0.9785714285714285,
+                  "reference_recall": 0.9928571428571429,
+                  "drop_percentage_points": 1.4285714285714346
+                },
+                {
+                  "label": 3908,
+                  "queries": 22,
+                  "eligible": 23248,
+                  "candidate_recall": 0.9863636363636364,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.3636363636363558
+                },
+                {
+                  "label": 6182,
+                  "queries": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9866666666666667,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.3333333333333308
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 10,
+              "maximum_observed_drop_percentage_points": 8.000000000000007,
+              "maximum_drop_label": 1227,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 1227,
+                  "queries": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.9099999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 8.000000000000007
+                },
+                {
+                  "label": 2556,
+                  "queries": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.9249999999999999,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 7.500000000000007
+                },
+                {
+                  "label": 1016,
+                  "queries": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.93,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 5.999999999999995
+                },
+                {
+                  "label": 8770,
+                  "queries": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.9363636363636363,
+                  "reference_recall": 0.9909090909090907,
+                  "drop_percentage_points": 5.454545454545445
+                },
+                {
+                  "label": 3901,
+                  "queries": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.9571428571428572,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 1643,
+                  "queries": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.9666666666666666,
+                  "reference_recall": 0.9928571428571428,
+                  "drop_percentage_points": 2.619047619047621
+                },
+                {
+                  "label": 17875,
+                  "queries": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.9800000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.9999999999999907
+                },
+                {
+                  "label": 5518,
+                  "queries": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.985,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.5000000000000013
+                },
+                {
+                  "label": 6182,
+                  "queries": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9866666666666667,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.3333333333333308
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.9651162790697675,
+                  "reference_recall": 0.9767441860465115,
+                  "drop_percentage_points": 1.1627906976743985
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "l": 144,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.99065,
+          "recall_min": 0.99065,
+          "recall_max": 0.99065,
+          "qps": 1742.654033,
+          "qps_min": 1720.294161,
+          "qps_max": 1743.716201,
+          "mean_us": 4583.347955,
+          "p50_us": 4564.129,
+          "p95_us": 4986.234,
+          "p99_us": 5316.726,
+          "p99_us_min": 5278.884,
+          "p99_us_max": 5867.031,
+          "requests_per_query": 159.253,
+          "bytes_per_query": 652300.288,
+          "mean_cmps": 13610.732,
+          "mean_full_cmps": 159.253,
+          "minimum_label_recall": 0.9488372093023255,
+          "minimum_label_ids": [
+            8
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 4,
+              "maximum_observed_drop_percentage_points": 3.488372093023251,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9488372093023255,
+                  "reference_recall": 0.983720930232558,
+                  "drop_percentage_points": 3.488372093023251
+                },
+                {
+                  "label": 15,
+                  "queries": 32,
+                  "eligible": 905943,
+                  "candidate_recall": 0.959375,
+                  "reference_recall": 0.9781249999999999,
+                  "drop_percentage_points": 1.8749999999999933
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9833333333333333,
+                  "reference_recall": 0.9952380952380951,
+                  "drop_percentage_points": 1.1904761904761862
+                },
+                {
+                  "label": 4,
+                  "queries": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.9651162790697675,
+                  "reference_recall": 0.9767441860465115,
+                  "drop_percentage_points": 1.1627906976743985
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "strict_config_label_checks": [
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 40,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9099000000000043,
+          "recall_min": 0.9099000000000043,
+          "recall_max": 0.9099000000000043,
+          "qps": 5647.069517085994,
+          "qps_min": 5607.892709706952,
+          "qps_max": 5770.5053240456555,
+          "mean_us": 1413.504746000002,
+          "p50_us": 1373.626,
+          "p95_us": 1691.915,
+          "p99_us": 2050.35,
+          "p99_us_min": 1861.864,
+          "p99_us_max": 2551.232,
+          "requests_per_query": 58.86,
+          "bytes_per_query": 241090.56,
+          "mean_cmps": 1234.5695,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.7906976744186045,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 63,
+              "maximum_observed_drop_percentage_points": 17.4418604651163,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 63,
+              "maximum_observed_drop_percentage_points": 18.6046511627907,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 56,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9447500000000048,
+          "recall_min": 0.9447500000000048,
+          "recall_max": 0.9447500000000048,
+          "qps": 4613.422867322678,
+          "qps_min": 4532.038075038672,
+          "qps_max": 4624.753084432822,
+          "mean_us": 1730.183912500002,
+          "p50_us": 1715.6689999999999,
+          "p95_us": 2022.746,
+          "p99_us": 2238.6929999999998,
+          "p99_us_min": 2225.979,
+          "p99_us_max": 2895.5389999999998,
+          "requests_per_query": 74.287,
+          "bytes_per_query": 304279.552,
+          "mean_cmps": 1442.261,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8488372093023254,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 56,
+              "maximum_observed_drop_percentage_points": 11.627906976744207,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 54,
+              "maximum_observed_drop_percentage_points": 12.790697674418606,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 60,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9511000000000045,
+          "recall_min": 0.9511000000000045,
+          "recall_max": 0.9511000000000045,
+          "qps": 4302.387756151341,
+          "qps_min": 4225.5919745359915,
+          "qps_max": 4395.394324736295,
+          "mean_us": 1855.7447419999974,
+          "p50_us": 1799.857,
+          "p95_us": 2137.1020000000003,
+          "p99_us": 2640.018,
+          "p99_us_min": 2314.4860000000003,
+          "p99_us_max": 3143.2650000000003,
+          "requests_per_query": 78.1495,
+          "bytes_per_query": 320100.352,
+          "mean_cmps": 1492.045,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8627906976744185,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 55,
+              "maximum_observed_drop_percentage_points": 10.232558139534898,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 53,
+              "maximum_observed_drop_percentage_points": 11.395348837209296,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 64,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9561000000000047,
+          "recall_min": 0.9561000000000047,
+          "recall_max": 0.9561000000000047,
+          "qps": 4134.463784760874,
+          "qps_min": 4045.6820290059864,
+          "qps_max": 4212.705659287699,
+          "mean_us": 1930.634227999999,
+          "p50_us": 1886.701,
+          "p95_us": 2223.8050000000003,
+          "p99_us": 2659.395,
+          "p99_us_min": 2420.895,
+          "p99_us_max": 2799.0879999999997,
+          "requests_per_query": 82.0155,
+          "bytes_per_query": 335935.488,
+          "mean_cmps": 1541.3165,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.8767441860465115,
+          "minimum_label_ids": [
+            4
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 54,
+              "maximum_observed_drop_percentage_points": 8.837209302325599,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 52,
+              "maximum_observed_drop_percentage_points": 9.999999999999998,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 80,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9685500000000039,
+          "recall_min": 0.9685500000000039,
+          "recall_max": 0.9685500000000039,
+          "qps": 3515.5919314633948,
+          "qps_min": 3457.5011905905353,
+          "qps_max": 3518.1570210437458,
+          "mean_us": 2270.8918129999984,
+          "p50_us": 2233.264,
+          "p95_us": 2549.108,
+          "p99_us": 3074.688,
+          "p99_us_min": 3058.557,
+          "p99_us_max": 3238.806,
+          "requests_per_query": 97.4655,
+          "bytes_per_query": 399218.688,
+          "mean_cmps": 1731.0855,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9116279069767439,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 45,
+              "maximum_observed_drop_percentage_points": 5.1162790697674705,
+              "maximum_drop_label": 4,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 43,
+              "maximum_observed_drop_percentage_points": 7.209302325581413,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 160,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9892500000000024,
+          "recall_min": 0.9892500000000024,
+          "recall_max": 0.9892500000000024,
+          "qps": 1973.6643057322538,
+          "qps_min": 1962.7634373733974,
+          "qps_max": 1997.6005800656535,
+          "mean_us": 4044.727262000008,
+          "p50_us": 3951.758,
+          "p95_us": 4309.492,
+          "p99_us": 5297.451,
+          "p99_us_min": 4718.120999999999,
+          "p99_us_max": 7854.883999999999,
+          "requests_per_query": 176.0795,
+          "bytes_per_query": 721221.632,
+          "mean_cmps": 2600.748,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9511627906976742,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": false,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.1111111111111183,
+              "maximum_drop_label": 3677,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 3,
+              "maximum_observed_drop_percentage_points": 3.2558139534883845,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": "omitted for globally ineligible configuration"
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 176,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.990550000000002,
+          "recall_min": 0.990550000000002,
+          "recall_max": 0.990550000000002,
+          "qps": 1841.1182433014467,
+          "qps_min": 1809.7516904404167,
+          "qps_max": 1842.004733325883,
+          "mean_us": 4336.837584000002,
+          "p50_us": 4293.68,
+          "p95_us": 4637.045999999999,
+          "p99_us": 4943.293,
+          "p99_us_min": 4888.029,
+          "p99_us_max": 5606.571,
+          "requests_per_query": 191.919,
+          "bytes_per_query": 786100.224,
+          "mean_cmps": 2760.839,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9604651162790697,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.909090909090926,
+              "maximum_drop_label": 8770,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 2,
+              "maximum_observed_drop_percentage_points": 2.3255813953488302,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9604651162790697,
+                  "reference_recall": 0.983720930232558,
+                  "drop_percentage_points": 2.3255813953488302
+                },
+                {
+                  "label": 36,
+                  "queries": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9833333333333333,
+                  "reference_recall": 0.9952380952380951,
+                  "drop_percentage_points": 1.1904761904761862
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 192,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9916500000000017,
+          "recall_min": 0.9916500000000017,
+          "recall_max": 0.9916500000000017,
+          "qps": 1704.7192259714855,
+          "qps_min": 1678.3742839707043,
+          "qps_max": 1707.9454465042456,
+          "mean_us": 4686.206848999989,
+          "p50_us": 4642.436,
+          "p95_us": 4992.656,
+          "p99_us": 5371.117,
+          "p99_us_min": 5277.071,
+          "p99_us_max": 6070.985,
+          "requests_per_query": 207.7655,
+          "bytes_per_query": 851007.488,
+          "mean_cmps": 2917.437,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9674418604651162,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 1.0000000000000009,
+              "maximum_drop_label": 11614,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.6279069767441867,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9674418604651162,
+                  "reference_recall": 0.983720930232558,
+                  "drop_percentage_points": 1.6279069767441867
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 320,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.994550000000001,
+          "recall_min": 0.994550000000001,
+          "recall_max": 0.994550000000001,
+          "qps": 1058.2480908896225,
+          "qps_min": 1057.9669323580108,
+          "qps_max": 1068.426260439207,
+          "mean_us": 7543.853157000018,
+          "p50_us": 7417.16,
+          "p95_us": 8681.128999999999,
+          "p99_us": 11433.22,
+          "p99_us_min": 11371.554,
+          "p99_us_max": 11509.383,
+          "requests_per_query": 334.783,
+          "bytes_per_query": 1371271.168,
+          "mean_cmps": 4080.239,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.9674418604651162,
+          "minimum_label_ids": [
+            8
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 1.0000000000000009,
+              "maximum_drop_label": 11614,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.6279069767441867,
+              "maximum_drop_label": 8,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 8,
+                  "queries": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9674418604651162,
+                  "reference_recall": 0.983720930232558,
+                  "drop_percentage_points": 1.6279069767441867
+                }
+              ]
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 640,
+          "adaptive_sample": null,
+          "adaptive_scale": null,
+          "repetitions": 3,
+          "recall": 0.9958000000000009,
+          "recall_min": 0.9958000000000009,
+          "recall_max": 0.9958000000000009,
+          "qps": 555.3246116295193,
+          "qps_min": 552.8181930428536,
+          "qps_max": 555.4368884700782,
+          "mean_us": 14377.428388999992,
+          "p50_us": 14303.653,
+          "p95_us": 14947.554,
+          "p99_us": 17319.148,
+          "p99_us_min": 17257.150999999998,
+          "p99_us_max": 17545.986,
+          "requests_per_query": 653.674,
+          "bytes_per_query": 2677448.704,
+          "mean_cmps": 6564.6215,
+          "mean_full_cmps": null,
+          "minimum_label_recall": 0.984375,
+          "minimum_label_ids": [
+            15
+          ],
+          "meets_global_floor_every_repeat": true,
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 144,
+              "warning_count": 1,
+              "maximum_observed_drop_percentage_points": 1.1111111111111183,
+              "maximum_drop_label": 3677,
+              "no_observed_drop_above_one_pp": false,
+              "warnings": [
+                {
+                  "label": 3677,
+                  "queries": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.9888888888888888,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 1.1111111111111183
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 160,
+              "warning_count": 0,
+              "maximum_observed_drop_percentage_points": 0.8333333333333304,
+              "maximum_drop_label": 3918,
+              "no_observed_drop_above_one_pp": true,
+              "warnings": []
+            }
+          ],
+          "meets_both_label_diagnostics": false
+        }
+      ],
+      "fastest_strict_with_no_observed_gt1pp_drop_vs_both": null,
+      "strict_qps_ratios": {
+        "cpp": 1.056502443076403,
+        "multihop": 6.8736348291187035,
+        "inline": 31.33312843497718
+      }
+    }
+  ]
+}

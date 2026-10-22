@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "command": "python3 -m unittest discover -s tools/single-hop-benchmark -p test_*heldout.py",
+      "tests": 31
+    },
+    {
+      "command": "python3 -m unittest discover -s tools/single-hop-benchmark/cpp-port -p test_run_reference.py",
+      "tests": 1
+    },
+    {
+      "command": "cargo +1.97.1 test --offline -p diskann-disk --example filtered_lifecycle",
+      "tests": 8,
+      "platform": "native Linux/io_uring",
+      "log": "native-tests.log"
+    },
+    {
+      "command": "cargo clippy --offline -p diskann-disk --example filtered_lifecycle -- -D warnings"
+    },
+    {
+      "command": "cargo fmt --all --check"
+    },
+    {
+      "command": "git diff --check -- '*.rs' '*.toml' '*.md' '*.py' '*.sh'"
+    }
+  ],
+  "analysis_environment": {
+    "python": "3.12.7",
+    "numpy": "1.26.4"
+  },
+  "scope": "Focused checks for held-out instrumentation, frozen-protocol safeguards and independent analysis; prior migration test evidence remains in historical report."
+}

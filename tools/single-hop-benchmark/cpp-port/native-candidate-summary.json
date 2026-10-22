@@ -1,0 +1,52 @@
+{
+  "source_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "native_metrics_patch_sha256": "4f847d6d05f404431ee34e9b4e068a4268476d10d408a73a193f14cfecfcc0c2",
+  "search_binary_sha256": "adfec335597f4c8834ed4f875cbef2971fddd476c2d66412f843e78d60cb8a4a",
+  "query_set": "shared256 original one-tag queries, four per64 labels; exact top100 is prefix of exact top1000",
+  "all_output_files_revalidated_locally": true,
+  "measured_repeats": 6,
+  "rows": [
+    {
+      "k": 100,
+      "l": 400,
+      "threads": 8,
+      "queries": 256,
+      "repeats": 3,
+      "recall_min": 0.9703125,
+      "recall_max": 0.9703125,
+      "qps_median": 672.9989064,
+      "qps_min": 672.079444,
+      "qps_max": 673.7015034,
+      "p99_us_median": 13109.077,
+      "mean_us_median": 11766.3746328125,
+      "all_valid": true,
+      "mean_requests_per_query": 412.1484375,
+      "mean_pq_cmps": 36396.875,
+      "gnu_time_max_rss_kib": 571776,
+      "resource_scope": "GNU time for entire Python driver job and sequential query child processes, including index initialization, warmups, validation and serialization; not per-L search scratch or aggregate simultaneous RSS",
+      "resources": "benchmark-results/single-hop/results/native-cpp-k100.resources.txt",
+      "normalized_results": "benchmark-results/single-hop/results/native-cpp-k100.jsonl"
+    },
+    {
+      "k": 1000,
+      "l": 4000,
+      "threads": 8,
+      "queries": 256,
+      "repeats": 3,
+      "recall_min": 0.9880078125,
+      "recall_max": 0.9880078125,
+      "qps_median": 66.15756891,
+      "qps_min": 65.99468071,
+      "qps_max": 66.20257121,
+      "p99_us_median": 147648.238,
+      "mean_us_median": 119573.5404921875,
+      "all_valid": true,
+      "mean_requests_per_query": 4007.40625,
+      "mean_pq_cmps": 349856.30859375,
+      "gnu_time_max_rss_kib": 698340,
+      "resource_scope": "GNU time for entire Python driver job and sequential query child processes, including index initialization, warmups, validation and serialization; not per-L search scratch or aggregate simultaneous RSS",
+      "resources": "benchmark-results/single-hop/results/native-cpp-k1000.resources.txt",
+      "normalized_results": "benchmark-results/single-hop/results/native-cpp-k1000.jsonl"
+    }
+  ]
+}

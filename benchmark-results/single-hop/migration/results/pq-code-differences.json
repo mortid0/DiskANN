@@ -1,0 +1,431 @@
+{
+  "rows": 10000000,
+  "chunks": 32,
+  "identical_headers": true,
+  "changed_rows": 6170,
+  "changed_code_bytes": 6175,
+  "changed_row_fraction": 0.000617,
+  "changed_code_fraction": 1.9296875e-05,
+  "changed_codes_by_chunk": [
+    176,
+    178,
+    200,
+    170,
+    216,
+    210,
+    204,
+    156,
+    167,
+    192,
+    231,
+    194,
+    162,
+    192,
+    167,
+    192,
+    163,
+    172,
+    194,
+    194,
+    182,
+    180,
+    216,
+    218,
+    212,
+    182,
+    180,
+    199,
+    210,
+    206,
+    208,
+    252
+  ],
+  "first_differences": [
+    {
+      "row": 438,
+      "chunk": 29,
+      "cpp": 212,
+      "rust": 160
+    },
+    {
+      "row": 804,
+      "chunk": 13,
+      "cpp": 150,
+      "rust": 112
+    },
+    {
+      "row": 4609,
+      "chunk": 18,
+      "cpp": 244,
+      "rust": 50
+    },
+    {
+      "row": 11927,
+      "chunk": 24,
+      "cpp": 236,
+      "rust": 128
+    },
+    {
+      "row": 12345,
+      "chunk": 2,
+      "cpp": 168,
+      "rust": 199
+    },
+    {
+      "row": 12697,
+      "chunk": 24,
+      "cpp": 165,
+      "rust": 194
+    },
+    {
+      "row": 21475,
+      "chunk": 8,
+      "cpp": 34,
+      "rust": 166
+    },
+    {
+      "row": 21557,
+      "chunk": 25,
+      "cpp": 197,
+      "rust": 80
+    },
+    {
+      "row": 26321,
+      "chunk": 22,
+      "cpp": 10,
+      "rust": 171
+    },
+    {
+      "row": 26863,
+      "chunk": 7,
+      "cpp": 173,
+      "rust": 201
+    },
+    {
+      "row": 27402,
+      "chunk": 1,
+      "cpp": 175,
+      "rust": 28
+    },
+    {
+      "row": 29382,
+      "chunk": 3,
+      "cpp": 95,
+      "rust": 64
+    },
+    {
+      "row": 32177,
+      "chunk": 21,
+      "cpp": 75,
+      "rust": 182
+    },
+    {
+      "row": 32749,
+      "chunk": 30,
+      "cpp": 164,
+      "rust": 36
+    },
+    {
+      "row": 34619,
+      "chunk": 1,
+      "cpp": 198,
+      "rust": 83
+    },
+    {
+      "row": 36737,
+      "chunk": 14,
+      "cpp": 190,
+      "rust": 3
+    },
+    {
+      "row": 37446,
+      "chunk": 19,
+      "cpp": 117,
+      "rust": 64
+    },
+    {
+      "row": 41641,
+      "chunk": 3,
+      "cpp": 43,
+      "rust": 192
+    },
+    {
+      "row": 43899,
+      "chunk": 18,
+      "cpp": 214,
+      "rust": 121
+    },
+    {
+      "row": 45992,
+      "chunk": 12,
+      "cpp": 193,
+      "rust": 85
+    },
+    {
+      "row": 46131,
+      "chunk": 22,
+      "cpp": 48,
+      "rust": 148
+    },
+    {
+      "row": 48683,
+      "chunk": 26,
+      "cpp": 53,
+      "rust": 132
+    },
+    {
+      "row": 48684,
+      "chunk": 26,
+      "cpp": 53,
+      "rust": 132
+    },
+    {
+      "row": 52955,
+      "chunk": 16,
+      "cpp": 152,
+      "rust": 81
+    },
+    {
+      "row": 52956,
+      "chunk": 16,
+      "cpp": 152,
+      "rust": 81
+    },
+    {
+      "row": 54594,
+      "chunk": 2,
+      "cpp": 156,
+      "rust": 26
+    },
+    {
+      "row": 55153,
+      "chunk": 30,
+      "cpp": 196,
+      "rust": 240
+    },
+    {
+      "row": 59049,
+      "chunk": 2,
+      "cpp": 160,
+      "rust": 254
+    },
+    {
+      "row": 60043,
+      "chunk": 7,
+      "cpp": 104,
+      "rust": 67
+    },
+    {
+      "row": 62048,
+      "chunk": 13,
+      "cpp": 93,
+      "rust": 83
+    },
+    {
+      "row": 63434,
+      "chunk": 11,
+      "cpp": 53,
+      "rust": 120
+    },
+    {
+      "row": 64396,
+      "chunk": 8,
+      "cpp": 193,
+      "rust": 98
+    },
+    {
+      "row": 64465,
+      "chunk": 27,
+      "cpp": 197,
+      "rust": 115
+    },
+    {
+      "row": 65041,
+      "chunk": 12,
+      "cpp": 255,
+      "rust": 54
+    },
+    {
+      "row": 65278,
+      "chunk": 28,
+      "cpp": 229,
+      "rust": 61
+    },
+    {
+      "row": 65779,
+      "chunk": 8,
+      "cpp": 218,
+      "rust": 227
+    },
+    {
+      "row": 66671,
+      "chunk": 0,
+      "cpp": 5,
+      "rust": 119
+    },
+    {
+      "row": 75822,
+      "chunk": 24,
+      "cpp": 103,
+      "rust": 99
+    },
+    {
+      "row": 76050,
+      "chunk": 5,
+      "cpp": 159,
+      "rust": 155
+    },
+    {
+      "row": 81311,
+      "chunk": 29,
+      "cpp": 143,
+      "rust": 0
+    },
+    {
+      "row": 81312,
+      "chunk": 29,
+      "cpp": 143,
+      "rust": 0
+    },
+    {
+      "row": 82013,
+      "chunk": 5,
+      "cpp": 247,
+      "rust": 3
+    },
+    {
+      "row": 85150,
+      "chunk": 6,
+      "cpp": 223,
+      "rust": 171
+    },
+    {
+      "row": 86822,
+      "chunk": 21,
+      "cpp": 108,
+      "rust": 72
+    },
+    {
+      "row": 87151,
+      "chunk": 6,
+      "cpp": 247,
+      "rust": 251
+    },
+    {
+      "row": 87453,
+      "chunk": 19,
+      "cpp": 28,
+      "rust": 40
+    },
+    {
+      "row": 88307,
+      "chunk": 18,
+      "cpp": 190,
+      "rust": 142
+    },
+    {
+      "row": 89488,
+      "chunk": 19,
+      "cpp": 116,
+      "rust": 101
+    },
+    {
+      "row": 93128,
+      "chunk": 25,
+      "cpp": 117,
+      "rust": 198
+    },
+    {
+      "row": 94721,
+      "chunk": 0,
+      "cpp": 98,
+      "rust": 180
+    },
+    {
+      "row": 94722,
+      "chunk": 0,
+      "cpp": 98,
+      "rust": 180
+    },
+    {
+      "row": 95185,
+      "chunk": 30,
+      "cpp": 17,
+      "rust": 16
+    },
+    {
+      "row": 99288,
+      "chunk": 29,
+      "cpp": 238,
+      "rust": 171
+    },
+    {
+      "row": 100530,
+      "chunk": 0,
+      "cpp": 63,
+      "rust": 209
+    },
+    {
+      "row": 102915,
+      "chunk": 5,
+      "cpp": 39,
+      "rust": 56
+    },
+    {
+      "row": 102916,
+      "chunk": 5,
+      "cpp": 39,
+      "rust": 56
+    },
+    {
+      "row": 103202,
+      "chunk": 29,
+      "cpp": 237,
+      "rust": 94
+    },
+    {
+      "row": 105013,
+      "chunk": 19,
+      "cpp": 203,
+      "rust": 42
+    },
+    {
+      "row": 106840,
+      "chunk": 16,
+      "cpp": 150,
+      "rust": 107
+    },
+    {
+      "row": 109242,
+      "chunk": 21,
+      "cpp": 170,
+      "rust": 138
+    },
+    {
+      "row": 111820,
+      "chunk": 26,
+      "cpp": 53,
+      "rust": 168
+    },
+    {
+      "row": 111821,
+      "chunk": 26,
+      "cpp": 53,
+      "rust": 168
+    },
+    {
+      "row": 112190,
+      "chunk": 19,
+      "cpp": 143,
+      "rust": 57
+    },
+    {
+      "row": 116726,
+      "chunk": 29,
+      "cpp": 197,
+      "rust": 84
+    }
+  ],
+  "cpp_path": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100_pq_compressed.bin",
+  "rust_path": "/home/alex/diskann-single-hop-benchmark/indexes/rust-native-10m-frozen/generation-00000000000000000001/index_pq_compressed.bin"
+}

@@ -1,0 +1,38 @@
+{
+  "native_smoke_verified": true,
+  "query_count": 64,
+  "timing_authoritative": false,
+  "OMP_TOOL": "disabled",
+  "latency_contract": "public_search_call",
+  "same_process_warmup_queries": 64,
+  "rows": [
+    {
+      "l": 20,
+      "recall": 0.9749999999999999,
+      "filter_violations": 0,
+      "short_results": 0,
+      "duplicate_results": 0
+    },
+    {
+      "l": 40,
+      "recall": 0.9953124999999999,
+      "filter_violations": 0,
+      "short_results": 0,
+      "duplicate_results": 0
+    },
+    {
+      "l": 80,
+      "recall": 1.0,
+      "filter_violations": 0,
+      "short_results": 0,
+      "duplicate_results": 0
+    },
+    {
+      "l": 160,
+      "recall": 1.0,
+      "filter_violations": 0,
+      "short_results": 0,
+      "duplicate_results": 0
+    }
+  ]
+}

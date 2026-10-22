@@ -1,0 +1,55 @@
+{
+  "created_at_utc": "2026-10-21T20:10:45.517978+00:00",
+  "scope": "Internal guard for native queries already on a blocking worker; source edits restricted to native.rs. No native host operation or benchmark run.",
+  "source": {
+    "path": "diskann-disk/src/filtered/native.rs",
+    "sha256": "d68ade6a2cd8cd1eb5648189376fd9993cd2f8af0f549efabbffc6f9e1051651"
+  },
+  "api": "pub(super) fn on_blocking_worker<R>(operation: impl FnOnce() -> R) -> R",
+  "contract": "Call only from a known ordinary or Tokio spawn_blocking worker, never while polling an async task. The root-owned FilteredSnapshot::search_async wraps its existing spawn_blocking closure with this function.",
+  "behavior": {
+    "guarded_query": "A scoped thread-local flag lets native sync queries run directly on the existing Tokio blocking worker; no second OS-thread redispatch is created for the query.",
+    "restoration": "RAII restores the prior flag for nested scopes and on return/unwind.",
+    "ordinary_workers": "When no Tokio handle is present, the direct path remains unchanged and does not read the guard flag.",
+    "sync_safety": "Outside a guard, synchronous calls with a Tokio handle still redispatch to a scoped plain thread.",
+    "lifecycle_safety": "Construction and disposal retain conservative plain-thread handling even when the query guard is active."
+  },
+  "regression": {
+    "test": "blocking_worker_queries_avoid_redispatch_and_restore_sync_protection",
+    "context": "Tokio current-thread async test invoking spawn_blocking",
+    "checks": [
+      "Tokio handle is present on the blocking worker",
+      "actual inner operation thread ID equals the blocking worker ID",
+      "nested guard retains the outer guard",
+      "strict singleton query returns ID 0 at exact distance 0",
+      "unguarded inner operation redispatches to a different thread after the scope",
+      "searcher is closed before temporary graph files are removed"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk filtered::native --offline",
+      "exit_code": 0,
+      "passed": 5
+    },
+    {
+      "command": "cargo +1.97.1 clippy -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.97.1 check -p diskann-disk --lib --offline --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "kind": "cross-target type check only; no Linux runtime execution"
+    },
+    {
+      "command": "rustfmt +1.97.1 --check --edition 2021 diskann-disk/src/filtered/native.rs",
+      "exit_code": 0
+    }
+  ],
+  "prior_runtime_wrapper": {
+    "path": "benchmark-results/single-hop/results/native-runtime-wrapper-review.json",
+    "sha256": "93097ca567d606548f639d474b08800c9ff1f286c4a5ed4aadd0450f8907f746",
+    "scope": "Preserved as intermediate ownership/safety evidence before the blocking-worker guard."
+  },
+  "performance_claim": "No throughput/latency measurement is attached. The guard removes the extra per-query thread hop structurally, and the regression verifies actual execution thread identity."
+}

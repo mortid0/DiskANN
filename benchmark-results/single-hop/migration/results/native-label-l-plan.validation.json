@@ -1,0 +1,13 @@
+{
+  "status": "all assertions passed",
+  "planner_unit_tests": 11,
+  "fixed_L_guard_regressions": [
+    "lifecycle_fixed_baseline_pass",
+    "lifecycle_mixed_plan_rejected",
+    "native_build_fixed_baseline_pass",
+    "native_build_mixed_plan_rejected",
+    "delta_fixed_baseline_pass",
+    "delta_mixed_plan_rejected"
+  ],
+  "scope": "Synthetic unit fixtures plus copies of retained fixed-L logs; no benchmark timing from validation."
+}

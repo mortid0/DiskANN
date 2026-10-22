@@ -1,0 +1,3 @@
+2026-10-21T19:17:21+00:00
+taskset -c 0-7 rust/target/release/examples/filtered_ssd_bench --prefix /home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100 --prepared data/prepared-10m-k1000 --out results/rust-k1000-filtered.jsonl --modes single\,multihop --starts label --ls 4000 --threads 8 --reps 3 --limit 256 --k 1000 --bypass true --adaptive-sample 1000 --adaptive-scale 16 --timing-authoritative true 
+5f5745b8d8d779de37e5f2a56aeb336772d80fa77133ca5f408108b5ce8d6d5e  rust/target/release/examples/filtered_ssd_bench

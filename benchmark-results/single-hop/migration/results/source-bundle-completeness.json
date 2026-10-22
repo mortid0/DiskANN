@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "note": "Original version bundles are preserved. Complete bundles additionally contain unchanged module exports and disk layout source already present in v1 and native builds; AppleDouble metadata is omitted. Extract over the pinned Rust base commit, then build.",
+  "bundles": [
+    {
+      "version": "v2-unpruned",
+      "original_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v2-unpruned-sources.tar.gz",
+        "sha256": "cd3d02caaa5977cc6d752f1a5e94c284c294a51b1bd20c0618d9a7b1f45b14cd"
+      },
+      "complete_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v2-unpruned-complete-sources.tar.gz",
+        "sha256": "ecf93efd59321f8597d3baa0dba8b241974e440e3850ec95d7a82b8be384e03a"
+      },
+      "files": 23,
+      "added_unchanged_module_export_and_layout_files": [
+        "diskann-disk/src/lib.rs",
+        "diskann-disk/src/build/mod.rs",
+        "diskann/src/graph/search/mod.rs",
+        "diskann-disk/src/storage/disk_index_writer.rs"
+      ],
+      "remote_compared_files": 18,
+      "mismatches": []
+    },
+    {
+      "version": "v3-optimized",
+      "original_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v3-optimized-sources.tar.gz",
+        "sha256": "bcf689599c9cf5379e77aee04ce4a0028007789874bae4622982ccb4bcbd7cb1"
+      },
+      "complete_archive": {
+        "path": "benchmark-results/single-hop/migration/results/lifecycle-v3-optimized-complete-sources.tar.gz",
+        "sha256": "f8f97ee8082a481decd4a0036c7e3b5fb9e88077e4901fa825c7df79064aefcd"
+      },
+      "files": 23,
+      "added_unchanged_module_export_and_layout_files": [
+        "diskann-disk/src/lib.rs",
+        "diskann-disk/src/build/mod.rs",
+        "diskann/src/graph/search/mod.rs",
+        "diskann-disk/src/storage/disk_index_writer.rs"
+      ],
+      "remote_compared_files": 18,
+      "mismatches": []
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "queries": 2000,
+  "k": 10,
+  "beam": 4,
+  "cache_nodes": 0,
+  "measured_repeats": 36,
+  "all_valid": true,
+  "rows": [
+    {
+      "threads": 1,
+      "l": 64,
+      "repeats": 3,
+      "recall_min": 0.96025,
+      "median_qps": 407.0702954,
+      "median_p99_us": 3042.545,
+      "median_mean_us": 2456.346302,
+      "mean_requests_per_query": 80.987,
+      "mean_pq_cmps": 6931.395
+    },
+    {
+      "threads": 1,
+      "l": 80,
+      "repeats": 3,
+      "recall_min": 0.9721000000000001,
+      "median_qps": 344.1061106,
+      "median_p99_us": 3470.611,
+      "median_mean_us": 2905.874041,
+      "mean_requests_per_query": 96.432,
+      "mean_pq_cmps": 8251.984
+    },
+    {
+      "threads": 8,
+      "l": 40,
+      "repeats": 3,
+      "recall_min": 0.91625,
+      "median_qps": 4636.141165,
+      "median_p99_us": 2275.342,
+      "median_mean_us": 1722.0256650000001,
+      "mean_requests_per_query": 57.817,
+      "mean_pq_cmps": 4954.5105
+    },
+    {
+      "threads": 8,
+      "l": 56,
+      "repeats": 3,
+      "recall_min": 0.94945,
+      "median_qps": 3653.086884,
+      "median_p99_us": 3153.695,
+      "median_mean_us": 2186.1778075,
+      "mean_requests_per_query": 73.237,
+      "mean_pq_cmps": 6269.33
+    },
+    {
+      "threads": 8,
+      "l": 60,
+      "repeats": 3,
+      "recall_min": 0.9557,
+      "median_qps": 3476.375574,
+      "median_p99_us": 3387.886,
+      "median_mean_us": 2297.325534,
+      "mean_requests_per_query": 77.112,
+      "mean_pq_cmps": 6599.842
+    },
+    {
+      "threads": 8,
+      "l": 64,
+      "repeats": 3,
+      "recall_min": 0.96025,
+      "median_qps": 3317.492412,
+      "median_p99_us": 3415.488,
+      "median_mean_us": 2406.803291,
+      "mean_requests_per_query": 80.987,
+      "mean_pq_cmps": 6931.395
+    },
+    {
+      "threads": 8,
+      "l": 80,
+      "repeats": 3,
+      "recall_min": 0.9721000000000001,
+      "median_qps": 2816.733694,
+      "median_p99_us": 3764.485,
+      "median_mean_us": 2836.228524,
+      "mean_requests_per_query": 96.432,
+      "mean_pq_cmps": 8251.984
+    },
+    {
+      "threads": 8,
+      "l": 128,
+      "repeats": 3,
+      "recall_min": 0.9879,
+      "median_qps": 1925.550741,
+      "median_p99_us": 4977.157,
+      "median_mean_us": 4148.685613,
+      "mean_requests_per_query": 143.4825,
+      "mean_pq_cmps": 12267.4175
+    },
+    {
+      "threads": 8,
+      "l": 144,
+      "repeats": 3,
+      "recall_min": 0.99065,
+      "median_qps": 1742.654033,
+      "median_p99_us": 5316.726,
+      "median_mean_us": 4583.347955,
+      "mean_requests_per_query": 159.253,
+      "mean_pq_cmps": 13610.732
+    },
+    {
+      "threads": 8,
+      "l": 160,
+      "repeats": 3,
+      "recall_min": 0.992,
+      "median_qps": 1588.87916,
+      "median_p99_us": 5884.875,
+      "median_mean_us": 5029.1266125,
+      "mean_requests_per_query": 175.0465,
+      "mean_pq_cmps": 14959.1685
+    },
+    {
+      "threads": 8,
+      "l": 320,
+      "repeats": 3,
+      "recall_min": 0.9974500000000001,
+      "median_qps": 845.0743931,
+      "median_p99_us": 13082.21,
+      "median_mean_us": 9454.810993000001,
+      "mean_requests_per_query": 333.7835,
+      "mean_pq_cmps": 28471.41
+    },
+    {
+      "threads": 8,
+      "l": 640,
+      "repeats": 3,
+      "recall_min": 0.99875,
+      "median_qps": 431.5540876,
+      "median_p99_us": 24249.556,
+      "median_mean_us": 18514.958537000002,
+      "mean_requests_per_query": 652.666,
+      "mean_pq_cmps": 55565.342
+    }
+  ],
+  "normalized_files": [
+    "benchmark-results/single-hop/results/native-cpp-midpoint-t8.jsonl",
+    "benchmark-results/single-hop/results/native-cpp-refine-t1.jsonl",
+    "benchmark-results/single-hop/results/native-cpp-refine-t8.jsonl",
+    "benchmark-results/single-hop/results/native-cpp-t1.jsonl",
+    "benchmark-results/single-hop/results/native-cpp-t8.jsonl"
+  ],
+  "raw_artifact_directories": [
+    "benchmark-results/single-hop/artifacts/native-cpp-midpoint-t8",
+    "benchmark-results/single-hop/artifacts/native-cpp-refine-t1",
+    "benchmark-results/single-hop/artifacts/native-cpp-refine-t8",
+    "benchmark-results/single-hop/artifacts/native-cpp-t1",
+    "benchmark-results/single-hop/artifacts/native-cpp-t8"
+  ]
+}

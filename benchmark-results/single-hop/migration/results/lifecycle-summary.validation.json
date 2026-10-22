@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "source_sha256": "a3aad5451ea52ecbde61edb00a2f06a394d5eddc3eeb30680042b7a230eae9df",
+  "positive_case": "Complete1Mrun passes",
+  "checks": [
+    {
+      "check": "short_results",
+      "status": "rejected_as_expected",
+      "reason": "Invalid, duplicate, short or unvalidated results"
+    },
+    {
+      "check": "imperfect_exact_probe",
+      "status": "rejected_as_expected",
+      "reason": "Changed-record probe failed"
+    },
+    {
+      "check": "lost_durable_sequence",
+      "status": "rejected_as_expected",
+      "reason": "Mutation sequence was not durably reopened"
+    },
+    {
+      "check": "duplicate_repeat",
+      "status": "rejected_as_expected",
+      "reason": "Exactly 3 unique repeats required per phase/L"
+    },
+    {
+      "check": "incomplete_phase_matrix",
+      "status": "rejected_as_expected",
+      "reason": "Expected 36 query rows: 4 phases * 3 breadths * 3 repeats"
+    },
+    {
+      "check": "scope_inconsistent_matching_delta_records",
+      "status": "rejected_as_expected",
+      "reason": "The declared natural workload unexpectedly has matching delta records"
+    },
+    {
+      "check": "reopened_per_label_quality_changed",
+      "status": "rejected_as_expected",
+      "reason": "Persisted graph recall differs after reopen"
+    },
+    {
+      "check": "diagnostic_timing_without_opt_in",
+      "status": "rejected_as_expected",
+      "reason": "Non-authoritative or missing lifecycle timing status"
+    },
+    {
+      "check": "diagnostic_opt_in_keeps_non_authoritative_status",
+      "status": "passed"
+    },
+    {
+      "check": "nonzero_exact_fallback_reported_not_hidden",
+      "status": "passed"
+    },
+    {
+      "check": "two_input_fixture_runs_remain_separate",
+      "status": "passed",
+      "note": "two copies of the same fixture, not two independent measurements"
+    }
+  ],
+  "native_operations": false
+}

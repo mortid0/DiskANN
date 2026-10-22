@@ -1,0 +1,71 @@
+{
+  "scope": "Standalone final native build/query validator. Manual synthetic acceptance/fail-closed checks only; no native host operations or performance measurements.",
+  "analysis_script": {
+    "path": "tools/single-hop-benchmark/summarize_native_build.py",
+    "bytes": 20158,
+    "sha256": "e063eebbcc2379ffdee406eb5d4d709bb8c5e7f3516d5b47c2d1644553209dba"
+  },
+  "validation": [
+    {
+      "case": "complete synthetic native logs with actual retained C++ reference manifest",
+      "accepted": true,
+      "native_query_rows": 9,
+      "cpp_manifest_bound": true
+    },
+    {
+      "case": "duplicate repeat",
+      "rejected": true,
+      "reason": "Exactly three native repeats required at L144"
+    },
+    {
+      "case": "nonzero native fallback",
+      "rejected": true,
+      "reason": "Native workload, empty delta, query sequence or validity counters differ"
+    },
+    {
+      "case": "different prepared asset identity",
+      "rejected": true,
+      "reason": "Native prepared asset identities differ"
+    },
+    {
+      "case": "different committed frozen book",
+      "rejected": true,
+      "reason": "Native source/log hashes or frozen codebook copy identity differ"
+    },
+    {
+      "case": "unbound archive hash",
+      "rejected": true,
+      "reason": "Native source/log hashes or frozen codebook copy identity differ"
+    },
+    {
+      "case": "different memberships",
+      "rejected": true,
+      "reason": "Built label/membership counts differ from reference postings"
+    },
+    {
+      "case": "equal complete-code hashes",
+      "accepted": true,
+      "reported_byte_identical": true
+    },
+    {
+      "case": "unequal complete-code hashes",
+      "accepted": true,
+      "reported_byte_identical": false
+    },
+    {
+      "case": "incomplete optional code hash pair",
+      "rejected": true,
+      "reason": "Incomplete or invalid compressed-code hash pair"
+    }
+  ],
+  "cpp_reference": {
+    "path": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/migration/results/cpp-refresh/cpp-refresh.normalized.jsonl",
+    "bytes": 94616,
+    "sha256": "bc805009ee89c162d19520b916a8cb94738c2319fb4017406af86e537926284e"
+  },
+  "supporting_script_sha256": {
+    "tools/single-hop-benchmark/summarize_delta.py": "f6a3e731c3220f17d859b8f6e6ed6c1ddd62fea1d47d0347f855e672738180e8",
+    "tools/single-hop-benchmark/summarize_lifecycle.py": "380331feeedff83b159c3f64436132f4d8a27c83d833df05629e7771f0c00dd1",
+    "tools/single-hop-benchmark/summarize_migration.py": "09e13c05e029879ca05dab6b01bbabfeb79e1bf91ecd5433ae476e14dec78fbd"
+  }
+}

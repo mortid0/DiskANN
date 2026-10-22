@@ -151,6 +151,57 @@ impl<I: NeighborPriorityQueueIdType> NeighborPriorityQueue<I> {
             0
         };
 
+        self.insert_at(nbr, insert_idx);
+    }
+
+    /// Insert by `(distance, ID)` for strict filtered traversal.
+    ///
+    /// All insertions while the queue is nonempty must use the same ordering.
+    /// This is stateless so pooled scratch cannot change other search modes.
+    pub(crate) fn insert_with_id_ties(&mut self, nbr: Neighbor<I>)
+    where
+        I: Ord,
+    {
+        if nbr.distance.is_nan() {
+            return;
+        }
+        self.dbgassert_unique_insert(nbr.id);
+        if self.auto_resizable {
+            if self.size == self.capacity {
+                self.reserve(1.max(self.capacity >> 1));
+            }
+        } else if self.size == self.capacity {
+            let worst = self.get_unchecked(self.size - 1);
+            if worst.distance < nbr.distance
+                || (worst.distance == nbr.distance && worst.id < nbr.id)
+            {
+                return;
+            }
+        }
+
+        let mut lower = if self.size > 0 {
+            self.get_lower_bound(&nbr)
+        } else {
+            0
+        };
+        // The SIMD lower bound skips every smaller distance. Refine only its
+        // remaining suffix to place equal-distance IDs in ascending order.
+        if lower < self.size && self.distances[lower] == nbr.distance {
+            let mut upper = self.size;
+            while lower < upper {
+                let middle = lower + (upper - lower) / 2;
+                if self.distances[middle] == nbr.distance && self.id_visiteds[middle].0 < nbr.id {
+                    lower = middle + 1;
+                } else {
+                    upper = middle;
+                }
+            }
+        }
+        self.insert_at(nbr, lower);
+    }
+
+    #[inline]
+    fn insert_at(&mut self, nbr: Neighbor<I>, insert_idx: usize) {
         if self.size == self.capacity {
             self.id_visiteds.truncate(self.size - 1);
             self.distances.truncate(self.size - 1);
@@ -638,6 +689,63 @@ mod neighbor_priority_queue_test {
         assert_eq!(queue.get(0).id, 2); // node id in queue should be [2,3,1]
         assert_eq!(queue.get(1).id, 3);
         assert_eq!(queue.get(2).id, 1);
+    }
+
+    #[test]
+    fn strict_id_ties_keep_smallest_ids_and_preserve_visited_cursor() {
+        let mut queue = NeighborPriorityQueue::<u32>::new(3);
+        for id in [5, 3] {
+            queue.insert_with_id_ties(Neighbor::new(id, 1.0));
+        }
+        assert_eq!(*queue.closest_notvisited().unwrap().id(), 3);
+        for id in [4, 2, 9] {
+            queue.insert_with_id_ties(Neighbor::new(id, 1.0));
+        }
+        assert_eq!(queue.iter().map(|n| *n.id()).collect::<Vec<_>>(), [2, 3, 4]);
+        assert_eq!(*queue.closest_notvisited().unwrap().id(), 2);
+        assert_eq!(*queue.closest_notvisited().unwrap().id(), 4);
+        assert!(queue.closest_notvisited().is_none());
+
+        queue.clear();
+        for id in [10, 2, 8, 1, 7] {
+            queue.insert(Neighbor::new(id, 1.0));
+        }
+        assert_eq!(
+            queue.iter().map(|n| *n.id()).collect::<Vec<_>>(),
+            [7, 1, 8],
+            "ordinary inserts must retain their existing tie policy after scratch reuse",
+        );
+    }
+
+    #[test]
+    fn strict_id_ties_match_lexicographic_order_across_simd_boundaries() {
+        let neighbors: Vec<_> = (0..101u32)
+            .map(|position| {
+                let id = (position * 37) % 101;
+                Neighbor::new(id, ((id * 17) % 7) as f32)
+            })
+            .collect();
+        let mut expected = neighbors.clone();
+        expected.sort_unstable_by(|a, b| {
+            a.distance
+                .partial_cmp(&b.distance)
+                .unwrap()
+                .then(a.id.cmp(&b.id))
+        });
+        for capacity in [1, 7, 8, 15, 16, 31, 64] {
+            let mut queue = NeighborPriorityQueue::new(capacity);
+            for &neighbor in &neighbors {
+                queue.insert_with_id_ties(neighbor);
+            }
+            assert_eq!(
+                queue.iter().map(|n| n.as_tuple()).collect::<Vec<_>>(),
+                expected[..capacity]
+                    .iter()
+                    .map(|n| n.as_tuple())
+                    .collect::<Vec<_>>(),
+                "distance/ID order differs at capacity {capacity}",
+            );
+        }
     }
 
     #[cfg(debug_assertions)]

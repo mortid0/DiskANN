@@ -1,0 +1,56 @@
+{
+  "created_at_utc": "2026-10-21T20:08:33.754369+00:00",
+  "scope": "Native filtered backend runtime ownership and nested-Tokio safety. Source edits restricted to native.rs; no native host operations.",
+  "source": {
+    "path": "diskann-disk/src/filtered/native.rs",
+    "sha256": "18ce2102d8bef32510940fa8cc774e0e04bac3c2fff5659c8473d1e198a5718a"
+  },
+  "implementation": {
+    "ownership": "NativeSearcher is an Option-owned wrapper around DiskIndexSearcher, replacing the internal alias without changing open_searcher/search call signatures.",
+    "construction": "When a Tokio handle is detected, the entire construction operation runs on a scoped plain thread. Errors after inner-runtime construction therefore dispose that runtime outside the caller runtime.",
+    "query": "Synchronous query and indexed-vector test query use the same scoped plain-thread fallback when a Tokio handle is detected. Outside Tokio, both use their direct inner call.",
+    "drop": "Inside a Tokio context, Drop moves a ManuallyDrop-owned inner searcher to a plain disposal thread and joins it. Its worker panic is logged rather than propagated. Outside Tokio, destruction is direct.",
+    "resource_failure": "If the OS cannot create a disposal thread, its closure cannot destroy the ManuallyDrop payload. The runtime is deliberately retained/leaked and the resource failure is logged, avoiding a nested-runtime destructor panic.",
+    "serving_detail": "Handle::try_current also succeeds in Tokio spawn_blocking. The conservative sync wrapper may add a plain-thread hop in that context; ordinary std::thread query workers remain direct. An optimized async-serving integration is a separate root-owned API decision."
+  },
+  "regression": {
+    "test": "native_searcher_construct_search_drop_and_open_error_are_safe_inside_tokio",
+    "context": "tokio::test current-thread runtime",
+    "checks": [
+      "construct native searcher inside caller Tokio runtime",
+      "sync strict query inside caller runtime",
+      "indexed-vector query inside caller runtime",
+      "drop owned searcher inside caller runtime",
+      "return malformed-graph-header error after DiskIndexSearcher constructed its runtime without destructor panic"
+    ],
+    "rows": 300,
+    "scalar": "f32"
+  },
+  "validation": [
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk filtered::native --offline -- --nocapture",
+      "exit_code": 0,
+      "passed": 4
+    },
+    {
+      "command": "cargo +1.97.1 clippy -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.97.1 check -p diskann-disk --lib --offline --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "kind": "cross-target type check only; no Linux execution"
+    },
+    {
+      "command": "rustfmt +1.97.1 --check --edition 2021 diskann-disk/src/filtered/native.rs",
+      "exit_code": 0
+    }
+  ],
+  "prior_backend_review": {
+    "path": "benchmark-results/single-hop/results/native-lifecycle-backend-review.json",
+    "sha256": "acaf245d7a7fe687379458daf12af0958ebc0fa31b45ee4626e531543c43a190",
+    "scope": "Preserved as an intermediate native-backend implementation record before runtime wrapper ownership."
+  },
+  "independent_lifecycle_smoke": "The cpp_comparison agent reported a passing local 512-row actual-PQ/SSD smoke with 100 durable updates, 75 exact probes, compaction, reopen, old snapshots, and garbage collection after this wrapper. That agent/root own the reproducible smoke artifact and hashes.",
+  "performance_claim": "No new performance claim; the standalone core benchmark continues to call DiskIndexSearcher directly, while the lifecycle smoke measures ordinary std worker queries."
+}

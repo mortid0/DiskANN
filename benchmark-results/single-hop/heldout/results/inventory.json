@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "scope": "Held-out report, raw results, analysis and build evidence; inventory excludes itself",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 13118,
+      "sha256": "e2252efb4f417a4839a0dd7ac1e4a03e4195aeed68fbea570fcfac5f5f94c0f5"
+    },
+    {
+      "path": "REPRODUCE.md",
+      "bytes": 3511,
+      "sha256": "0399bdc9bc2d0ecbd259a7b0107c360420e1bc14fcb68d848dbe628b3d99df2c"
+    },
+    {
+      "path": "per-label.csv",
+      "bytes": 12065,
+      "sha256": "db8bd60125677d0445775126101b98c01457964a1c720dff7accb785513d0b5e"
+    },
+    {
+      "path": "recall-by-label.png",
+      "bytes": 351049,
+      "sha256": "d2514139a0807daf952ec3c699834b30b9074c1b4955f0d9d40118cfeb87a3c7"
+    },
+    {
+      "path": "recall-by-label.svg",
+      "bytes": 56189,
+      "sha256": "8f889c41d27a1e70f844cb991b8fc9674cca3767d349714cdcfe2d5662ab134b"
+    },
+    {
+      "path": "results/analysis-command.json",
+      "bytes": 2405,
+      "sha256": "f3814ed7bd83e30b5d33c1421dc2b03d5c1ccb35c98f54fb828f7605d0e04720"
+    },
+    {
+      "path": "results/base-integrity.json",
+      "bytes": 313,
+      "sha256": "72638d1086f1357e32d23622488fb9dbe5c92333e8ae87f11d0cc37059a334f1"
+    },
+    {
+      "path": "results/benchmark-tools.tar.gz",
+      "bytes": 104237,
+      "sha256": "47c052ecdc87254f1c4b1198d3c9725588a4c82b846b197186b3a8bad43f2a0c"
+    },
+    {
+      "path": "results/heldout-summary.json",
+      "bytes": 144686,
+      "sha256": "436a28149b8cb227a56f6da6371d3d61b5a4af2906e73df7866aa2a840462fb3"
+    },
+    {
+      "path": "results/lifecycle-v5-heldout-complete-sources.tar.gz",
+      "bytes": 139760,
+      "sha256": "c4b32b8d3e199eb8255ddc67621a69c8711d8d98b2f1d632e5c422940475113e"
+    },
+    {
+      "path": "results/native-build.log",
+      "bytes": 768,
+      "sha256": "f66962327d938debb11c571501b7eff21e342b7332fb1f4f83f74504e6ce3278"
+    },
+    {
+      "path": "results/native-tests.log",
+      "bytes": 1283,
+      "sha256": "85581da160ab484d48ad637f1ad1ac4bfe47a59f857af4ca97522db88ffedaee"
+    },
+    {
+      "path": "results/run/cpp.normalized.jsonl",
+      "bytes": 47653,
+      "sha256": "192c9c9ae0281c69ab6dad7e0edf31c75d3e656da439fbade651a5b7e037aa6d"
+    },
+    {
+      "path": "results/run/fixed-control/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8094046,
+      "sha256": "da20f49d5a69ad999b5bd022dfe01285b710b083cc87a40afefccb3c8aad8d26"
+    },
+    {
+      "path": "results/run/fixed-control/rust.jsonl",
+      "bytes": 6189,
+      "sha256": "e55e8ecc8fa514bdcc68d0c0ad0e8616dc66c189c4c0cd8c2776abf7f58dad9b"
+    },
+    {
+      "path": "results/run/fixed-control/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/fixed-control.normalized.json",
+      "bytes": 8564,
+      "sha256": "0e056fb9bc01fb289f75dea56bfe6dfb60ec772dbef09deec55ae27d7e7c55e8"
+    },
+    {
+      "path": "results/run/host-input-source-audit.json",
+      "bytes": 13460,
+      "sha256": "b2f4d052e8730f8e591d46a401ced2456042a39052df19094e9f24bac56d4264"
+    },
+    {
+      "path": "results/run/identity.json",
+      "bytes": 3429,
+      "sha256": "9c5e5477e9590908a4c7d955aa92a838b8087e6f2fae643815c9b2dbb9d0695c"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.normalized.jsonl",
+      "bytes": 7229,
+      "sha256": "676ad5df8dbd94c8fd5413100435c53b620c1798fdbb7afac51f46fe0ed75fd0"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.query.manifest.json",
+      "bytes": 15099,
+      "sha256": "147a53e5e944d0da157e512b40b0d805f7bba1999e55b73104b0c48d49cd5c1f"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.r0.jsonl",
+      "bytes": 6527682,
+      "sha256": "e990d6550879dfbc8874a084174cc62667552f6ae9a3820217acfea635f1d51a"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "044a40e8158558981f879ae6ce2481939ed22353e82c1b8d610364cc6121677f"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "8ce3337b977e5f4aa9bcb1af087188eba7ff53af067c6e90079f08f5ead2717d"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-00/cpp/cpp-heldout-p00.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-00/cpp.log",
+      "bytes": 415,
+      "sha256": "d138eaeeeab15410433e0e46e2f9d35113e48578a976a78c0a5106214075eb33"
+    },
+    {
+      "path": "results/run/pair-00/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8092721,
+      "sha256": "a3f77e383a043c159365c023ecdcff7ae40b198c7340e23c6a418239bf30b8f2"
+    },
+    {
+      "path": "results/run/pair-00/rust.jsonl",
+      "bytes": 8074,
+      "sha256": "cad048327372363e1327616a20968c4328e203940cbbd1a5f549a0ca0920ca91"
+    },
+    {
+      "path": "results/run/pair-00/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.normalized.jsonl",
+      "bytes": 7241,
+      "sha256": "299abd419f4f78a29bfaa6fa61c1c01b38dd7f21b05e86d6ed8c172c9ef260d8"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.query.manifest.json",
+      "bytes": 15109,
+      "sha256": "38040fdbb744930fc8970c797afe01cc2703b24ea9f1f4978afe87e41f0d5e53"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.r0.jsonl",
+      "bytes": 6527564,
+      "sha256": "ac2cf55ecde78d4198ce8268e3c8e85ac02521c52d3d04cb2cdcb277a01b28c6"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "b4e4131c590d2b7c7accdfedefcf122f16a1271216b5d5b47f571668e9ef2b79"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "7e3e79eb546f37d59f2448e3b52c2b74b38b2b0838d86e1dfca41176877d1e0f"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-01/cpp/cpp-heldout-p01.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-01/cpp.log",
+      "bytes": 415,
+      "sha256": "01c4df661e2b97b83809464fc99c3d1396cc956f044e1859c67b5a08d44166b0"
+    },
+    {
+      "path": "results/run/pair-01/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8094196,
+      "sha256": "f8cde00b4cfa02e37cfc789c12a876431ac09b9f8a46d171fff6517fb6d8886f"
+    },
+    {
+      "path": "results/run/pair-01/rust.jsonl",
+      "bytes": 8138,
+      "sha256": "7f21a5bf660d8122c65cea5f03892711d41e71666a94b4b520c9f376d133ef03"
+    },
+    {
+      "path": "results/run/pair-01/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.normalized.jsonl",
+      "bytes": 7213,
+      "sha256": "a6d8bd1888e79376a3fd2f66e09af9aeeae8ff25b899ac313e59ecd0b72e4000"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.query.manifest.json",
+      "bytes": 15082,
+      "sha256": "af4b54e62961755c95b30e7aa8f3116d0c10a8681c5c7c6dc38cc218c53d9b7e"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.r0.jsonl",
+      "bytes": 6527662,
+      "sha256": "8917c36753fcf5263d305d94541815f88a0a342f065e031124a03da4d7997acd"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "da23bfcdde921625ade2921e4576347408d9125a91262329689e51e81069fc2b"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "eda4fa1786c3363bcda412bfb17e7c009451778f73e624135697918815d7a453"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-02/cpp/cpp-heldout-p02.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-02/cpp.log",
+      "bytes": 416,
+      "sha256": "b80570cfebe892ffa302a79ca28773b45010c36f284276c7835c3acdebd15f04"
+    },
+    {
+      "path": "results/run/pair-02/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8093414,
+      "sha256": "31f1d05b5b3505ab926363ac6bb870ed41d55c16547a21a12cdaaf10e61c0444"
+    },
+    {
+      "path": "results/run/pair-02/rust.jsonl",
+      "bytes": 8093,
+      "sha256": "5c4b915bf8210f5895f380180d4ae807d3d19a3c690e84d05ebb3b19036f653e"
+    },
+    {
+      "path": "results/run/pair-02/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.normalized.jsonl",
+      "bytes": 7240,
+      "sha256": "c0e3ccf7b39d9fe3bb690028d8344d857002b07698d51e9997f939eacdba2f2e"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.query.manifest.json",
+      "bytes": 15109,
+      "sha256": "8e1327e7706f973ac6b9c1d273d320f7f15e72ee37b9c58e4e3c70d4d27c2ffa"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.r0.jsonl",
+      "bytes": 6527572,
+      "sha256": "d1795d03c8c1ba30c0271d34b5684ce4c10eeb550b7950f4f73baa6c84fee430"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "dcf436a384e348952c96373ffa1a7d0a639737f684b13db5035d9fdacee6d9f6"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "02aa1b4f11775de3b27a6f031527cef7e8b19d827550f6ed23092e7330478794"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-03/cpp/cpp-heldout-p03.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-03/cpp.log",
+      "bytes": 416,
+      "sha256": "4a7b2f4e0fa9696fab029061aead1dd36eabbb1685210fc44429ee9413c40875"
+    },
+    {
+      "path": "results/run/pair-03/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8093004,
+      "sha256": "a1e5310da2dde93027abe7146beee13072a47cd6e88306c1b329f4f72b9fefec"
+    },
+    {
+      "path": "results/run/pair-03/rust.jsonl",
+      "bytes": 8161,
+      "sha256": "da16a50225855b57f87b2daf4b0ca39e4c85e6b1b5ae54df59c6dea9fe284fa0"
+    },
+    {
+      "path": "results/run/pair-03/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.normalized.jsonl",
+      "bytes": 7248,
+      "sha256": "7b6a6163e12c689f5d50db470d12f9b7cf2d332c65ce701aad6d2db81df556e3"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.query.manifest.json",
+      "bytes": 15117,
+      "sha256": "e427db8a32ca7e8ec2e480c99f7d4dc33610484244ec9b418f96cb54830c6214"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.r0.jsonl",
+      "bytes": 6527529,
+      "sha256": "f08e1649dd0db0c5d5fb7702de7c9e1f36ba10f3dc5f1ddc3305a88689963e1e"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "9998f70faf434dbdf3b994c0d5955fd1d27765c1628aa059024ea86eeca416ca"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "8e2eab9bd56c8b1da2a2406171949009f97e489a35fd1a7608e2c6ef699c929d"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-04/cpp/cpp-heldout-p04.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-04/cpp.log",
+      "bytes": 416,
+      "sha256": "793c999731a11363c0975bd7627f98d04f22a0d6454e0a9949604cf7fff0ad50"
+    },
+    {
+      "path": "results/run/pair-04/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8093958,
+      "sha256": "dd24aff3b5576f2b1bf876be172816700cbe35b305bb7ad03371cfe75fcf1160"
+    },
+    {
+      "path": "results/run/pair-04/rust.jsonl",
+      "bytes": 8046,
+      "sha256": "1c742380cb7d044bf2586746fb0ebedf003c1bd624b5f9e0fb08794dd92a6ae2"
+    },
+    {
+      "path": "results/run/pair-04/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.normalized.jsonl",
+      "bytes": 7240,
+      "sha256": "d663e0e9423f5be26a6d13a0ce174f46a17eb4c3d78060120611b54ca4795a39"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.query.manifest.json",
+      "bytes": 15108,
+      "sha256": "51a8d9cd6c38570fc611573a47ae85b941c7ffcd038cceb3990dd8d671ef4092"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.r0.jsonl",
+      "bytes": 6527631,
+      "sha256": "cc8009c5c9e35e9e9187bd341254be56981f75742bd525ebf86798507d87e49e"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.r0.log",
+      "bytes": 4058,
+      "sha256": "0cd371eb8d40b972d4c7893823c1641fcc7bad1cced7ba4eea6117911febbf63"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.r0_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.r0_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.warmup.log",
+      "bytes": 4066,
+      "sha256": "266c89809748dc29901edf2969d18ee673627cc096da6ee72437497c70a7df67"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.warmup_64_dists_float.bin",
+      "bytes": 790288,
+      "sha256": "0d6209d9ac386285e8e78408d67661b40e4f89eedab0ec73f4d35c6aba18e64b"
+    },
+    {
+      "path": "results/run/pair-05/cpp/cpp-heldout-p05.t8.L64.warmup_64_idx_uint32.bin",
+      "bytes": 790288,
+      "sha256": "93dd1750ddd9b93ccb07a24fe436d506681ad69d3b877d1eac7d93bd43235899"
+    },
+    {
+      "path": "results/run/pair-05/cpp.log",
+      "bytes": 416,
+      "sha256": "1ab7a86268b4352da226af16b1b8166b6baf72eb87b925366d246fa1647509ac"
+    },
+    {
+      "path": "results/run/pair-05/rust-details/query.t8.L64.r0.jsonl",
+      "bytes": 8092675,
+      "sha256": "b78d83cfd096ebca149c173a455224c420638faa9896f34fa1288f66cb210f9b"
+    },
+    {
+      "path": "results/run/pair-05/rust.jsonl",
+      "bytes": 8060,
+      "sha256": "6fd4e3961229eb2c412d9e524ec2ee9361227f15eccdd0702272be71adba29b6"
+    },
+    {
+      "path": "results/run/pair-05/rust.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "results/run/paired-run-manifest.json",
+      "bytes": 24807,
+      "sha256": "30f8660119d82e8c983770eefa92f73123f5f0320c1296550e6b5a2813ccde93"
+    },
+    {
+      "path": "results/run/rust.normalized.jsonl",
+      "bytes": 53969,
+      "sha256": "dc348b855861b36cfdda98dd042192277881a505d8585c1929802609c16b6893"
+    },
+    {
+      "path": "results/validation.json",
+      "bytes": 1027,
+      "sha256": "e3125a75fe25324860d4f335dd764f001af02ffc939091f97bdecc52daa9b467"
+    }
+  ],
+  "file_count": 100,
+  "frozen_policy_sha256": "df42e65440af0a891185913e91f5f22cb6808c9251b2c1d8f6ca968d5bda2e59"
+}

@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "source_sha256": "09e13c05e029879ca05dab6b01bbabfeb79e1bf91ecd5433ae476e14dec78fbd",
+  "positive_case": "All final inputs summarize successfully",
+  "negative_cases": [
+    {
+      "check": "nonzero_filter_counter",
+      "status": "rejected_as_expected",
+      "reason": "Invalid, duplicate, incomplete or unvalidated results: /var/folders/jh/d82yq_hd62d_gtz_5pj_twgm0000gn/T/diskann-summary-validation-qbz9l6vt/rows.jsonl"
+    },
+    {
+      "check": "missing_repeat",
+      "status": "rejected_as_expected",
+      "reason": "Exactly three unique repeats 0,1,2 required: /var/folders/jh/d82yq_hd62d_gtz_5pj_twgm0000gn/T/diskann-summary-validation-qbz9l6vt/rows.jsonl, ('single_frontier', 60, 10, 8)"
+    },
+    {
+      "check": "dataset_mismatch_between_configurations",
+      "status": "rejected_as_expected",
+      "reason": "Input configurations use different dataset or protocol identities: /var/folders/jh/d82yq_hd62d_gtz_5pj_twgm0000gn/T/diskann-summary-validation-qbz9l6vt/rows.jsonl"
+    },
+    {
+      "check": "per_label_order_difference",
+      "status": "rejected_as_expected",
+      "reason": "Per-label ordered parity failed"
+    },
+    {
+      "check": "refreshed_cpp_results_do_not_match_proof",
+      "status": "rejected_as_expected",
+      "reason": "Refreshed C++ IDs differ from independently compared C++ IDs"
+    },
+    {
+      "check": "changed_historical_cpp_binary",
+      "status": "rejected_as_expected",
+      "reason": "Historical C++ candidate binary differs"
+    }
+  ],
+  "native_operations": false
+}

@@ -1,0 +1,23 @@
+	Command being timed: "env LD_LIBRARY_PATH=/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu:/usr/lib/llvm-18/lib OMP_TOOL=disabled taskset -c 0-7 python3 /home/alex/diskann-single-hop-benchmark/run_reference.py --bin-dir /home/alex/diskann-single-hop-benchmark/cpp/build-native/apps --prepared-data /home/alex/diskann-single-hop-benchmark/data/prepared-10m-k1000 --output-dir /home/alex/diskann-single-hop-benchmark/results/native-cpp-k1000 --index-prefix /home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100 --name cpp-k1000 --query-only --search-threads 8 --k 1000 --l 4000 --reps 3 --timing-authoritative"
+	User time (seconds): 83.09
+	System time (seconds): 13.36
+	Percent of CPU this job got: 310%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:31.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 698340
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 730828
+	Voluntary context switches: 1797352
+	Involuntary context switches: 9260
+	Swaps: 0
+	File system inputs: 57450208
+	File system outputs: 16832
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

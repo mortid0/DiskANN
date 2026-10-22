@@ -1,0 +1,23 @@
+	Command being timed: "taskset -c 0-7 artifacts/migration/filtered_lifecycle.v3-optimized --action build --root indexes/rust-native-10m-frozen --prepared data/prepared-10m --out results/migration/lifecycle-10m-frozen-build.jsonl --threads 8 --query-threads 8 --pq-codebook indexes/yfcc10m_stitched_R32_R128_L100_pq_pivots.bin --timing-authoritative true"
+	User time (seconds): 3517.12
+	System time (seconds): 73.59
+	Percent of CPU this job got: 568%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:31.29
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 8601836
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 4464760
+	Voluntary context switches: 28817362
+	Involuntary context switches: 2025821
+	Swaps: 0
+	File system inputs: 393728
+	File system outputs: 25922960
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

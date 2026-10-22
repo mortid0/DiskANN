@@ -1,0 +1,107 @@
+{
+  "status": "passed",
+  "source": "diskann-disk/examples/filtered_ssd_bench.rs",
+  "source_sha256": "ffea4609e48f88d3b3ab566f1e0ac72403e85230875c45fd8850e67165d0d662",
+  "checks": [
+    {
+      "check": "native_default_vs_independent_PQ_prefix",
+      "status": "passed",
+      "queries": 16,
+      "ordered_ID_and_distance_differences": 0
+    },
+    {
+      "check": "cpp_defaults_vs_explicit_options",
+      "status": "passed",
+      "queries": 64,
+      "ordered_ID_and_distance_differences": 0
+    },
+    {
+      "check": "reject_remapped_stable_IDs",
+      "status": "rejected_as_expected",
+      "reason": "Error: diagnostic graph/PQ pairing requires identity stable IDs; remapped generations are unsupported"
+    },
+    {
+      "check": "reject_missing_native_label_metadata",
+      "status": "rejected_as_expected",
+      "reason": "Error: --header native requires --label-metadata pointing to its LabelMetadata bincode file"
+    },
+    {
+      "check": "reject_mismatched_PQ_rows",
+      "status": "rejected_as_expected",
+      "reason": "Error: PQ/graph row mismatch"
+    },
+    {
+      "check": "recorded_native_metadata_fingerprint_and_PQ_identity",
+      "status": "passed",
+      "fingerprint": {
+        "bytes": 6217,
+        "content_fingerprint": "fnv1a64:42c3520b610f3fd6",
+        "path": "/private/tmp/filtered-native-pairing-fixture/generation-00000000000000000001/labels.bin"
+      }
+    }
+  ],
+  "clippy": "cargo clippy -p diskann-disk --example filtered_ssd_bench --no-default-features -- -D warnings passed",
+  "timing_authoritative": false,
+  "native_host_operations": false,
+  "actual_cross_codebook_2x2": {
+    "status": "passed",
+    "base_rows": 4000,
+    "dimensions": 32,
+    "cpp_pq_bytes": 16,
+    "native_pq_bytes": 8,
+    "note": "Functional interoperability test only; graphs and PQ configurations differ from the10Mbenchmark and timings are not capacity evidence.",
+    "cells": [
+      {
+        "graph_header": "cpp",
+        "pq_prefix": "/private/tmp/diskann-single-hop-cpp/smoke/index",
+        "queries": 64,
+        "recall": 0.9749999999999999,
+        "filter_violations": 0,
+        "duplicate_results": 0,
+        "short_results": 0,
+        "timing_authoritative": false
+      },
+      {
+        "graph_header": "cpp",
+        "pq_prefix": "/private/tmp/filtered-native-cpp-smoke-pairing/generation-00000000000000000001/index",
+        "queries": 64,
+        "recall": 0.8281249999999998,
+        "filter_violations": 0,
+        "duplicate_results": 0,
+        "short_results": 0,
+        "timing_authoritative": false
+      },
+      {
+        "graph_header": "native",
+        "pq_prefix": "/private/tmp/diskann-single-hop-cpp/smoke/index",
+        "queries": 64,
+        "recall": 0.39062500000000006,
+        "filter_violations": 0,
+        "duplicate_results": 0,
+        "short_results": 0,
+        "timing_authoritative": false
+      },
+      {
+        "graph_header": "native",
+        "pq_prefix": "/private/tmp/filtered-native-cpp-smoke-pairing/generation-00000000000000000001/index",
+        "queries": 64,
+        "recall": 0.42031250000000003,
+        "filter_violations": 0,
+        "duplicate_results": 0,
+        "short_results": 0,
+        "timing_authoritative": false
+      }
+    ]
+  },
+  "entry_override": {
+    "source_sha256": "152a554183340a5fac4c3535fc4183130ac34e515e08d24662be63f6578237ee",
+    "status": "passed",
+    "native_graph_with_cpp_PQ_and_cpp_entries": {
+      "queries": 64,
+      "validity_counters_zero": true,
+      "entry_prefix": "/private/tmp/diskann-single-hop-cpp/smoke/index",
+      "entry_source": "cpp_sidecar_override"
+    },
+    "invalid_membership_rejected": "Error: entry point does not match raw label 4"
+  }
+}

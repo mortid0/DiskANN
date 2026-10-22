@@ -1,0 +1,175 @@
+{
+  "source_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "source_archive_sha256": "ae0a76746560559e3850b9f6c5a03ed904999becaf0e51a06f8492d7cd7ac1cb",
+  "native_metrics_patch_sha256": "4f847d6d05f404431ee34e9b4e068a4268476d10d408a73a193f14cfecfcc0c2",
+  "patched_source_sha256": {
+    "src/distance.cpp": "a479a7b05704a03241a991bc7bfbfc62710388f4162f5742d9ccf1289cb70a84",
+    "src/pq.cpp": "f780fe3028cdca70aa75bbab8bf0a5377e2dd96e483c0adf6d1131f5e477f648",
+    "src/pq_flash_index.cpp": "e9edf01766708bb0c0f17f774262f30aa00b6488a0772751786bf19ecee21ea6",
+    "src/linux_aligned_file_reader.cpp": "f54591cf4e747c417bfb3a66fe7a58d91c70e7f9da2ed63d94379cb8d9e09893",
+    "apps/search_disk_index.cpp": "495a5b3ae658fe07aa21d996e361e793f0c23b0b7ab7ddcdc5bafb1b7bdba071",
+    "include/macos_metrics.h": "48b5fa668fa95752649c747fa527976c80d6398bd47e419c3407757606231f96"
+  },
+  "native_compiled": true,
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  32\nOn-line CPU(s) list:                     0-31\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen 9 7950X 16-Core Processor\nCPU family:                              25\nModel:                                   97\nThread(s) per core:                      2\nCore(s) per socket:                      16\nSocket(s):                               1\nStepping:                                2\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      75%\nCPU max MHz:                             5883.1968\nCPU min MHz:                             425.2920\nBogoMIPS:                                8983.62\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nVirtualization:                          AMD-V\nL1d cache:                               512 KiB (16 instances)\nL1i cache:                               512 KiB (16 instances)\nL2 cache:                                16 MiB (16 instances)\nL3 cache:                                64 MiB (2 instances)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-31\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Mitigation; Clear CPU buffers\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "cmake": "cmake version 4.4.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+  "cmake_cache_flags": [
+    "BOOST_ROOT:PATH=/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr",
+    "Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE:FILEPATH=/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libboost_program_options.so",
+    "CMAKE_CXX_FLAGS:STRING=-I/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/include -L/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu",
+    "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG",
+    "CMAKE_EXE_LINKER_FLAGS:STRING=-Wl,-rpath,/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu,-rpath,/usr/lib/llvm-18/lib",
+    "MKL_INCLUDE_PATH:UNINITIALIZED=/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/include/mkl",
+    "MKL_PATH:UNINITIALIZED=/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu",
+    "OMP_PATH:UNINITIALIZED=/usr/lib/llvm-18/lib"
+  ],
+  "binaries": {
+    "search_disk_index": {
+      "sha256": "adfec335597f4c8834ed4f875cbef2971fddd476c2d66412f843e78d60cb8a4a",
+      "linked_libraries": "linux-vdso.so.1 (0x00007e8f9d473000)\n\tlibomp.so.5 => /usr/lib/llvm-18/lib/libomp.so.5 (0x00007e8f9d33e000)\n\tlibtcmalloc.so.4 => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 (0x00007e8f9ca04000)\n\tlibboost_program_options.so.1.83.0 => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.83.0 (0x00007e8f9d2fc000)\n\tlibmkl_intel_ilp64.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_intel_ilp64.so (0x00007e8f9bc00000)\n\tlibmkl_intel_thread.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_intel_thread.so (0x00007e8f98200000)\n\tlibmkl_core.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_core.so (0x00007e8f93a00000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007e8f9c91b000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007e8f93600000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007e8f9d2b7000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007e8f93200000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007e8f9d475000)\n\tlibunwind.so.8 => /lib/x86_64-linux-gnu/libunwind.so.8 (0x00007e8f9d29a000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007e8f9d295000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007e8f9d290000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007e8f9c8e9000)"
+    },
+    "build_disk_index": {
+      "sha256": "ccae63b2ac3143ffb8e2e3fee41cb35a43510a0b90acb73eaae60aab92ba27a1",
+      "linked_libraries": "linux-vdso.so.1 (0x000076143311c000)\n\tlibomp.so.5 => /usr/lib/llvm-18/lib/libomp.so.5 (0x00007614328d3000)\n\tlibtcmalloc.so.4 => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 (0x00007614326d7000)\n\tlibboost_program_options.so.1.83.0 => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.83.0 (0x00007614330d2000)\n\tlibmkl_intel_ilp64.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_intel_ilp64.so (0x0000761431a00000)\n\tlibmkl_intel_thread.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_intel_thread.so (0x000076142e000000)\n\tlibmkl_core.so => /home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu/libmkl_core.so (0x0000761429800000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000761431917000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000761429400000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x000076143308d000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000761429000000)\n\t/lib64/ld-linux-x86-64.so.2 (0x000076143311e000)\n\tlibunwind.so.8 => /lib/x86_64-linux-gnu/libunwind.so.8 (0x0000761433070000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x000076143306b000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x0000761433066000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007614326a5000)"
+    }
+  },
+  "packages": [
+    {
+      "file": "libaio-dev_0.3.113-6build1.1_amd64.deb",
+      "sha256": "24653e472e581c1d25b08184ad0e93cbc5c2512543e558110635bdbd7f523ee2",
+      "package": "libaio-dev",
+      "version": "0.3.113-6build1.1"
+    },
+    {
+      "file": "libboost-program-options1.83-dev_1.83.0-2.1ubuntu3.2_amd64.deb",
+      "sha256": "62b00e346474e7dff9bae3b8b12235b1b6e82d6d86f72a532a82aeeb1e1e2e25",
+      "package": "libboost-program-options1.83-dev",
+      "version": "1.83.0-2.1ubuntu3.2"
+    },
+    {
+      "file": "libboost-program-options1.83.0_1.83.0-2.1ubuntu3.2_amd64.deb",
+      "sha256": "9e7c21160a9cf2e8847b0789bba7a2b3301a4846f0f999270b41b424afb37559",
+      "package": "libboost-program-options1.83.0",
+      "version": "1.83.0-2.1ubuntu3.2"
+    },
+    {
+      "file": "libboost1.83-dev_1.83.0-2.1ubuntu3.2_amd64.deb",
+      "sha256": "519ecf2c64308527e15b6582955681d192a832250baa4bc424967aaf7d02d68f",
+      "package": "libboost1.83-dev",
+      "version": "1.83.0-2.1ubuntu3.2"
+    },
+    {
+      "file": "libgoogle-perftools-dev_2.15-3build1_amd64.deb",
+      "sha256": "565fe24a7d1206aa735f5ae772b542486fafc2d360b98eaefc23fc09da37219a",
+      "package": "libgoogle-perftools-dev",
+      "version": "2.15-3build1"
+    },
+    {
+      "file": "libgoogle-perftools4t64_2.15-3build1_amd64.deb",
+      "sha256": "d62a4ee056baa2cb1336e857a78aa4d6f6fcc207021ec81fc18ba3f02de796d1",
+      "package": "libgoogle-perftools4t64",
+      "version": "2.15-3build1"
+    },
+    {
+      "file": "libmkl-avx2_2020.4.304-4_amd64.deb",
+      "sha256": "e365f63c64e706b50ce4f56dc117d426ba844950259a7741735e9cabc43f1ae8",
+      "package": "libmkl-avx2",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-avx512_2020.4.304-4_amd64.deb",
+      "sha256": "756838d364c54d503d5b009e23cc4a3a99c978e359afdf141b8c8f49affc0f62",
+      "package": "libmkl-avx512",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-core_2020.4.304-4_amd64.deb",
+      "sha256": "b86ebbe4a826adf451ca8e24ea22b2ec41173205ab6a60ceaa55f15ab9866fbb",
+      "package": "libmkl-core",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-def_2020.4.304-4_amd64.deb",
+      "sha256": "2ce5274cb79d212265ae7d1795da959300072d85c35278af42b355d794353f93",
+      "package": "libmkl-def",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-dev_2020.4.304-4_amd64.deb",
+      "sha256": "795e245fe2193405580f056f11bc5c575f6c321a691eee3694ffebe029a85ac6",
+      "package": "libmkl-dev",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-intel-ilp64_2020.4.304-4_amd64.deb",
+      "sha256": "0daa4a508cff7e40cf28d858ffdf5d691fcad9f64060d855d5c6b7de5bdb551d",
+      "package": "libmkl-intel-ilp64",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-intel-thread_2020.4.304-4_amd64.deb",
+      "sha256": "e5868a98378e98710ff1453750da084cd46fb6b83fb8af27294532560e53c3ee",
+      "package": "libmkl-intel-thread",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-locale_2020.4.304-4_amd64.deb",
+      "sha256": "739b55ac01e987b226bbbfa15835f1e6cb1a84e9640ecb7f7dac30f6b987bf58",
+      "package": "libmkl-locale",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-vml-avx2_2020.4.304-4_amd64.deb",
+      "sha256": "72daee168ab9eac4707823683f4b57c8dd9c24d6e2bc7400bf435cb3036c42ec",
+      "package": "libmkl-vml-avx2",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-vml-avx512_2020.4.304-4_amd64.deb",
+      "sha256": "ea7f87a67218c76f0ee11cf0ad11b92a787eebb6d9d5a1b518f4faf6f6431924",
+      "package": "libmkl-vml-avx512",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libmkl-vml-def_2020.4.304-4_amd64.deb",
+      "sha256": "385ed8644fad5ce958001226a3123ab26173b55f512cec96066ed96c882f21b9",
+      "package": "libmkl-vml-def",
+      "version": "2020.4.304-4"
+    },
+    {
+      "file": "libtcmalloc-minimal4t64_2.15-3build1_amd64.deb",
+      "sha256": "f4ebba418cc336c07d82f9e3b89b2abe570637cf321d2f899e4ec718f86447ca",
+      "package": "libtcmalloc-minimal4t64",
+      "version": "2.15-3build1"
+    }
+  ],
+  "system_openmp_sha256": "e26f7e59f628fe820caa356b0cecefc27da94324d6088bffd1403609b8151e1b",
+  "libaio_runtime": {
+    "symlink": "/lib/x86_64-linux-gnu/libaio.so.1t64",
+    "sha256": "9dbba7441fe096f6654bfd31bfdbba52f41a209bd4a560468293c226ff63c998"
+  },
+  "runtime_environment": {
+    "OMP_TOOL": "disabled",
+    "MKL_NUM_THREADS": "1",
+    "LD_LIBRARY_PATH": "/home/alex/diskann-single-hop-benchmark/cpp-deps/root/usr/lib/x86_64-linux-gnu:/usr/lib/llvm-18/lib"
+  },
+  "benchmark_cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "runtime_workaround": {
+    "observed": "Initial query crashed with Archer/TSAN warning; OMP_TOOL=disabled completed native smoke without rebuilding",
+    "scope": "Optional OpenMP tooling disabled; native SIMD, MKL and Linux AIO retained",
+    "consistent_with_upstream_report": "https://github.com/llvm/llvm-project/issues/122319"
+  },
+  "system_packages_installed": false
+}

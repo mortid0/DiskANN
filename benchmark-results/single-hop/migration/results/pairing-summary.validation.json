@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "source_sha256": "976e4613882c4fe673cfb25b1962966c26ddd9ccf19c02a22731ab96bc73eeaa",
+  "checks": [
+    {
+      "check": "short_result",
+      "status": "rejected_as_expected",
+      "reason": "Invalid, duplicate or short results"
+    },
+    {
+      "check": "missing_breadth",
+      "status": "rejected_as_expected",
+      "reason": "Expected one observation at each L60/64/144"
+    },
+    {
+      "check": "different_query_dataset",
+      "status": "rejected_as_expected",
+      "reason": "Within-cell workload/protocol differs"
+    },
+    {
+      "check": "inconsistent_per_label_membership",
+      "status": "rejected_as_expected",
+      "reason": "Compared label workloads differ"
+    },
+    {
+      "check": "wrong_PQ_prefix",
+      "status": "rejected_as_expected",
+      "reason": "2x2 graph/PQ identity mismatch"
+    },
+    {
+      "check": "no_timing_or_work_count_fields_in_summary",
+      "status": "passed"
+    }
+  ],
+  "host_operations": false
+}

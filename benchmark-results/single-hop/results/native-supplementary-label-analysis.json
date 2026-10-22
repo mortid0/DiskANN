@@ -1,0 +1,1505 @@
+{
+  "scope": "Supplementary native fixed profiles at global95 floor; same graph/PQ, prepared identity, k, query count, threads, beam, label starts and cache/latency contract within each profile. C++ Linux AIO versus Rust io_uring.",
+  "label_drop_threshold_percentage_points": 1.0,
+  "interpretation": "Observed query-sample diagnostics, not significance tests or guarantees; large-k has four queries per label. No unmeasured tuning or invalid/incomplete inline setting is selected.",
+  "profiles": [
+    {
+      "name": "t1",
+      "common_contract": {
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "01f27cfeab9a3568e21f7487eca3567574e4568e29335c36c20ddf70a5cf41d7:1382b41e0df681fbfac28efdcbc75508a8dc0f3c1bdba9a8a796a2cbaac8e248:1dc75cc5717a9985c628984ea4b0a4024e0bf5be184588efb58fa405d7d330b4:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "queries": 2000,
+        "beam": 4,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true,
+        "starts": "label",
+        "n_base": 10000000,
+        "k": 10,
+        "threads": 1
+      },
+      "plot_provenance": "native-10m-t1-95-provenance.json",
+      "plot_provenance_sha256": "ef5150e7845574ae210ea822c617bcc17f4490bcfcb3aed97d6cff8b0772434e",
+      "selected": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "l": 64,
+          "recall": 0.96025,
+          "qps": 407.0702954,
+          "qps_min": 406.7347885,
+          "qps_max": 407.1452035,
+          "p99_us": 3042.545,
+          "p99_us_min": 3038.518,
+          "p99_us_max": 3053.175,
+          "requests_per_query": 80.987,
+          "repetitions": 3,
+          "minimum_label_recall": 0.8813953488372093,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 3,
+              "maximum_drop_percentage_points": 3.2558139534883623,
+              "maximum_drop_label": 8,
+              "warnings": [
+                {
+                  "label": 8,
+                  "n": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9023255813953488,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.2558139534883623
+                },
+                {
+                  "label": 1444,
+                  "n": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 336,
+                  "n": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.4285714285714124
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 64,
+          "recall": 0.9561000000000047,
+          "qps": 535.1600517937317,
+          "qps_min": 534.0064079684923,
+          "qps_max": 535.4510922357741,
+          "p99_us": 2417.831,
+          "p99_us_min": 2404.8160000000003,
+          "p99_us_max": 2421.2169999999996,
+          "requests_per_query": 82.0155,
+          "repetitions": 3,
+          "minimum_label_recall": 0.8767441860465115,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 64,
+              "warning_count": 4,
+              "maximum_drop_percentage_points": 1.8181818181818188,
+              "maximum_drop_label": 13604,
+              "warnings": [
+                {
+                  "label": 13604,
+                  "n": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.9454545454545454,
+                  "reference_recall": 0.9636363636363636,
+                  "drop_percentage_points": 1.8181818181818188
+                },
+                {
+                  "label": 29,
+                  "n": 42,
+                  "eligible": 1915985,
+                  "candidate_recall": 0.9380952380952378,
+                  "reference_recall": 0.9523809523809523,
+                  "drop_percentage_points": 1.4285714285714568
+                },
+                {
+                  "label": 7546,
+                  "n": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9727272727272726,
+                  "reference_recall": 0.9863636363636363,
+                  "drop_percentage_points": 1.363636363636378
+                },
+                {
+                  "label": 1,
+                  "n": 43,
+                  "eligible": 266844,
+                  "candidate_recall": 0.9651162790697675,
+                  "reference_recall": 0.9767441860465116,
+                  "drop_percentage_points": 1.1627906976744096
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 8,
+              "maximum_drop_percentage_points": 3.2558139534883623,
+              "maximum_drop_label": 8,
+              "warnings": [
+                {
+                  "label": 8,
+                  "n": 43,
+                  "eligible": 1379732,
+                  "candidate_recall": 0.9023255813953488,
+                  "reference_recall": 0.9348837209302324,
+                  "drop_percentage_points": 3.2558139534883623
+                },
+                {
+                  "label": 1444,
+                  "n": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 2.0000000000000018
+                },
+                {
+                  "label": 336,
+                  "n": 42,
+                  "eligible": 145691,
+                  "candidate_recall": 0.9238095238095235,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.9047619047619202
+                },
+                {
+                  "label": 103,
+                  "n": 42,
+                  "eligible": 137207,
+                  "candidate_recall": 0.9547619047619045,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 1.1904761904762085
+                },
+                {
+                  "label": 17,
+                  "n": 42,
+                  "eligible": 991156,
+                  "candidate_recall": 0.930952380952381,
+                  "reference_recall": 0.9428571428571427,
+                  "drop_percentage_points": 1.1904761904761751
+                },
+                {
+                  "label": 132,
+                  "n": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                },
+                {
+                  "label": 5,
+                  "n": 43,
+                  "eligible": 1235270,
+                  "candidate_recall": 0.9348837209302324,
+                  "reference_recall": 0.9465116279069768,
+                  "drop_percentage_points": 1.1627906976744429
+                },
+                {
+                  "label": 4,
+                  "n": 43,
+                  "eligible": 1133362,
+                  "candidate_recall": 0.8767441860465115,
+                  "reference_recall": 0.8883720930232556,
+                  "drop_percentage_points": 1.1627906976744096
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "l": 64,
+          "recall": 0.9585500000000047,
+          "qps": 123.57952670047459,
+          "qps_min": 123.50598344865206,
+          "qps_max": 123.60532924179259,
+          "p99_us": 9343.594000000001,
+          "p99_us_min": 9281.836,
+          "p99_us_max": 9498.274,
+          "requests_per_query": 1638.2125,
+          "repetitions": 3,
+          "minimum_label_recall": 0.8883720930232556,
+          "minimum_label_ids": [
+            4
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 64,
+              "warning_count": 7,
+              "maximum_drop_percentage_points": 1.8181818181818188,
+              "maximum_drop_label": 13604,
+              "warnings": [
+                {
+                  "label": 13604,
+                  "n": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.9454545454545454,
+                  "reference_recall": 0.9636363636363636,
+                  "drop_percentage_points": 1.8181818181818188
+                },
+                {
+                  "label": 89,
+                  "n": 42,
+                  "eligible": 1707412,
+                  "candidate_recall": 0.8928571428571427,
+                  "reference_recall": 0.9095238095238096,
+                  "drop_percentage_points": 1.666666666666694
+                },
+                {
+                  "label": 6,
+                  "n": 43,
+                  "eligible": 1284396,
+                  "candidate_recall": 0.9232558139534883,
+                  "reference_recall": 0.9395348837209302,
+                  "drop_percentage_points": 1.6279069767441867
+                },
+                {
+                  "label": 7,
+                  "n": 43,
+                  "eligible": 1333819,
+                  "candidate_recall": 0.9279069767441859,
+                  "reference_recall": 0.9418604651162791,
+                  "drop_percentage_points": 1.3953488372093203
+                },
+                {
+                  "label": 7546,
+                  "n": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9727272727272726,
+                  "reference_recall": 0.9863636363636363,
+                  "drop_percentage_points": 1.363636363636378
+                },
+                {
+                  "label": 22,
+                  "n": 15,
+                  "eligible": 687483,
+                  "candidate_recall": 0.9533333333333335,
+                  "reference_recall": 0.9666666666666667,
+                  "drop_percentage_points": 1.3333333333333197
+                },
+                {
+                  "label": 29,
+                  "n": 42,
+                  "eligible": 1915985,
+                  "candidate_recall": 0.9404761904761901,
+                  "reference_recall": 0.9523809523809523,
+                  "drop_percentage_points": 1.1904761904762196
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "l": 320,
+          "recall": 0.9578000000000033,
+          "qps": 64.9870718689934,
+          "qps_min": 64.97711493617562,
+          "qps_max": 64.99129558969855,
+          "p99_us": 23545.086,
+          "p99_us_min": 23529.279,
+          "p99_us_max": 23714.458000000002,
+          "requests_per_query": 935.2785,
+          "repetitions": 3,
+          "minimum_label_recall": 0.7200000000000001,
+          "minimum_label_ids": [
+            1227
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 64,
+              "warning_count": 34,
+              "maximum_drop_percentage_points": 24.99999999999999,
+              "maximum_drop_label": 1227,
+              "warnings": [
+                {
+                  "label": 1227,
+                  "n": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.7200000000000001,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 24.99999999999999
+                },
+                {
+                  "label": 1016,
+                  "n": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.7499999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 24.00000000000001
+                },
+                {
+                  "label": 8770,
+                  "n": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.7772727272727272,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 22.272727272727277
+                },
+                {
+                  "label": 2556,
+                  "n": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.7916666666666666,
+                  "reference_recall": 0.975,
+                  "drop_percentage_points": 18.333333333333336
+                },
+                {
+                  "label": 11614,
+                  "n": 10,
+                  "eligible": 6964,
+                  "candidate_recall": 0.82,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 15.000000000000002
+                },
+                {
+                  "label": 3901,
+                  "n": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8571428571428571,
+                  "reference_recall": 0.9904761904761905,
+                  "drop_percentage_points": 13.333333333333341
+                },
+                {
+                  "label": 17875,
+                  "n": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.8700000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 12.99999999999999
+                },
+                {
+                  "label": 832,
+                  "n": 22,
+                  "eligible": 12260,
+                  "candidate_recall": 0.8454545454545453,
+                  "reference_recall": 0.9727272727272727,
+                  "drop_percentage_points": 12.727272727272732
+                },
+                {
+                  "label": 706,
+                  "n": 12,
+                  "eligible": 16174,
+                  "candidate_recall": 0.8833333333333334,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 11.666666666666659
+                },
+                {
+                  "label": 44,
+                  "n": 23,
+                  "eligible": 29097,
+                  "candidate_recall": 0.8739130434782609,
+                  "reference_recall": 0.9869565217391304,
+                  "drop_percentage_points": 11.304347826086946
+                },
+                {
+                  "label": 1643,
+                  "n": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.8809523809523808,
+                  "reference_recall": 0.9785714285714286,
+                  "drop_percentage_points": 9.761904761904782
+                },
+                {
+                  "label": 6182,
+                  "n": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9000000000000001,
+                  "reference_recall": 0.9866666666666667,
+                  "drop_percentage_points": 8.666666666666655
+                },
+                {
+                  "label": 3677,
+                  "n": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.8962962962962963,
+                  "reference_recall": 0.9814814814814815,
+                  "drop_percentage_points": 8.518518518518526
+                },
+                {
+                  "label": 5518,
+                  "n": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 8.499999999999996
+                },
+                {
+                  "label": 3908,
+                  "n": 22,
+                  "eligible": 23248,
+                  "candidate_recall": 0.9227272727272726,
+                  "reference_recall": 0.9954545454545454,
+                  "drop_percentage_points": 7.272727272727275
+                },
+                {
+                  "label": 13604,
+                  "n": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.8999999999999999,
+                  "reference_recall": 0.9636363636363636,
+                  "drop_percentage_points": 6.363636363636371
+                },
+                {
+                  "label": 3918,
+                  "n": 12,
+                  "eligible": 16937,
+                  "candidate_recall": 0.9416666666666668,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 5.833333333333323
+                },
+                {
+                  "label": 7546,
+                  "n": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9318181818181818,
+                  "reference_recall": 0.9863636363636363,
+                  "drop_percentage_points": 5.454545454545457
+                },
+                {
+                  "label": 3030,
+                  "n": 14,
+                  "eligible": 35681,
+                  "candidate_recall": 0.9357142857142858,
+                  "reference_recall": 0.9857142857142858,
+                  "drop_percentage_points": 4.999999999999993
+                },
+                {
+                  "label": 341,
+                  "n": 42,
+                  "eligible": 32880,
+                  "candidate_recall": 0.9452380952380951,
+                  "reference_recall": 0.9928571428571429,
+                  "drop_percentage_points": 4.761904761904779
+                },
+                {
+                  "label": 816,
+                  "n": 14,
+                  "eligible": 22811,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9714285714285714,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 1444,
+                  "n": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.9100000000000001,
+                  "reference_recall": 0.95,
+                  "drop_percentage_points": 3.9999999999999813
+                },
+                {
+                  "label": 2027,
+                  "n": 42,
+                  "eligible": 36166,
+                  "candidate_recall": 0.9309523809523809,
+                  "reference_recall": 0.9666666666666667,
+                  "drop_percentage_points": 3.571428571428581
+                },
+                {
+                  "label": 2314,
+                  "n": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9375,
+                  "reference_recall": 0.971875,
+                  "drop_percentage_points": 3.4375000000000044
+                },
+                {
+                  "label": 3428,
+                  "n": 19,
+                  "eligible": 20430,
+                  "candidate_recall": 0.9473684210526315,
+                  "reference_recall": 0.9789473684210527,
+                  "drop_percentage_points": 3.157894736842115
+                },
+                {
+                  "label": 522,
+                  "n": 32,
+                  "eligible": 36472,
+                  "candidate_recall": 0.9531249999999998,
+                  "reference_recall": 0.984375,
+                  "drop_percentage_points": 3.125000000000022
+                },
+                {
+                  "label": 1835,
+                  "n": 13,
+                  "eligible": 7781,
+                  "candidate_recall": 0.9461538461538462,
+                  "reference_recall": 0.9769230769230769,
+                  "drop_percentage_points": 3.076923076923066
+                },
+                {
+                  "label": 1548,
+                  "n": 42,
+                  "eligible": 46790,
+                  "candidate_recall": 0.9547619047619046,
+                  "reference_recall": 0.9833333333333333,
+                  "drop_percentage_points": 2.857142857142869
+                },
+                {
+                  "label": 8663,
+                  "n": 25,
+                  "eligible": 19597,
+                  "candidate_recall": 0.9719999999999999,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 2.8000000000000136
+                },
+                {
+                  "label": 4736,
+                  "n": 34,
+                  "eligible": 33444,
+                  "candidate_recall": 0.9617647058823531,
+                  "reference_recall": 0.9882352941176471,
+                  "drop_percentage_points": 2.6470588235294024
+                },
+                {
+                  "label": 107,
+                  "n": 42,
+                  "eligible": 105398,
+                  "candidate_recall": 0.9595238095238094,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 2.619047619047621
+                },
+                {
+                  "label": 2495,
+                  "n": 42,
+                  "eligible": 48589,
+                  "candidate_recall": 0.9547619047619048,
+                  "reference_recall": 0.9690476190476192,
+                  "drop_percentage_points": 1.4285714285714346
+                },
+                {
+                  "label": 95,
+                  "n": 42,
+                  "eligible": 110695,
+                  "candidate_recall": 0.9809523809523808,
+                  "reference_recall": 0.9928571428571429,
+                  "drop_percentage_points": 1.1904761904762085
+                },
+                {
+                  "label": 36,
+                  "n": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9571428571428571,
+                  "reference_recall": 0.9690476190476192,
+                  "drop_percentage_points": 1.1904761904762085
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 64,
+              "warning_count": 34,
+              "maximum_drop_percentage_points": 26.0,
+              "maximum_drop_label": 1227,
+              "warnings": [
+                {
+                  "label": 1227,
+                  "n": 10,
+                  "eligible": 6333,
+                  "candidate_recall": 0.7200000000000001,
+                  "reference_recall": 0.9800000000000001,
+                  "drop_percentage_points": 26.0
+                },
+                {
+                  "label": 1016,
+                  "n": 10,
+                  "eligible": 9166,
+                  "candidate_recall": 0.7499999999999999,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 24.00000000000001
+                },
+                {
+                  "label": 8770,
+                  "n": 22,
+                  "eligible": 7922,
+                  "candidate_recall": 0.7772727272727272,
+                  "reference_recall": 0.9954545454545454,
+                  "drop_percentage_points": 21.818181818181813
+                },
+                {
+                  "label": 2556,
+                  "n": 12,
+                  "eligible": 8744,
+                  "candidate_recall": 0.7916666666666666,
+                  "reference_recall": 0.9750000000000001,
+                  "drop_percentage_points": 18.333333333333346
+                },
+                {
+                  "label": 11614,
+                  "n": 10,
+                  "eligible": 6964,
+                  "candidate_recall": 0.82,
+                  "reference_recall": 0.9600000000000002,
+                  "drop_percentage_points": 14.000000000000023
+                },
+                {
+                  "label": 832,
+                  "n": 22,
+                  "eligible": 12260,
+                  "candidate_recall": 0.8454545454545453,
+                  "reference_recall": 0.9772727272727273,
+                  "drop_percentage_points": 13.181818181818194
+                },
+                {
+                  "label": 17875,
+                  "n": 10,
+                  "eligible": 5936,
+                  "candidate_recall": 0.8700000000000001,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 12.99999999999999
+                },
+                {
+                  "label": 3901,
+                  "n": 21,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8571428571428571,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 12.857142857142856
+                },
+                {
+                  "label": 706,
+                  "n": 12,
+                  "eligible": 16174,
+                  "candidate_recall": 0.8833333333333334,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 11.666666666666659
+                },
+                {
+                  "label": 44,
+                  "n": 23,
+                  "eligible": 29097,
+                  "candidate_recall": 0.8739130434782609,
+                  "reference_recall": 0.9869565217391304,
+                  "drop_percentage_points": 11.304347826086946
+                },
+                {
+                  "label": 1643,
+                  "n": 42,
+                  "eligible": 27999,
+                  "candidate_recall": 0.8809523809523808,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 10.476190476190483
+                },
+                {
+                  "label": 6182,
+                  "n": 15,
+                  "eligible": 17452,
+                  "candidate_recall": 0.9000000000000001,
+                  "reference_recall": 0.9866666666666667,
+                  "drop_percentage_points": 8.666666666666655
+                },
+                {
+                  "label": 3677,
+                  "n": 27,
+                  "eligible": 31056,
+                  "candidate_recall": 0.8962962962962963,
+                  "reference_recall": 0.9777777777777777,
+                  "drop_percentage_points": 8.148148148148149
+                },
+                {
+                  "label": 5518,
+                  "n": 20,
+                  "eligible": 39635,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.985,
+                  "drop_percentage_points": 7.9999999999999964
+                },
+                {
+                  "label": 3908,
+                  "n": 22,
+                  "eligible": 23248,
+                  "candidate_recall": 0.9227272727272726,
+                  "reference_recall": 0.9863636363636363,
+                  "drop_percentage_points": 6.363636363636371
+                },
+                {
+                  "label": 1444,
+                  "n": 10,
+                  "eligible": 26946,
+                  "candidate_recall": 0.9100000000000001,
+                  "reference_recall": 0.97,
+                  "drop_percentage_points": 5.999999999999983
+                },
+                {
+                  "label": 3918,
+                  "n": 12,
+                  "eligible": 16937,
+                  "candidate_recall": 0.9416666666666668,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 5.833333333333323
+                },
+                {
+                  "label": 13604,
+                  "n": 11,
+                  "eligible": 7469,
+                  "candidate_recall": 0.8999999999999999,
+                  "reference_recall": 0.9454545454545454,
+                  "drop_percentage_points": 4.545454545454552
+                },
+                {
+                  "label": 816,
+                  "n": 14,
+                  "eligible": 22811,
+                  "candidate_recall": 0.9285714285714286,
+                  "reference_recall": 0.9714285714285714,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 341,
+                  "n": 42,
+                  "eligible": 32880,
+                  "candidate_recall": 0.9452380952380951,
+                  "reference_recall": 0.9880952380952379,
+                  "drop_percentage_points": 4.285714285714281
+                },
+                {
+                  "label": 3030,
+                  "n": 14,
+                  "eligible": 35681,
+                  "candidate_recall": 0.9357142857142858,
+                  "reference_recall": 0.9785714285714285,
+                  "drop_percentage_points": 4.2857142857142705
+                },
+                {
+                  "label": 7546,
+                  "n": 22,
+                  "eligible": 38059,
+                  "candidate_recall": 0.9318181818181818,
+                  "reference_recall": 0.9727272727272726,
+                  "drop_percentage_points": 4.090909090909078
+                },
+                {
+                  "label": 2314,
+                  "n": 32,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9375,
+                  "reference_recall": 0.978125,
+                  "drop_percentage_points": 4.062500000000002
+                },
+                {
+                  "label": 1835,
+                  "n": 13,
+                  "eligible": 7781,
+                  "candidate_recall": 0.9461538461538462,
+                  "reference_recall": 0.9846153846153847,
+                  "drop_percentage_points": 3.8461538461538436
+                },
+                {
+                  "label": 2027,
+                  "n": 42,
+                  "eligible": 36166,
+                  "candidate_recall": 0.9309523809523809,
+                  "reference_recall": 0.9666666666666666,
+                  "drop_percentage_points": 3.57142857142857
+                },
+                {
+                  "label": 3428,
+                  "n": 19,
+                  "eligible": 20430,
+                  "candidate_recall": 0.9473684210526315,
+                  "reference_recall": 0.9789473684210527,
+                  "drop_percentage_points": 3.157894736842115
+                },
+                {
+                  "label": 522,
+                  "n": 32,
+                  "eligible": 36472,
+                  "candidate_recall": 0.9531249999999998,
+                  "reference_recall": 0.984375,
+                  "drop_percentage_points": 3.125000000000022
+                },
+                {
+                  "label": 1548,
+                  "n": 42,
+                  "eligible": 46790,
+                  "candidate_recall": 0.9547619047619046,
+                  "reference_recall": 0.9833333333333333,
+                  "drop_percentage_points": 2.857142857142869
+                },
+                {
+                  "label": 107,
+                  "n": 42,
+                  "eligible": 105398,
+                  "candidate_recall": 0.9595238095238094,
+                  "reference_recall": 0.9857142857142857,
+                  "drop_percentage_points": 2.619047619047621
+                },
+                {
+                  "label": 8663,
+                  "n": 25,
+                  "eligible": 19597,
+                  "candidate_recall": 0.9719999999999999,
+                  "reference_recall": 0.996,
+                  "drop_percentage_points": 2.4000000000000132
+                },
+                {
+                  "label": 36,
+                  "n": 42,
+                  "eligible": 146104,
+                  "candidate_recall": 0.9571428571428571,
+                  "reference_recall": 0.9785714285714284,
+                  "drop_percentage_points": 2.1428571428571352
+                },
+                {
+                  "label": 4736,
+                  "n": 34,
+                  "eligible": 33444,
+                  "candidate_recall": 0.9617647058823531,
+                  "reference_recall": 0.9794117647058823,
+                  "drop_percentage_points": 1.7647058823529238
+                },
+                {
+                  "label": 2495,
+                  "n": 42,
+                  "eligible": 48589,
+                  "candidate_recall": 0.9547619047619048,
+                  "reference_recall": 0.9690476190476189,
+                  "drop_percentage_points": 1.4285714285714124
+                },
+                {
+                  "label": 132,
+                  "n": 17,
+                  "eligible": 28818,
+                  "candidate_recall": 0.9529411764705882,
+                  "reference_recall": 0.9647058823529413,
+                  "drop_percentage_points": 1.1764705882353121
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "strict_qps_ratios": {
+        "cpp": 1.3146624989373559,
+        "multihop": 4.330491191237718,
+        "inline": 8.234869434840116
+      }
+    },
+    {
+      "name": "k100",
+      "common_contract": {
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:355fb0ea2c8f34354a39727287f7fed3faa9e407de80fbaf8babe691ad00f288:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "queries": 256,
+        "beam": 4,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true,
+        "starts": "label",
+        "n_base": 10000000,
+        "k": 100,
+        "threads": 8
+      },
+      "plot_provenance": "native-10m-k100-t8-95-provenance.json",
+      "plot_provenance_sha256": "9639028b73b67b8ce9f9cee35e193411d64f19e2edd517e6f1ffd7518db1696f",
+      "selected": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "l": 400,
+          "recall": 0.9703125,
+          "qps": 672.9989064,
+          "qps_min": 672.079444,
+          "qps_max": 673.7015034,
+          "p99_us": 13109.077,
+          "p99_us_min": 12853.184,
+          "p99_us_max": 13212.683,
+          "requests_per_query": 412.1484375,
+          "repetitions": 3,
+          "minimum_label_recall": 0.885,
+          "minimum_label_ids": [
+            6
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 400,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.49999999999998934,
+              "maximum_drop_label": 13604,
+              "warnings": []
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 400,
+          "recall": 0.9701171874999998,
+          "qps": 846.9391320361995,
+          "qps_min": 820.4921162357977,
+          "qps_max": 869.2208771942131,
+          "p99_us": 11711.689,
+          "p99_us_min": 9753.638,
+          "p99_us_max": 17266.112,
+          "requests_per_query": 413.19140625,
+          "repetitions": 3,
+          "minimum_label_recall": 0.885,
+          "minimum_label_ids": [
+            6
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 400,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.2500000000000058,
+              "maximum_drop_label": 132,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 400,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.749999999999984,
+              "maximum_drop_label": 13604,
+              "warnings": []
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "l": 400,
+          "recall": 0.9695703124999998,
+          "qps": 110.70288365703794,
+          "qps_min": 109.55834360779113,
+          "qps_max": 110.97286767267933,
+          "p99_us": 83092.46,
+          "p99_us_min": 80488.58200000001,
+          "p99_us_max": 83444.863,
+          "requests_per_query": 8677.1640625,
+          "repetitions": 3,
+          "minimum_label_recall": 0.88,
+          "minimum_label_ids": [
+            6
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 400,
+              "warning_count": 1,
+              "maximum_drop_percentage_points": 1.2499999999999956,
+              "maximum_drop_label": 29,
+              "warnings": [
+                {
+                  "label": 29,
+                  "n": 4,
+                  "eligible": 1915985,
+                  "candidate_recall": 0.91,
+                  "reference_recall": 0.9225,
+                  "drop_percentage_points": 1.2499999999999956
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "inline",
+          "l": 6400,
+          "recall": 0.9631640625000006,
+          "qps": 21.979633171180065,
+          "qps_min": 21.860426881979393,
+          "qps_max": 22.237973560350706,
+          "p99_us": 564420.673,
+          "p99_us_min": 554118.522,
+          "p99_us_max": 568434.697,
+          "requests_per_query": 16747.96484375,
+          "repetitions": 3,
+          "minimum_label_recall": 0.6275,
+          "minimum_label_ids": [
+            1016
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 400,
+              "warning_count": 20,
+              "maximum_drop_percentage_points": 37.25000000000001,
+              "maximum_drop_label": 1016,
+              "warnings": [
+                {
+                  "label": 1016,
+                  "n": 4,
+                  "eligible": 9166,
+                  "candidate_recall": 0.6275,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 37.25000000000001
+                },
+                {
+                  "label": 8770,
+                  "n": 4,
+                  "eligible": 7922,
+                  "candidate_recall": 0.8225,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 16.75
+                },
+                {
+                  "label": 3901,
+                  "n": 4,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8025000000000001,
+                  "reference_recall": 0.9625,
+                  "drop_percentage_points": 15.999999999999993
+                },
+                {
+                  "label": 2556,
+                  "n": 4,
+                  "eligible": 8744,
+                  "candidate_recall": 0.8675,
+                  "reference_recall": 0.9975,
+                  "drop_percentage_points": 13.0
+                },
+                {
+                  "label": 11614,
+                  "n": 4,
+                  "eligible": 6964,
+                  "candidate_recall": 0.8674999999999999,
+                  "reference_recall": 0.975,
+                  "drop_percentage_points": 10.750000000000004
+                },
+                {
+                  "label": 13604,
+                  "n": 4,
+                  "eligible": 7469,
+                  "candidate_recall": 0.845,
+                  "reference_recall": 0.9475,
+                  "drop_percentage_points": 10.250000000000004
+                },
+                {
+                  "label": 1227,
+                  "n": 4,
+                  "eligible": 6333,
+                  "candidate_recall": 0.88,
+                  "reference_recall": 0.98,
+                  "drop_percentage_points": 9.999999999999998
+                },
+                {
+                  "label": 3677,
+                  "n": 4,
+                  "eligible": 31056,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.9875,
+                  "drop_percentage_points": 8.250000000000002
+                },
+                {
+                  "label": 2314,
+                  "n": 4,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9025,
+                  "reference_recall": 0.9725,
+                  "drop_percentage_points": 7.000000000000006
+                },
+                {
+                  "label": 706,
+                  "n": 4,
+                  "eligible": 16174,
+                  "candidate_recall": 0.9249999999999999,
+                  "reference_recall": 0.9824999999999999,
+                  "drop_percentage_points": 5.75
+                },
+                {
+                  "label": 6182,
+                  "n": 4,
+                  "eligible": 17452,
+                  "candidate_recall": 0.935,
+                  "reference_recall": 0.9924999999999999,
+                  "drop_percentage_points": 5.7499999999999885
+                },
+                {
+                  "label": 44,
+                  "n": 4,
+                  "eligible": 29097,
+                  "candidate_recall": 0.9225,
+                  "reference_recall": 0.975,
+                  "drop_percentage_points": 5.249999999999999
+                },
+                {
+                  "label": 8663,
+                  "n": 4,
+                  "eligible": 19597,
+                  "candidate_recall": 0.955,
+                  "reference_recall": 0.995,
+                  "drop_percentage_points": 4.0000000000000036
+                },
+                {
+                  "label": 1835,
+                  "n": 4,
+                  "eligible": 7781,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 4.0000000000000036
+                },
+                {
+                  "label": 7,
+                  "n": 4,
+                  "eligible": 1333819,
+                  "candidate_recall": 0.915,
+                  "reference_recall": 0.955,
+                  "drop_percentage_points": 3.9999999999999925
+                },
+                {
+                  "label": 17875,
+                  "n": 4,
+                  "eligible": 5936,
+                  "candidate_recall": 0.97,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 3.0000000000000027
+                },
+                {
+                  "label": 2495,
+                  "n": 4,
+                  "eligible": 48589,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.98,
+                  "drop_percentage_points": 3.0000000000000027
+                },
+                {
+                  "label": 341,
+                  "n": 4,
+                  "eligible": 32880,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 3.0000000000000027
+                },
+                {
+                  "label": 3908,
+                  "n": 4,
+                  "eligible": 23248,
+                  "candidate_recall": 0.98,
+                  "reference_recall": 0.9975,
+                  "drop_percentage_points": 1.750000000000007
+                },
+                {
+                  "label": 2027,
+                  "n": 4,
+                  "eligible": 36166,
+                  "candidate_recall": 0.965,
+                  "reference_recall": 0.9824999999999999,
+                  "drop_percentage_points": 1.749999999999996
+                }
+              ]
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 400,
+              "warning_count": 20,
+              "maximum_drop_percentage_points": 37.25000000000001,
+              "maximum_drop_label": 1016,
+              "warnings": [
+                {
+                  "label": 1016,
+                  "n": 4,
+                  "eligible": 9166,
+                  "candidate_recall": 0.6275,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 37.25000000000001
+                },
+                {
+                  "label": 8770,
+                  "n": 4,
+                  "eligible": 7922,
+                  "candidate_recall": 0.8225,
+                  "reference_recall": 0.99,
+                  "drop_percentage_points": 16.75
+                },
+                {
+                  "label": 3901,
+                  "n": 4,
+                  "eligible": 12526,
+                  "candidate_recall": 0.8025000000000001,
+                  "reference_recall": 0.9624999999999999,
+                  "drop_percentage_points": 15.99999999999998
+                },
+                {
+                  "label": 2556,
+                  "n": 4,
+                  "eligible": 8744,
+                  "candidate_recall": 0.8675,
+                  "reference_recall": 0.9975,
+                  "drop_percentage_points": 13.0
+                },
+                {
+                  "label": 11614,
+                  "n": 4,
+                  "eligible": 6964,
+                  "candidate_recall": 0.8674999999999999,
+                  "reference_recall": 0.9750000000000001,
+                  "drop_percentage_points": 10.750000000000014
+                },
+                {
+                  "label": 13604,
+                  "n": 4,
+                  "eligible": 7469,
+                  "candidate_recall": 0.845,
+                  "reference_recall": 0.9524999999999999,
+                  "drop_percentage_points": 10.749999999999993
+                },
+                {
+                  "label": 1227,
+                  "n": 4,
+                  "eligible": 6333,
+                  "candidate_recall": 0.88,
+                  "reference_recall": 0.98,
+                  "drop_percentage_points": 9.999999999999998
+                },
+                {
+                  "label": 3677,
+                  "n": 4,
+                  "eligible": 31056,
+                  "candidate_recall": 0.905,
+                  "reference_recall": 0.985,
+                  "drop_percentage_points": 7.9999999999999964
+                },
+                {
+                  "label": 2314,
+                  "n": 4,
+                  "eligible": 23858,
+                  "candidate_recall": 0.9025,
+                  "reference_recall": 0.9724999999999999,
+                  "drop_percentage_points": 6.999999999999995
+                },
+                {
+                  "label": 6182,
+                  "n": 4,
+                  "eligible": 17452,
+                  "candidate_recall": 0.935,
+                  "reference_recall": 0.9925,
+                  "drop_percentage_points": 5.75
+                },
+                {
+                  "label": 706,
+                  "n": 4,
+                  "eligible": 16174,
+                  "candidate_recall": 0.9249999999999999,
+                  "reference_recall": 0.9824999999999999,
+                  "drop_percentage_points": 5.75
+                },
+                {
+                  "label": 44,
+                  "n": 4,
+                  "eligible": 29097,
+                  "candidate_recall": 0.9225,
+                  "reference_recall": 0.9750000000000001,
+                  "drop_percentage_points": 5.250000000000011
+                },
+                {
+                  "label": 8663,
+                  "n": 4,
+                  "eligible": 19597,
+                  "candidate_recall": 0.955,
+                  "reference_recall": 0.9950000000000001,
+                  "drop_percentage_points": 4.000000000000014
+                },
+                {
+                  "label": 1835,
+                  "n": 4,
+                  "eligible": 7781,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 4.0000000000000036
+                },
+                {
+                  "label": 7,
+                  "n": 4,
+                  "eligible": 1333819,
+                  "candidate_recall": 0.915,
+                  "reference_recall": 0.9550000000000001,
+                  "drop_percentage_points": 4.0000000000000036
+                },
+                {
+                  "label": 2495,
+                  "n": 4,
+                  "eligible": 48589,
+                  "candidate_recall": 0.95,
+                  "reference_recall": 0.9825,
+                  "drop_percentage_points": 3.2500000000000084
+                },
+                {
+                  "label": 17875,
+                  "n": 4,
+                  "eligible": 5936,
+                  "candidate_recall": 0.97,
+                  "reference_recall": 1.0,
+                  "drop_percentage_points": 3.0000000000000027
+                },
+                {
+                  "label": 341,
+                  "n": 4,
+                  "eligible": 32880,
+                  "candidate_recall": 0.96,
+                  "reference_recall": 0.9875,
+                  "drop_percentage_points": 2.750000000000008
+                },
+                {
+                  "label": 3908,
+                  "n": 4,
+                  "eligible": 23248,
+                  "candidate_recall": 0.98,
+                  "reference_recall": 0.9975,
+                  "drop_percentage_points": 1.750000000000007
+                },
+                {
+                  "label": 2027,
+                  "n": 4,
+                  "eligible": 36166,
+                  "candidate_recall": 0.965,
+                  "reference_recall": 0.9824999999999999,
+                  "drop_percentage_points": 1.749999999999996
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "strict_qps_ratios": {
+        "cpp": 1.258455435784642,
+        "multihop": 7.6505607086085625,
+        "inline": 38.532905687739834
+      }
+    },
+    {
+      "name": "k1000",
+      "common_contract": {
+        "index_prefix": "/home/alex/diskann-single-hop-benchmark/indexes/yfcc10m_stitched_R32_R128_L100",
+        "prepared_identity": "b6fe0e83fb1d37b4c53e5f89a217c04b5b2401586cdccd81f8a335784ed696ee:5b03f2be8de7aba7e1900920a354de0e2892538eba3bbd5911d4608efa663294:ed75655c86b4e2def1e48def821700b708504ed21176c0b422fc2e5f9e78f89b:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+        "queries": 256,
+        "beam": 4,
+        "cache_bypass": true,
+        "shared_cache_nodes": 0,
+        "latency_contract": "public_search_call",
+        "timing_authoritative": true,
+        "starts": "label",
+        "n_base": 10000000,
+        "k": 1000,
+        "threads": 8
+      },
+      "plot_provenance": "native-10m-k1000-t8-95-provenance.json",
+      "plot_provenance_sha256": "cc9c95c63cbfb0f22296b0a46478124a095545b8ee5209d89799eb3792f3857b",
+      "selected": [
+        {
+          "implementation": "cpp_native_linux",
+          "mode": "single",
+          "l": 4000,
+          "recall": 0.9880078125,
+          "qps": 66.15756891,
+          "qps_min": 65.99468071,
+          "qps_max": 66.20257121,
+          "p99_us": 147648.238,
+          "p99_us_min": 146673.178,
+          "p99_us_max": 149078.909,
+          "requests_per_query": 4007.40625,
+          "repetitions": 3,
+          "minimum_label_recall": 0.93625,
+          "minimum_label_ids": [
+            14
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 4000,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.12499999999999734,
+              "maximum_drop_label": 14,
+              "warnings": []
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "single",
+          "l": 4000,
+          "recall": 0.9879882812500003,
+          "qps": 90.0307059745676,
+          "qps_min": 90.00899134271089,
+          "qps_max": 90.49838657408387,
+          "p99_us": 102635.315,
+          "p99_us_min": 102513.463,
+          "p99_us_max": 102865.97,
+          "requests_per_query": 4008.41796875,
+          "repetitions": 3,
+          "minimum_label_recall": 0.93625,
+          "minimum_label_ids": [
+            14
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 4000,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.024999999999997247,
+              "maximum_drop_label": 7546,
+              "warnings": []
+            },
+            {
+              "reference_implementation": "rust",
+              "reference_mode": "multihop",
+              "reference_l": 4000,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.12499999999999734,
+              "maximum_drop_label": 14,
+              "warnings": []
+            }
+          ]
+        },
+        {
+          "implementation": "rust",
+          "mode": "multihop",
+          "l": 4000,
+          "recall": 0.9879335937499998,
+          "qps": 11.565498737610136,
+          "qps_min": 11.527158232584844,
+          "qps_max": 11.635404767416691,
+          "p99_us": 735237.6390000001,
+          "p99_us_min": 726462.8239999999,
+          "p99_us_max": 737284.723,
+          "requests_per_query": 82210.84765625,
+          "repetitions": 3,
+          "minimum_label_recall": 0.9375,
+          "minimum_label_ids": [
+            14
+          ],
+          "comparisons": [
+            {
+              "reference_implementation": "cpp_native_linux",
+              "reference_mode": "single",
+              "reference_l": 4000,
+              "warning_count": 0,
+              "maximum_drop_percentage_points": 0.17500000000000293,
+              "maximum_drop_label": 28,
+              "warnings": []
+            }
+          ]
+        }
+      ],
+      "strict_qps_ratios": {
+        "cpp": 1.3608526954345064,
+        "multihop": 7.784420543992148
+      }
+    }
+  ]
+}

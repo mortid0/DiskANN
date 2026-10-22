@@ -1,0 +1,280 @@
+[
+  {
+    "base_vectors": 1000000,
+    "queries": 1000,
+    "k": 10,
+    "labels_rows_verified": 1000000,
+    "query_predicates_verified": true,
+    "sample_distance_checks": [
+      {
+        "row": 0,
+        "stored": 33213.0,
+        "squared_l2": 33213
+      },
+      {
+        "row": 1,
+        "stored": 34262.0,
+        "squared_l2": 34262
+      },
+      {
+        "row": 2,
+        "stored": 76478.0,
+        "squared_l2": 76478
+      },
+      {
+        "row": 3,
+        "stored": 69537.0,
+        "squared_l2": 69537
+      },
+      {
+        "row": 4,
+        "stored": 75739.0,
+        "squared_l2": 75739
+      },
+      {
+        "row": 5,
+        "stored": 72417.0,
+        "squared_l2": 72417
+      },
+      {
+        "row": 6,
+        "stored": 45701.0,
+        "squared_l2": 45701
+      },
+      {
+        "row": 7,
+        "stored": 85243.0,
+        "squared_l2": 85243
+      },
+      {
+        "row": 8,
+        "stored": 78627.0,
+        "squared_l2": 78627
+      },
+      {
+        "row": 9,
+        "stored": 80985.0,
+        "squared_l2": 80985
+      },
+      {
+        "row": 10,
+        "stored": 76841.0,
+        "squared_l2": 76841
+      },
+      {
+        "row": 11,
+        "stored": 34722.0,
+        "squared_l2": 34722
+      },
+      {
+        "row": 12,
+        "stored": 74943.0,
+        "squared_l2": 74943
+      },
+      {
+        "row": 13,
+        "stored": 74792.0,
+        "squared_l2": 74792
+      },
+      {
+        "row": 14,
+        "stored": 72432.0,
+        "squared_l2": 72432
+      },
+      {
+        "row": 15,
+        "stored": 50569.0,
+        "squared_l2": 50569
+      },
+      {
+        "row": 16,
+        "stored": 70295.0,
+        "squared_l2": 70295
+      },
+      {
+        "row": 17,
+        "stored": 52347.0,
+        "squared_l2": 52347
+      },
+      {
+        "row": 18,
+        "stored": 19600.0,
+        "squared_l2": 19600
+      },
+      {
+        "row": 19,
+        "stored": 32554.0,
+        "squared_l2": 32554
+      }
+    ],
+    "artifacts": {
+      "query.u8bin": {
+        "bytes": 192008,
+        "sha256": "4ec5ef046dd409a3a496933d0f5ff365ca8706e155e33b33d1028437c94a146c"
+      },
+      "query_labels.u32bin": {
+        "bytes": 4008,
+        "sha256": "86f0e292255c12dcbd18ba3ffc2c48d76bef5050166734ff31aa1aec5f0bc558"
+      },
+      "query_ids.u32bin": {
+        "bytes": 4008,
+        "sha256": "a7de51f86b6879df4921bef511cd801de11c2f822f42a65f6479b3e55f2f3e07"
+      },
+      "groundtruth.bin": {
+        "bytes": 80008,
+        "sha256": "ae9323427c4fa80816dfbdae60921bde2287591c06913b12ad3031f0f0d02844"
+      },
+      "labels.txt": {
+        "bytes": 5629643,
+        "sha256": "785f82a63a6fc7e3ac280754e3066a5150e38abc88442445fbb7f84db8eb559e"
+      },
+      "query_labels.txt": {
+        "bytes": 3738,
+        "sha256": "1805d6a002d11872bc1d6c2c11813845bc3ec1ae1bcea3846be5bf4bfb30dce6"
+      }
+    },
+    "independent_integer_bruteforce_labels": [
+      17875,
+      1227,
+      13604,
+      8,
+      9,
+      29
+    ]
+  },
+  {
+    "base_vectors": 10000000,
+    "queries": 2000,
+    "k": 10,
+    "labels_rows_verified": 10000000,
+    "query_predicates_verified": true,
+    "sample_distance_checks": [
+      {
+        "row": 0,
+        "stored": 54062.0,
+        "squared_l2": 54062
+      },
+      {
+        "row": 1,
+        "stored": 33799.0,
+        "squared_l2": 33799
+      },
+      {
+        "row": 2,
+        "stored": 30507.0,
+        "squared_l2": 30507
+      },
+      {
+        "row": 3,
+        "stored": 58996.0,
+        "squared_l2": 58996
+      },
+      {
+        "row": 4,
+        "stored": 42427.0,
+        "squared_l2": 42427
+      },
+      {
+        "row": 5,
+        "stored": 31357.0,
+        "squared_l2": 31357
+      },
+      {
+        "row": 6,
+        "stored": 40357.0,
+        "squared_l2": 40357
+      },
+      {
+        "row": 7,
+        "stored": 40159.0,
+        "squared_l2": 40159
+      },
+      {
+        "row": 8,
+        "stored": 19148.0,
+        "squared_l2": 19148
+      },
+      {
+        "row": 9,
+        "stored": 63998.0,
+        "squared_l2": 63998
+      },
+      {
+        "row": 10,
+        "stored": 22205.0,
+        "squared_l2": 22205
+      },
+      {
+        "row": 11,
+        "stored": 34890.0,
+        "squared_l2": 34890
+      },
+      {
+        "row": 12,
+        "stored": 17618.0,
+        "squared_l2": 17618
+      },
+      {
+        "row": 13,
+        "stored": 51969.0,
+        "squared_l2": 51969
+      },
+      {
+        "row": 14,
+        "stored": 47531.0,
+        "squared_l2": 47531
+      },
+      {
+        "row": 15,
+        "stored": 52415.0,
+        "squared_l2": 52415
+      },
+      {
+        "row": 16,
+        "stored": 42554.0,
+        "squared_l2": 42554
+      },
+      {
+        "row": 17,
+        "stored": 73838.0,
+        "squared_l2": 73838
+      },
+      {
+        "row": 18,
+        "stored": 57854.0,
+        "squared_l2": 57854
+      },
+      {
+        "row": 19,
+        "stored": 25776.0,
+        "squared_l2": 25776
+      }
+    ],
+    "artifacts": {
+      "query.u8bin": {
+        "bytes": 384008,
+        "sha256": "01f27cfeab9a3568e21f7487eca3567574e4568e29335c36c20ddf70a5cf41d7"
+      },
+      "query_labels.u32bin": {
+        "bytes": 8008,
+        "sha256": "1382b41e0df681fbfac28efdcbc75508a8dc0f3c1bdba9a8a796a2cbaac8e248"
+      },
+      "query_ids.u32bin": {
+        "bytes": 8008,
+        "sha256": "f98d39df157accf5602d6d86ca13cb0be79c98f90a92bbb187e880e4f3717ca5"
+      },
+      "groundtruth.bin": {
+        "bytes": 160008,
+        "sha256": "1dc75cc5717a9985c628984ea4b0a4024e0bf5be184588efb58fa405d7d330b4"
+      },
+      "labels.txt": {
+        "bytes": 63825751,
+        "sha256": "1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69"
+      },
+      "query_labels.txt": {
+        "bytes": 7029,
+        "sha256": "93f19563bb913ec8b5c556f439dd5cfb99203ac88a3ac2f7b1512838c04bb7bf"
+      }
+    }
+  }
+]

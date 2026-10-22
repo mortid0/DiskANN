@@ -1,0 +1,46 @@
+{
+  "created_at_utc": "2026-10-21T20:45:27.381829+00:00",
+  "scope": "Optional frozen PQ codebook backend in native.rs only; existing fresh Rust training remains the default. No native host operations.",
+  "source_sha256": {
+    "diskann-disk/src/filtered/native.rs": "45b50db6ef03d502202e0c964ecc5f81b6ddb9d5376c777e6bb1763f2cdc9dfe"
+  },
+  "api": [
+    "write_native_with_codebook(directory, vectors, graph, pq_chunks, threads, seed, Option<&Path>)",
+    "copy_codebook(directory, dimensions, pq_chunks, source)"
+  ],
+  "behavior": [
+    "Validate saved table dimension, chunk count, exactly 256 centers and finite effective absolute pivots before copying into the owned generation.",
+    "Retain raw codebook bytes. Load via existing PQStorage, convert BasicTable to TransposedTable, and compress all vectors with Rust QuantDataGenerator and a saved-codebook QuantCompressor.",
+    "Legacy C++ centering is handled by the existing loader. No C++ process or binary is invoked.",
+    "None delegates to existing write_native fresh-training behavior. copy_codebook also works when a small or empty base uses exact search."
+  ],
+  "validation": [
+    {
+      "command": "cargo +1.97.1 test -p diskann-disk filtered::native --offline -- --nocapture",
+      "exit_code": 0,
+      "passed_tests": 8
+    },
+    {
+      "command": "cargo +1.97.1 clippy -p diskann-disk --all-targets --offline -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.97.1 check -p diskann-disk --lib --offline --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "scope": "Cross-compilation check only; not a Linux execution test."
+    }
+  ],
+  "tests": [
+    "Both u8 and f32 native round trips: frozen codebook bytes and all unchanged-row compressed codes remain identical despite a changed seed; a modified row receives donor codes and queries at exact distance zero.",
+    "Bundled legacy C++ SIFT fixture: all Rust-generated compressed-code bytes exactly match existing C++ compressed-code bytes, and retained pivot bytes match.",
+    "Wrong dimension/chunk count, truncated input and a valid 128-center table are rejected before destination publication; same-path copy is safe.",
+    "Runtime-safe construction/search/drop, known Tokio blocking-worker guard, singleton-label graph and finite scalar validation remain covered."
+  ],
+  "failure_safety": "Lifecycle callers write into a fresh private staging generation. Validation/copy/compression/layout failures return before prepared generation or CURRENT publication. Prior committed codebook is only read. Same canonical source/destination skips self-copy.",
+  "prior_evidence": [
+    "benchmark-results/single-hop/results/native-lifecycle-backend-review.json",
+    "benchmark-results/single-hop/results/native-runtime-wrapper-review.json",
+    "benchmark-results/single-hop/results/native-blocking-worker-review.json"
+  ],
+  "limits": "Codebook reuse removes retraining drift but does not assert any unmeasured recall, latency or production guarantee."
+}

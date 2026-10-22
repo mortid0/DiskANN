@@ -1,0 +1,351 @@
+{
+  "base_searches": 19757,
+  "delta_candidates": 0,
+  "duplicate_results": 0,
+  "exact_fallback_queries": 0,
+  "filter_violations": 0,
+  "implementation": "rust_native_lifecycle",
+  "k": 10,
+  "kind": "query",
+  "l": 64,
+  "label_l_plan": null,
+  "label_l_tuning_scope": null,
+  "labels": [
+    {
+      "actual_l": 64,
+      "label": 1,
+      "mean_us": 2000.3520749999986,
+      "p95_us": 2263.835,
+      "p99_us": 2536.0460000000003,
+      "queries": 840,
+      "recall": 0.9571428571428572
+    },
+    {
+      "actual_l": 64,
+      "label": 2,
+      "mean_us": 2044.6180952789737,
+      "p95_us": 2310.142,
+      "p99_us": 2603.764,
+      "queries": 1165,
+      "recall": 0.9430901287553648
+    },
+    {
+      "actual_l": 64,
+      "label": 3,
+      "mean_us": 2066.8715889570544,
+      "p95_us": 2337.193,
+      "p99_us": 2646.233,
+      "queries": 163,
+      "recall": 0.9208588957055215
+    },
+    {
+      "actual_l": 64,
+      "label": 4,
+      "mean_us": 2116.707061519904,
+      "p95_us": 2428.234,
+      "p99_us": 2620.825,
+      "queries": 829,
+      "recall": 0.9284680337756333
+    },
+    {
+      "actual_l": 64,
+      "label": 5,
+      "mean_us": 2097.2946531791904,
+      "p95_us": 2397.917,
+      "p99_us": 2604.435,
+      "queries": 346,
+      "recall": 0.9274566473988439
+    },
+    {
+      "actual_l": 64,
+      "label": 6,
+      "mean_us": 2116.74028,
+      "p95_us": 2436.73,
+      "p99_us": 2592.984,
+      "queries": 125,
+      "recall": 0.936
+    },
+    {
+      "actual_l": 64,
+      "label": 7,
+      "mean_us": 2179.245218241043,
+      "p95_us": 2509.0860000000002,
+      "p99_us": 2793.932,
+      "queries": 307,
+      "recall": 0.9322475570032573
+    },
+    {
+      "actual_l": 64,
+      "label": 8,
+      "mean_us": 2111.5693529411747,
+      "p95_us": 2446.668,
+      "p99_us": 3053.93,
+      "queries": 2040,
+      "recall": 0.9065686274509804
+    },
+    {
+      "actual_l": 64,
+      "label": 9,
+      "mean_us": 2118.813896551723,
+      "p95_us": 2427.513,
+      "p99_us": 2713.319,
+      "queries": 116,
+      "recall": 0.9310344827586207
+    },
+    {
+      "actual_l": 64,
+      "label": 10,
+      "mean_us": 2031.5648922155688,
+      "p95_us": 2292.078,
+      "p99_us": 2639.03,
+      "queries": 167,
+      "recall": 0.9520958083832335
+    },
+    {
+      "actual_l": 64,
+      "label": 11,
+      "mean_us": 2113.011746987952,
+      "p95_us": 2327.725,
+      "p99_us": 2524.7949999999996,
+      "queries": 83,
+      "recall": 0.9397590361445783
+    },
+    {
+      "actual_l": 64,
+      "label": 12,
+      "mean_us": 2113.381545197743,
+      "p95_us": 2412.795,
+      "p99_us": 2646.023,
+      "queries": 354,
+      "recall": 0.9322033898305084
+    },
+    {
+      "actual_l": 64,
+      "label": 17,
+      "mean_us": 2112.660158940397,
+      "p95_us": 2387.477,
+      "p99_us": 2679.796,
+      "queries": 1208,
+      "recall": 0.9342715231788079
+    },
+    {
+      "actual_l": 64,
+      "label": 20,
+      "mean_us": 2131.4434407894737,
+      "p95_us": 2439.5049999999997,
+      "p99_us": 2813.397,
+      "queries": 152,
+      "recall": 0.9513157894736842
+    },
+    {
+      "actual_l": 64,
+      "label": 21,
+      "mean_us": 2143.0948778625952,
+      "p95_us": 2581.903,
+      "p99_us": 2972.226,
+      "queries": 131,
+      "recall": 0.9358778625954198
+    },
+    {
+      "actual_l": 64,
+      "label": 24,
+      "mean_us": 2105.7591463414637,
+      "p95_us": 2371.607,
+      "p99_us": 2821.583,
+      "queries": 164,
+      "recall": 0.9390243902439024
+    },
+    {
+      "actual_l": 64,
+      "label": 25,
+      "mean_us": 2062.4803238636373,
+      "p95_us": 2459.072,
+      "p99_us": 2524.815,
+      "queries": 176,
+      "recall": 0.975
+    },
+    {
+      "actual_l": 64,
+      "label": 28,
+      "mean_us": 2125.5301072210073,
+      "p95_us": 2412.624,
+      "p99_us": 2700.4860000000003,
+      "queries": 1371,
+      "recall": 0.9467541940189642
+    },
+    {
+      "actual_l": 64,
+      "label": 29,
+      "mean_us": 2176.5744811529935,
+      "p95_us": 2496.422,
+      "p99_us": 2707.038,
+      "queries": 451,
+      "recall": 0.917960088691796
+    },
+    {
+      "actual_l": 64,
+      "label": 35,
+      "mean_us": 2100.697494106088,
+      "p95_us": 2366.989,
+      "p99_us": 2674.747,
+      "queries": 3054,
+      "recall": 0.9480353634577603
+    },
+    {
+      "actual_l": 64,
+      "label": 36,
+      "mean_us": 2107.151,
+      "p95_us": 2107.151,
+      "p99_us": 2107.151,
+      "queries": 1,
+      "recall": 1.0
+    },
+    {
+      "actual_l": 64,
+      "label": 89,
+      "mean_us": 2214.978670598912,
+      "p95_us": 2523.062,
+      "p99_us": 2787.9089999999997,
+      "queries": 1102,
+      "recall": 0.9303992740471869
+    },
+    {
+      "actual_l": 64,
+      "label": 90,
+      "mean_us": 2032.3532042483635,
+      "p95_us": 2299.0710000000004,
+      "p99_us": 2555.303,
+      "queries": 1224,
+      "recall": 0.9707516339869281
+    },
+    {
+      "actual_l": 64,
+      "label": 95,
+      "mean_us": 1991.4136772616143,
+      "p95_us": 2245.14,
+      "p99_us": 2484.169,
+      "queries": 2045,
+      "recall": 0.9730073349633251
+    },
+    {
+      "actual_l": 64,
+      "label": 98,
+      "mean_us": 2185.133588235294,
+      "p95_us": 2488.667,
+      "p99_us": 6283.849999999999,
+      "queries": 34,
+      "recall": 0.9588235294117647
+    },
+    {
+      "actual_l": 64,
+      "label": 103,
+      "mean_us": 2072.0825969868174,
+      "p95_us": 2327.735,
+      "p99_us": 3475.793,
+      "queries": 531,
+      "recall": 0.9649717514124294
+    },
+    {
+      "actual_l": 64,
+      "label": 107,
+      "mean_us": 2053.711504329003,
+      "p95_us": 2320.141,
+      "p99_us": 2537.409,
+      "queries": 462,
+      "recall": 0.9718614718614719
+    },
+    {
+      "actual_l": 64,
+      "label": 336,
+      "mean_us": 2109.707363468635,
+      "p95_us": 2386.064,
+      "p99_us": 2689.7850000000003,
+      "queries": 542,
+      "recall": 0.97619926199262
+    },
+    {
+      "actual_l": 64,
+      "label": 341,
+      "mean_us": 2012.3255999999997,
+      "p95_us": 2565.441,
+      "p99_us": 2565.441,
+      "queries": 5,
+      "recall": 1.0
+    },
+    {
+      "actual_l": 64,
+      "label": 345,
+      "mean_us": 2132.5253797468336,
+      "p95_us": 2459.652,
+      "p99_us": 2722.978,
+      "queries": 474,
+      "recall": 0.9561181434599156
+    },
+    {
+      "actual_l": 64,
+      "label": 1548,
+      "mean_us": 1946.525192307692,
+      "p95_us": 2149.63,
+      "p99_us": 2187.511,
+      "queries": 26,
+      "recall": 0.9884615384615385
+    },
+    {
+      "actual_l": 64,
+      "label": 1643,
+      "mean_us": 1951.7783076923079,
+      "p95_us": 2114.525,
+      "p99_us": 2114.525,
+      "queries": 13,
+      "recall": 1.0
+    },
+    {
+      "actual_l": 64,
+      "label": 2027,
+      "mean_us": 2010.0557894736842,
+      "p95_us": 2644.46,
+      "p99_us": 2644.46,
+      "queries": 19,
+      "recall": 1.0
+    },
+    {
+      "actual_l": 64,
+      "label": 2495,
+      "mean_us": 2030.8260810810816,
+      "p95_us": 2428.755,
+      "p99_us": 2649.2690000000002,
+      "queries": 37,
+      "recall": 0.9756756756756757
+    }
+  ],
+  "latency_contract": "public_snapshot_search_call",
+  "mean_us": 2089.684868249231,
+  "p50_us": 2054.551,
+  "p95_us": 2397.136,
+  "p99_us": 2706.928,
+  "phase": "query",
+  "prepared_identity": "0285b194f899c33661f4887cb9e4f1ec7b4c796bb76c6e965756748f2921bff0:dcc0dee985fb76aef3610a05e74d44c77778192cb1377bee3d991f6e0da67948:3e2480740fe91a3cfec2c0024b6812e4a253464c31a1a165b3fcd7ca0667ec46:1ff653b7578862fe9caccadf2cda12c898a4e81da215f2b2ef235eb2cea65c69",
+  "qps": 3827.393628340907,
+  "queries": 19757,
+  "raw_queries": {
+    "path": "/home/alex/diskann-single-hop-benchmark/results/heldout-20261021/fixed-control/rust-details/query.t8.L64.r0.jsonl",
+    "queries": 19757,
+    "sha256": "da20f49d5a69ad999b5bd022dfe01285b710b083cc87a40afefccb3c8aad8d26"
+  },
+  "recall": 0.9454421217796224,
+  "repeat": 6,
+  "sequence": 0,
+  "short_results": 0,
+  "strict_id_recall": true,
+  "threads": 8,
+  "timing_authoritative": false,
+  "unused_plan_labels": [],
+  "wall_seconds": 5.161998456,
+  "warmup_queries": 19757,
+  "paired_repeat": 6,
+  "local_repeat": 0,
+  "original_aggregate": "/home/alex/diskann-single-hop-benchmark/results/heldout-20261021/fixed-control/rust.jsonl",
+  "original_aggregate_sha256": "e55e8ecc8fa514bdcc68d0c0ad0e8616dc66c189c4c0cd8c2776abf7f58dad9b",
+  "local_raw_queries": "/home/alex/diskann-single-hop-benchmark/results/heldout-20261021/fixed-control/rust-details/query.t8.L64.r0.jsonl",
+  "raw_queries_relative_path": "fixed-control/rust-details/query.t8.L64.r0.jsonl"
+}

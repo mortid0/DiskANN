@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "host": "alex@100.83.201.102",
+  "output_root": "/home/alex/diskann-single-hop-benchmark/results/heldout-20261021",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "plan_before_sha256": "df42e65440af0a891185913e91f5f22cb6808c9251b2c1d8f6ca968d5bda2e59",
+  "plan_after_sha256": "df42e65440af0a891185913e91f5f22cb6808c9251b2c1d8f6ca968d5bda2e59",
+  "native": {
+    "binary_sha256": "e7a6fc10dfbe90ecc3b144e6b4a3dd742183ea29df6228ce88dd559e4d4e2811",
+    "binary_before_sha256": "e7a6fc10dfbe90ecc3b144e6b4a3dd742183ea29df6228ce88dd559e4d4e2811",
+    "log_sha256": "dc348b855861b36cfdda98dd042192277881a505d8585c1929802609c16b6893",
+    "source_archive": {
+      "path": "/home/alex/diskann-single-hop-benchmark/artifacts/heldout/lifecycle-v5-heldout-complete-sources.tar.gz",
+      "sha256": "c4b32b8d3e199eb8255ddc67621a69c8711d8d98b2f1d632e5c422940475113e",
+      "before_sha256": "c4b32b8d3e199eb8255ddc67621a69c8711d8d98b2f1d632e5c422940475113e"
+    },
+    "index_before": {
+      "current_sha256": "89944146f8f87b25acab66bccfbee3e4e4e10f75c7469474d20f63b2ab7dabdc",
+      "catalog_sha256": "d62463ada5a6c6029074520c2ef6e2eafff4115ccc4dc15ef45203c1b95a8546",
+      "journal_sha256": "1764e386a2b309d06aa6cddde1eae065d8de019d92f6d4654be0ac0fa8c49952"
+    },
+    "index_after": {
+      "current_sha256": "89944146f8f87b25acab66bccfbee3e4e4e10f75c7469474d20f63b2ab7dabdc",
+      "catalog_sha256": "d62463ada5a6c6029074520c2ef6e2eafff4115ccc4dc15ef45203c1b95a8546",
+      "journal_sha256": "1764e386a2b309d06aa6cddde1eae065d8de019d92f6d4654be0ac0fa8c49952"
+    }
+  },
+  "cpp": {
+    "binary_sha256": "adfec335597f4c8834ed4f875cbef2971fddd476c2d66412f843e78d60cb8a4a",
+    "binary_before_sha256": "adfec335597f4c8834ed4f875cbef2971fddd476c2d66412f843e78d60cb8a4a",
+    "log_sha256": "192c9c9ae0281c69ab6dad7e0edf31c75d3e656da439fbade651a5b7e037aa6d",
+    "index_before": {
+      "_disk.index": "f4a9bf96f0c34cd92e5abe4b72c88933ecc12bc032a783a4a53b8022554c2301",
+      "_disk.index_labels.txt": "c60a36c702da48743da3a16591e9096005203eaa13956780883fc3f248b4ee2f",
+      "_disk.index_labels_map.txt": "c0e27aa6b8c57e2b4d938039fa1475d2d2ee128f0a931f7ec12e9fc1229d20d6",
+      "_disk.index_labels_to_medoids.txt": "e5b30e0f6e631be8de75bb09f5b8e7660ac4ff73df20513e27ef04f129d2911a",
+      "_pq_pivots.bin": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523",
+      "_pq_compressed.bin": "afef7915eb783215f5db689b597feb478c528e6793bc8199b51e7da0f382dedc"
+    },
+    "index_after": {
+      "_disk.index": "f4a9bf96f0c34cd92e5abe4b72c88933ecc12bc032a783a4a53b8022554c2301",
+      "_disk.index_labels.txt": "c60a36c702da48743da3a16591e9096005203eaa13956780883fc3f248b4ee2f",
+      "_disk.index_labels_map.txt": "c0e27aa6b8c57e2b4d938039fa1475d2d2ee128f0a931f7ec12e9fc1229d20d6",
+      "_disk.index_labels_to_medoids.txt": "e5b30e0f6e631be8de75bb09f5b8e7660ac4ff73df20513e27ef04f129d2911a",
+      "_pq_pivots.bin": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523",
+      "_pq_compressed.bin": "afef7915eb783215f5db689b597feb478c528e6793bc8199b51e7da0f382dedc"
+    }
+  },
+  "runner_sha256": "d888220434d1db081fe62be5dd1028613649cecfd54cefde5bc584023a32c2fc",
+  "cpp_runner_sha256": "5e0adbe13e9ee1b099bfb12dd7f21b490dec799ee2e0ddb442ff169d572e2092",
+  "prepared_manifest_sha256": "bffff94746007bf175956635274beb47e09d62a1e02e3fef9bd4b9cd6bf80677"
+}

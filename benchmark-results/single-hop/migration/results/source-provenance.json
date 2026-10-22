@@ -1,0 +1,43 @@
+{
+  "rust_base_commit": "79c5fcf77b6b26c403c3803aa04839e633d15642",
+  "cpp_base_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "search_final_binary_sha256": "bbc1bce486eb85c705aa9e0389afa5d37fc0d3d5d6cb92c1accc999fdcdb4c61",
+  "native_lifecycle_binary_sha256": "3e659099943ff9f15804905919d7cdf0cbec7b98bd0d0517be52f9310a92958e",
+  "refreshed_cpp_id_sha256_matches_original_references": {
+    "60": "1a40458a28a88c0982bfc7072020007da2fbf70efcbcb0a436713da40fd9c4e2",
+    "64": "52ad17f9485c1332d4c77c236f1737f573eb003aca92c5c849197c7133ed195f",
+    "144": "2310f8373fba9136d8719df59f2428d3c2b1230bd33af55b62bffd9353a1aef0"
+  },
+  "source_sha256": {
+    "diskann/src/neighbor/queue.rs": "b78ad270958c47aeb08be49b6065fedd044aeb7505c2ddd47443eefc7fafd852",
+    "diskann/src/graph/search/single_hop_filter_search.rs": "36e54a13ee7f245b8b3966fd7be70dbdf1e7b1655328948c7e4c3752e4d0c70f",
+    "diskann-disk/src/search/provider/disk_provider.rs": "76c8f80c669a422378ec73b888b2c0b9d96ab9865ce10717265d34eda4c0e7c7",
+    "diskann-disk/src/search/search_mode.rs": "91fbd2cd76537b3ea9b259d452a17d4606069ee4e7f47369255c349ecffff706",
+    "diskann-disk/src/build/filtered.rs": "40eb4e700d9a120b010c9d9a5c3766071ac9f27f999ee56ca614c0fc0b25a898",
+    "diskann-disk/src/storage/disk_index_writer.rs": "d0f75ab4b3db67088c232ba88f47d5bf0f7e200ca3686eeaacc3032f91c8d8dd",
+    "diskann-disk/src/filtered/index.rs": "4abfb8c3ec34b918f3e0a36a75a59453aeb41427353e7cb39103015a2e24b45a",
+    "diskann-disk/src/filtered/view.rs": "fd5baa8e2760bd09f1ade1a376ac27cdbc8d02f8727102d588165e0b42878c9f",
+    "diskann-disk/src/filtered/native.rs": "d68ade6a2cd8cd1eb5648189376fd9993cd2f8af0f549efabbffc6f9e1051651",
+    "diskann-disk/src/filtered/metadata.rs": "130a28452fb1ac88c705f2082cd2f850c8029120f7e9e6de666823852435933e",
+    "diskann-disk/src/filtered/persistence.rs": "91dc13c91ed9a1971e4c6b8a556c7d6316d2a3d7d2ebeb9cec99fb78d59d5d74",
+    "diskann-disk/src/filtered/updates.rs": "974b782c427122417a992c95dc8846885d340c7849bd9bef0ecee0bdcefe9b93",
+    "diskann-disk/examples/filtered_ssd_bench.rs": "010d4b84a5cb4771e4aa8576ac9bf299bda03354e1640a044931b4eaf60472fd",
+    "diskann-disk/examples/filtered_lifecycle.rs": "b1580f6c2d595b16af06d9f38e6d2d158177dca7360a81b5d680735d623d7188",
+    "diskann-disk/tests/filtered_lifecycle.rs": "48b177751eb68de62917e1326c01cfac64d739ca91b63c74f374bc66abb7b68f"
+  },
+  "scope": "search final executable built before unrelated lifecycle module wiring; search source hashes unchanged, lifecycle binary includes native lifecycle",
+  "checks": {
+    "local_core_lib_tests": 336,
+    "local_disk_lib_tests": 279,
+    "local_lifecycle_integration_tests": 6,
+    "affected_all_targets_clippy_warnings_as_errors": "passed",
+    "native_linux_lifecycle_integration_tests": 6,
+    "format": "passed",
+    "diff_whitespace": "passed"
+  },
+  "lifecycle_v1_source_archive": {
+    "path": "benchmark-results/single-hop/migration/results/lifecycle-v1-sources.tar.gz",
+    "sha256": "1e3f1fc83e53615f59a3efece34d02205ab98f5078619e97f79b2433bb495ddc",
+    "scope": "Exact remote source for lifecycle1M/10M all-action runs, before later shadow-aware overfetch fix and delta-stress action. Final version is validated separately."
+  }
+}

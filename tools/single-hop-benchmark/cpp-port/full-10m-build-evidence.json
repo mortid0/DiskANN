@@ -1,0 +1,120 @@
+{
+  "method": "official_cpp_stitched_vamana",
+  "label_degree": 32,
+  "stitched_degree": 128,
+  "build_l": 100,
+  "threads": 8,
+  "build": {
+    "command": [
+      "/private/tmp/diskann-single-hop-cpp/build-macos/build_stitched_index",
+      "--data_type",
+      "uint8",
+      "--data_path",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.work/base.u8bin",
+      "--label_file",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-10m/labels.txt",
+      "--index_path_prefix",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.work/mem.index",
+      "-T",
+      "8",
+      "-R",
+      "32",
+      "-L",
+      "100",
+      "--stitched_R",
+      "128",
+      "--alpha",
+      "1.2"
+    ],
+    "log": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.build.log",
+    "elapsed_seconds": 638.6439048747998
+  },
+  "pq_encoding": {
+    "command": [
+      "/private/tmp/diskann-single-hop-cpp/build-macos/encode_pq_reference",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.work/base.u8bin",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_pivots.bin",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_compressed.bin",
+      "32",
+      "8"
+    ],
+    "log": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.encode-pq.log",
+    "elapsed_seconds": 104.33896679105237,
+    "training_pivots_source": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc1m_R64_L100_pq_pivots.bin",
+    "training_pivots_sha256": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523"
+  },
+  "build_binaries_sha256": {
+    "build_stitched_index": "d290e45783c65a35e66ede52393e9eca864cde270d3e8b518460c7ac279b500f",
+    "create_disk_layout_reference": "54ba15db99dece48ca820d2623f3ad1711bc12bd34763306681a7fb7711045d4"
+  },
+  "disk_layout": {
+    "command": [
+      "/private/tmp/diskann-single-hop-cpp/build-macos/create_disk_layout_reference",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.work/base.u8bin",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.work/mem.index",
+      "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_disk.index"
+    ],
+    "log": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100.layout.log",
+    "elapsed_seconds": 6.422181916190311
+  },
+  "shared_pq": {
+    "_pq_pivots.bin": {
+      "source": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_pivots.bin",
+      "target": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_pivots.bin",
+      "sha256": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523"
+    },
+    "_pq_compressed.bin": {
+      "source": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_compressed.bin",
+      "target": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/indexes/cpp/yfcc10m_stitched_R32_R128_L100_pq_compressed.bin",
+      "sha256": "afef7915eb783215f5db689b597feb478c528e6793bc8199b51e7da0f382dedc"
+    }
+  },
+  "pq_rows": 10000000,
+  "pq_bytes": 32,
+  "source_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "prepared_manifest": "/Users/mortid0/repos/github/DiskANN/benchmark-results/single-hop/data/prepared-10m/manifest.json",
+  "timing_authoritative": false,
+  "build_environment": "Apple arm64 macOS portable reference, eight build threads; peak RSS was not instrumented",
+  "disk_graph": {
+    "bytes": 8192004096,
+    "metadata_u64": [
+      10000000,
+      192,
+      0,
+      708,
+      5,
+      0,
+      0,
+      0,
+      8192004096
+    ],
+    "sha256": "f4a9bf96f0c34cd92e5abe4b72c88933ecc12bc032a783a4a53b8022554c2301"
+  },
+  "artifact_hashes": {
+    "yfcc10m_stitched_R32_R128_L100_disk.index": {
+      "bytes": 8192004096,
+      "sha256": "f4a9bf96f0c34cd92e5abe4b72c88933ecc12bc032a783a4a53b8022554c2301"
+    },
+    "yfcc10m_stitched_R32_R128_L100_disk.index_labels.txt": {
+      "bytes": 59940263,
+      "sha256": "c60a36c702da48743da3a16591e9096005203eaa13956780883fc3f248b4ee2f"
+    },
+    "yfcc10m_stitched_R32_R128_L100_disk.index_labels_map.txt": {
+      "bytes": 439,
+      "sha256": "c0e27aa6b8c57e2b4d938039fa1475d2d2ee128f0a931f7ec12e9fc1229d20d6"
+    },
+    "yfcc10m_stitched_R32_R128_L100_pq_compressed.bin": {
+      "bytes": 320000008,
+      "sha256": "afef7915eb783215f5db689b597feb478c528e6793bc8199b51e7da0f382dedc"
+    },
+    "yfcc10m_stitched_R32_R128_L100_disk.index_labels_to_medoids.txt": {
+      "bytes": 768,
+      "sha256": "e5b30e0f6e631be8de75bb09f5b8e7660ac4ff73df20513e27ef04f129d2911a"
+    },
+    "yfcc10m_stitched_R32_R128_L100_pq_pivots.bin": {
+      "bytes": 201628,
+      "sha256": "7fcaaa283e019805978a1a90eb16413e08408958861cbbc7043cb3e7ede3b523"
+    }
+  },
+  "artifact_hash_source": "benchmark-results/single-hop/results/shared-index-manifest.json"
+}

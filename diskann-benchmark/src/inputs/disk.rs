@@ -75,6 +75,10 @@ pub(crate) struct DiskIndexBuild {
 #[cfg(feature = "disk-index")]
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub(crate) struct DiskSearchMode {
+    /// JSON file with one array of matching dataset entry IDs per query.
+    #[serde(default)]
+    pub(crate) single_hop_starting_points: Option<InputFile>,
+    #[serde(default)]
     pub(crate) is_flat_search: bool,
     #[serde(default)]
     pub(crate) adaptive_l: Option<AdaptiveL>,
@@ -87,7 +91,14 @@ impl DiskSearchMode {
         has_vector_filters: bool,
         vector_filter: &'a HashSet<u32>,
         post_processor: Option<&TopkPostProcessor>,
+        starting_points: &'a [u32],
     ) -> SearchMode<'a> {
+        if self.single_hop_starting_points.is_some() {
+            return SearchMode::single_hop_filter(
+                move |id| vector_filter.contains(id),
+                starting_points,
+            );
+        }
         let adaptive_l = self.adaptive_l.as_ref().map(|adaptive_l| {
             graph::search::AdaptiveL::new(adaptive_l.sample_count.into(), adaptive_l.scale_factor)
                 .expect("validated adaptive L must construct")
@@ -127,6 +138,14 @@ impl DiskSearchMode {
     }
 
     pub(crate) fn validate(&mut self, checker: &mut Checker) -> Result<(), anyhow::Error> {
+        if let Some(path) = self.single_hop_starting_points.as_mut() {
+            anyhow::ensure!(
+                !self.is_flat_search && self.adaptive_l.is_none(),
+                "single-hop cannot be combined with flat search or adaptive L"
+            );
+            path.resolve(checker)
+                .context("invalid single-hop starting-points file")?;
+        }
         if let Some(adaptive_l) = self.adaptive_l.as_mut() {
             adaptive_l.validate(checker)?;
         }
@@ -137,6 +156,9 @@ impl DiskSearchMode {
 #[cfg(feature = "disk-index")]
 impl fmt::Display for DiskSearchMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.single_hop_starting_points.is_some() {
+            return f.write_str("single-hop");
+        }
         let base = if self.is_flat_search { "flat" } else { "graph" };
         if self.adaptive_l.is_some() {
             write!(f, "{} + adaptive-l", base)
@@ -284,6 +306,18 @@ impl DiskSearchPhase {
             .validate(checker)
             .context("invalid disk search mode")?;
 
+        #[cfg(feature = "disk-index")]
+        if self.search_mode.single_hop_starting_points.is_some() {
+            anyhow::ensure!(
+                self.vector_filters_file.is_some(),
+                "single-hop requires vector_filters_file"
+            );
+            anyhow::ensure!(
+                self.post_processor.is_none(),
+                "single-hop uses exact reranking and cannot combine another post-processor"
+            );
+        }
+
         // basic numeric sanity checks
         if self.search_list.is_empty() {
             anyhow::bail!("search_list must have at least one value");
@@ -355,6 +389,7 @@ impl Example for DiskIndexOperation {
             num_threads: 8,
             #[cfg(feature = "disk-index")]
             search_mode: DiskSearchMode {
+                single_hop_starting_points: None,
                 is_flat_search: false,
                 adaptive_l: None,
             },

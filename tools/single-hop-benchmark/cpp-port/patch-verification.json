@@ -1,0 +1,18 @@
+{
+  "source_commit": "78256bbab4685e1774e78d331e081a153be26823",
+  "macos-reference": {
+    "files": 21,
+    "sha256": "df6d34d68e122d832a7ff81bc95c963262ce649e6b686b1348e830aaa3048d7d",
+    "applied": true,
+    "byte_identical_to_compiled_source": true,
+    "native_compiled": null
+  },
+  "native-query-metrics": {
+    "files": 6,
+    "sha256": "4f847d6d05f404431ee34e9b4e068a4268476d10d408a73a193f14cfecfcc0c2",
+    "applied": true,
+    "byte_identical_to_compiled_source": true,
+    "native_compiled": true,
+    "source_hashes_verified_on_native_host": true
+  }
+}

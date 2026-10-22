@@ -247,3 +247,17 @@ impl TopkInlineFilter {
         "topk + inline filter"
     }
 }
+
+/// A search plugin for strict single-hop filtered search.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct TopkSingleHopFilter;
+
+impl TopkSingleHopFilter {
+    pub(crate) fn is_match(phase: &SearchPhase) -> bool {
+        phase.as_topk_single_hop_filter().is_ok()
+    }
+
+    pub(crate) const fn as_str() -> &'static str {
+        "topk + single-hop filter"
+    }
+}

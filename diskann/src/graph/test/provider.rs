@@ -1186,6 +1186,19 @@ impl provider::HasId for Accessor<'_> {
 //------//
 
 impl glue::SearchAccessor for Accessor<'_> {
+    async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+    where
+        F: FnMut(u32, f32) + Send,
+    {
+        for &id in ids {
+            f(
+                id,
+                self.get_distance(id).escalate("start points must exist")?,
+            );
+        }
+        Ok(())
+    }
+
     fn starting_points(&self) -> impl Future<Output = ANNResult<Vec<u32>>> + Send {
         futures_util::future::ok(self.provider.start_point_ids().collect())
     }

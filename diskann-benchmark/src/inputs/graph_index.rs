@@ -269,6 +269,22 @@ impl MultihopFilterSearchPhase {
     }
 }
 
+/// Single-hop uses the existing filtered top-k inputs and an explicit per-query seed file.
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct SingleHopFilterSearchPhase {
+    #[serde(flatten)]
+    pub(crate) filtered: MultihopFilterSearchPhase,
+    pub(crate) starting_points: InputFile,
+}
+
+impl SingleHopFilterSearchPhase {
+    fn validate(&mut self, checker: &mut Checker) -> anyhow::Result<()> {
+        self.filtered.validate(checker)?;
+        self.starting_points.resolve(checker)?;
+        Ok(())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct AdaptiveL {
     pub(crate) sample_count: NonZeroUsize,
@@ -434,6 +450,7 @@ pub(crate) enum SearchPhase {
     FilteredRange(FilteredRangeSearchPhase),
     TopkBetaFilter(BetaSearchPhase),
     TopkMultihopFilter(MultihopFilterSearchPhase),
+    TopkSingleHopFilter(SingleHopFilterSearchPhase),
     TopkInlineFilter(InlineFilterSearchPhase),
     TopkDeterminantDiversity(TopkDeterminantDiversityPhase),
 }
@@ -463,6 +480,7 @@ impl SearchPhase {
             Self::FilteredRange(_) => SearchPhaseKind::FilteredRange,
             Self::TopkBetaFilter(_) => SearchPhaseKind::TopkBetaFilter,
             Self::TopkMultihopFilter(_) => SearchPhaseKind::TopkMultihopFilter,
+            Self::TopkSingleHopFilter(_) => SearchPhaseKind::TopkSingleHopFilter,
             Self::TopkInlineFilter(_) => SearchPhaseKind::TopkInlineFilter,
             Self::TopkDeterminantDiversity(_) => SearchPhaseKind::TopkDeterminantDiversity,
         }
@@ -522,6 +540,18 @@ impl SearchPhase {
         }
     }
 
+    pub(crate) fn as_topk_single_hop_filter(
+        &self,
+    ) -> Result<&SingleHopFilterSearchPhase, WrongSearchPhaseKind> {
+        match self {
+            Self::TopkSingleHopFilter(phase) => Ok(phase),
+            _ => Err(WrongSearchPhaseKind::new(
+                SearchPhaseKind::TopkSingleHopFilter,
+                self.kind(),
+            )),
+        }
+    }
+
     pub(crate) fn as_topk_inline_filter(
         &self,
     ) -> Result<&InlineFilterSearchPhase, WrongSearchPhaseKind> {
@@ -555,6 +585,7 @@ impl SearchPhase {
             SearchPhase::FilteredRange(phase) => phase.validate(checker),
             SearchPhase::TopkBetaFilter(phase) => phase.validate(checker),
             SearchPhase::TopkMultihopFilter(phase) => phase.validate(checker),
+            SearchPhase::TopkSingleHopFilter(phase) => phase.validate(checker),
             SearchPhase::TopkInlineFilter(phase) => phase.validate(checker),
             SearchPhase::TopkDeterminantDiversity(phase) => phase.validate(checker),
         }
@@ -568,6 +599,7 @@ pub(crate) enum SearchPhaseKind {
     FilteredRange,
     TopkBetaFilter,
     TopkMultihopFilter,
+    TopkSingleHopFilter,
     TopkInlineFilter,
     TopkDeterminantDiversity,
 }
@@ -580,6 +612,7 @@ impl SearchPhaseKind {
             Self::FilteredRange => "filtered-range",
             Self::TopkBetaFilter => "topk-beta-filter",
             Self::TopkMultihopFilter => "topk-multihop-filter",
+            Self::TopkSingleHopFilter => "topk-single-hop-filter",
             Self::TopkInlineFilter => "topk-inline-filter",
             Self::TopkDeterminantDiversity => "topk-determinant-diversity",
         }

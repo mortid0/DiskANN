@@ -765,6 +765,38 @@ mod tests {
     }
 
     #[test]
+    fn graph_index_single_hop_filter_integration() {
+        let raw = value_from_file(&example_directory().join("graph-index-single-hop-filter.json"));
+        run_integration_test(raw);
+    }
+
+    #[test]
+    #[cfg(feature = "disk-index")]
+    fn disk_index_single_hop_filter_integration() {
+        use diskann_providers::storage::FileStorageProvider;
+        use diskann_tools::utils::search_index_utils::load_vector_filters;
+        let directory = tempfile::tempdir().unwrap();
+        let filters = load_vector_filters(&FileStorageProvider,
+            root_directory().join("test_data/disk_index_search/disk_index_10pts_idx_uint32_range_res_r_100000.bin")
+                .to_str().unwrap(),
+        ).unwrap();
+        let seeds: Vec<Vec<u32>> = filters
+            .iter()
+            .map(|ids| ids.iter().copied().min().into_iter().collect())
+            .collect();
+        let seeds_path = directory.path().join("starts.json");
+        std::fs::write(&seeds_path, serde_json::to_vec(&seeds).unwrap()).unwrap();
+        let mut raw = value_from_file(&example_directory().join("disk-index-filter.json"));
+        raw["jobs"].as_array_mut().unwrap().truncate(1);
+        let content = &mut raw["jobs"][0]["content"];
+        content["source"]["save_path"] = serde_json::json!(directory.path().join("index"));
+        content["search_phase"]["search_mode"] = serde_json::json!({
+            "single_hop_starting_points": seeds_path,
+        });
+        run_integration_test(raw);
+    }
+
+    #[test]
     fn graph_index_range_integration() {
         // First, parse and modify the input file to establish paths relative to the
         // directory building the dispatcher.

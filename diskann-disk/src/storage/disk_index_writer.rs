@@ -284,7 +284,7 @@ impl DiskIndexWriter {
         let num_nbrs: u32 = Self::get_neighbors_number(state)?;
 
         // sanity checks on num_nbrs
-        debug_assert!(num_nbrs > 0 || state.num_pts == 1);
+        // Isolated rows are valid for singleton labels and unlabeled points.
         debug_assert!(num_nbrs <= state.max_degree);
 
         let num_nbrs_start = state.dims as usize * mem::size_of::<Data::VectorDataType>();
@@ -778,6 +778,48 @@ mod disk_index_storage_test {
 
         let header = GraphHeader::try_from(&disk_layout[8..]).unwrap();
         assert_eq!(header.metadata().num_pts, 1);
+    }
+
+    #[test]
+    fn create_disk_layout_preserves_isolated_rows_in_multi_point_graph() {
+        let storage = VirtualStorageProvider::new_memory();
+        let data_file = "/isolated.fbin";
+        let prefix = "/isolated";
+        write_bin(
+            rowmajor::Ref::try_from_data(&[1.0f32, 2.0, 3.0], 3, 1).unwrap(),
+            &mut storage.create_for_write(data_file).unwrap(),
+        )
+        .unwrap();
+        let writer = DiskIndexWriter::new(data_file.into(), prefix.into(), None, 4096).unwrap();
+        let mut graph = storage
+            .create_for_write(&writer.get_mem_index_file())
+            .unwrap();
+        use byteorder::WriteBytesExt;
+        graph.write_u64::<LittleEndian>(40).unwrap();
+        graph.write_u32::<LittleEndian>(1).unwrap();
+        graph.write_u32::<LittleEndian>(1).unwrap();
+        graph.write_u64::<LittleEndian>(0).unwrap();
+        for value in [0u32, 1, 2, 0] {
+            graph.write_u32::<LittleEndian>(value).unwrap();
+        }
+        graph.flush().unwrap();
+        drop(graph);
+        writer
+            .create_disk_layout::<crate::data_model::AdHoc<f32>, _>(&storage)
+            .unwrap();
+        let mut bytes = Vec::new();
+        storage
+            .open_reader(&writer.disk_index_file())
+            .unwrap()
+            .read_to_end(&mut bytes)
+            .unwrap();
+        let header = GraphHeader::try_from(&bytes[8..]).unwrap();
+        assert_eq!(header.metadata().num_pts, 3);
+        assert_eq!(header.metadata().vamana_frozen_num, 0);
+        let width = header.metadata().node_len as usize;
+        let count = |id: usize| LittleEndian::read_u32(&bytes[4096 + id * width + 4..]);
+        assert_eq!([count(0), count(1), count(2)], [0, 1, 0]);
+        assert_eq!(LittleEndian::read_u32(&bytes[4096 + width + 8..]), 2);
     }
 
     #[test]

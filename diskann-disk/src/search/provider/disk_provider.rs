@@ -21,7 +21,7 @@ use diskann::{
         self,
         ext::labeled::{self, QueryLabelProvider},
         glue::{self, DefaultPostProcessor, SearchPostProcess, SearchStrategy},
-        search::{AdaptiveL, InlineFilterSearch, Knn},
+        search::{AdaptiveL, InlineFilterSearch, Knn, SingleHopFilterSearch},
         search_output_buffer::{self, BufferState, IdDistanceAssociatedData},
         DiskANNIndex,
     },
@@ -294,6 +294,8 @@ impl IOTracker {
 #[derive(Clone, Copy)]
 pub struct RerankAndFilter<'a> {
     filter: PostprocessStrategy<'a>,
+    expanded_only: bool,
+    break_ties_by_id: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -313,7 +315,27 @@ pub enum DiskSearchPostProcessor<'a> {
 
 impl<'a> RerankAndFilter<'a> {
     pub fn new(filter: PostprocessStrategy<'a>) -> Self {
-        Self { filter }
+        Self {
+            filter,
+            expanded_only: false,
+            break_ties_by_id: false,
+        }
+    }
+
+    fn expanded() -> Self {
+        Self {
+            filter: PostprocessStrategy::AcceptAll,
+            expanded_only: true,
+            break_ties_by_id: true,
+        }
+    }
+
+    fn strict_frontier() -> Self {
+        Self {
+            filter: PostprocessStrategy::AcceptAll,
+            expanded_only: false,
+            break_ties_by_id: true,
+        }
     }
 }
 
@@ -479,7 +501,11 @@ where
                 if let Some(entry) = accessor.scratch.distance_cache.get(&n) {
                     Some(Neighbor::new((n, entry.1), entry.0))
                 } else {
-                    uncached_ids.push(n);
+                    // A finite I/O budget can truncate a selected expansion beam.
+                    // Strict expanded reranking must not load these unexpanded IDs.
+                    if !self.expanded_only {
+                        uncached_ids.push(n);
+                    }
                     None
                 }
             };
@@ -506,7 +532,13 @@ where
         }
 
         // Sort the full precision distances.
-        reranked.sort_unstable_by(neighbor::ord::fast_distance);
+        if self.break_ties_by_id {
+            reranked.sort_unstable_by(|a, b| {
+                neighbor::ord::fast_distance(a, b).then_with(|| a.id().0.cmp(&b.id().0))
+            });
+        } else {
+            reranked.sort_unstable_by(neighbor::ord::fast_distance);
+        }
 
         // Store the reranked results.
         extend_output(accessor, reranked, output)
@@ -877,6 +909,26 @@ where
     {
         let start_vertex_id = self.provider.graph_header.metadata().medoid as u32;
         self.pq_distances(&[start_vertex_id], |dist, id| f(id, dist))
+    }
+
+    async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+    where
+        F: FnMut(u32, f32) + Send,
+    {
+        if ids
+            .iter()
+            .any(|&id| id as usize >= self.provider.num_points)
+        {
+            return Err(diskann_error!(
+                ErrorKind::IndexError,
+                "starting point ID is outside the dataset"
+            ));
+        }
+        let batch_size = self.scratch.pq_scratch.max_vectors().max(1);
+        for batch in ids.chunks(batch_size) {
+            self.pq_distances(batch, |distance, id| f(id, distance))?;
+        }
+        Ok(())
     }
 
     fn expand_beam<Itr, P, F>(
@@ -1473,6 +1525,39 @@ where
                     &mut result_output_buffer,
                 ))?
             }
+            SearchMode::SingleHopFilter {
+                filter,
+                starting_points,
+            }
+            | SearchMode::SingleHopFilterFrontier {
+                filter,
+                starting_points,
+            } => {
+                let strategy = self.search_strategy(
+                    &io_tracker,
+                    PostprocessStrategy::AcceptAll,
+                    cache_indexed_vectors,
+                );
+                let strategy = labeled::Filtered::new(strategy, filter.as_ref());
+                let frontier_only = matches!(mode, SearchMode::SingleHopFilterFrontier { .. });
+                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starting_points);
+                let (search, processor) = if frontier_only {
+                    (
+                        search.with_frontier_reranking(),
+                        RerankAndFilter::strict_frontier(),
+                    )
+                } else {
+                    (search, RerankAndFilter::expanded())
+                };
+                self.runtime.block_on(self.index.search_with(
+                    search,
+                    &strategy,
+                    glue::Pipeline::new(labeled::Unfiltered, processor),
+                    &DefaultContext,
+                    query,
+                    &mut result_output_buffer,
+                ))?
+            }
             SearchMode::DiverseGraph { filter, params } => {
                 // Strategy installs the filter so `RerankAndFilter` would also
                 // honor it, but the active post-processor here is the
@@ -1573,8 +1658,7 @@ mod disk_provider_tests {
         "/disk_index_search/disk_index_10pts_idx_uint32_truth_search_res.bin";
     /// Search results for an index built by the current builder, unlike
     /// [`TEST_TRUTH_RESULT_10PTS_128DIM`], which matches the prebuilt [`TEST_INDEX_128DIM`].
-    const TEST_TRUTH_RESULT_ASSOCIATED_DATA_10PTS_128DIM: &str =
-        "/disk_index_search/disk_index_sift_learn_R4_L50_A1.2_associated_data_10pts_truth_search_res.bin";
+    const TEST_TRUTH_RESULT_ASSOCIATED_DATA_10PTS_128DIM: &str = "/disk_index_search/disk_index_sift_learn_R4_L50_A1.2_associated_data_10pts_truth_search_res.bin";
     const TEST_QUERY_10PTS_128DIM: &str = "/disk_index_search/disk_index_sample_query_10pts.fbin";
 
     const TEST_INDEX_PREFIX_100DIM: &str = "/disk_index_search/256pts_100dim_f32_truth_Index";
@@ -2842,6 +2926,207 @@ mod disk_provider_tests {
             .all(|pair| pair[0].distance <= pair[1].distance));
         assert_eq!(result.stats.cmps, 256);
         assert_eq!(result.stats.result_count, 10);
+    }
+
+    #[test]
+    fn single_hop_uses_matching_dataset_entry_points() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                None,
+                SearchMode::single_hop_filter(|id| *id == 0, &[0, 0]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 1);
+        assert_eq!(result.results[0].vertex_id, 0);
+        assert_eq!(result.stats.cmps, 1, "rejected PQ distances are skipped");
+        assert_eq!(result.stats.query_statistics.search_hops, 1);
+        assert_eq!(result.stats.query_statistics.total_vertices_loaded, 1);
+
+        let mismatching = search_engine.search(
+            &[0.1; 128],
+            10,
+            10,
+            None,
+            SearchMode::single_hop_filter(|id| *id == 0, &[1]),
+        );
+        assert!(mismatching
+            .err()
+            .expect("mismatching seed must fail")
+            .to_string()
+            .contains("starting point"));
+
+        let out_of_range = search_engine.search(
+            &[0.1; 128],
+            10,
+            10,
+            None,
+            SearchMode::single_hop_filter(|_| true, &[256]),
+        );
+        assert!(out_of_range
+            .err()
+            .expect("out-of-range seed must fail")
+            .to_string()
+            .contains("outside the dataset"));
+    }
+
+    #[test]
+    fn filtered_modes_respect_empty_entry_points() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        for mode in [
+            SearchMode::single_hop_filter(|_| true, &[]),
+            SearchMode::single_hop_filter_frontier(|_| true, &[]),
+        ] {
+            let result = search_engine
+                .search(&[0.1; 128], 10, 10, None, mode)
+                .unwrap();
+            assert_eq!(result.stats.result_count, 0);
+            assert_eq!(result.stats.cmps, 0);
+            assert_eq!(result.stats.query_statistics.total_vertices_loaded, 0);
+        }
+    }
+
+    #[test]
+    fn single_hop_supports_more_entry_points_than_graph_degree() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        assert_eq!(
+            search_engine
+                .index
+                .provider()
+                .graph_header
+                .max_degree::<f32>()
+                .unwrap(),
+            4,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                None,
+                SearchMode::single_hop_filter(|id| *id < 8, &[0, 1, 2, 3, 4, 5, 6, 7]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 8);
+        assert_eq!(result.stats.cmps, 8);
+        let mut ids: Vec<_> = result.results[..8].iter().map(|r| r.vertex_id).collect();
+        ids.sort_unstable();
+        assert_eq!(ids, (0..8).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn single_hop_expanded_reranking_does_not_load_budget_truncated_beam() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                io_limit: 1,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                Some(4),
+                SearchMode::single_hop_filter(|_| true, &[0]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 1, "only the start was expanded");
+        assert_eq!(result.results[0].vertex_id, 0);
+        assert_eq!(result.stats.query_statistics.total_vertices_loaded, 1);
+    }
+
+    #[test]
+    fn strict_reranking_orders_equal_exact_distances_by_dataset_id() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let query = [0.1; 128];
+        let io_tracker = IOTracker::default();
+        let strategy =
+            search_engine.search_strategy(&io_tracker, PostprocessStrategy::AcceptAll, false);
+        let mut accessor = strategy
+            .search_accessor(
+                search_engine.index.provider(),
+                &DefaultContext,
+                query.as_slice(),
+            )
+            .unwrap();
+        for (id, distance) in [(7u32, 1.0), (3, 1.0), (5, 0.0)] {
+            accessor
+                .scratch
+                .distance_cache
+                .insert(id, (distance, (), None));
+        }
+        for processor in [
+            RerankAndFilter::expanded(),
+            RerankAndFilter::strict_frontier(),
+        ] {
+            let mut ids = [0u32; 3];
+            let mut distances = [0.0; 3];
+            let mut data = [(); 3];
+            let mut output = SearchOutput::new(&mut ids, &mut distances, &mut data, None).unwrap();
+            let count = search_engine
+                .runtime
+                .block_on(processor.post_process(
+                    &mut accessor,
+                    query.as_slice(),
+                    [7u32, 3, 5].into_iter().map(|id| Neighbor::new(id, 1.0)),
+                    &mut output,
+                ))
+                .unwrap();
+            assert_eq!(count, 3);
+            assert_eq!(ids, [5, 3, 7]);
+            assert_eq!(distances, [0.0, 1.0, 1.0]);
+            assert_eq!(io_tracker.io_count(), 0);
+        }
     }
 
     #[test]

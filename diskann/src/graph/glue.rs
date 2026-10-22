@@ -109,6 +109,10 @@ use crate::{
     provider::{self, DataProvider, HasId},
 };
 
+#[derive(Debug, thiserror::Error)]
+#[error("this search accessor does not support explicit starting points")]
+struct ExplicitStartingPointsUnsupported;
+
 /// The main extension point for graph search.
 ///
 /// Search is a best-first graph traversal beginning at a collection of start points.
@@ -134,6 +138,20 @@ pub trait SearchAccessor: HasId + Send + Sync {
     ) -> impl std::future::Future<Output = ANNResult<()>> + Send
     where
         F: FnMut(Self::Id, f32) + Send;
+
+    /// Evaluate explicit query entry points instead of the provider's frozen points.
+    /// Implementations must reject invalid IDs before accessing vector storage. The
+    /// default reports that this optional operation is unsupported.
+    fn start_point_distances_from<F>(
+        &mut self,
+        _ids: &[Self::Id],
+        _f: F,
+    ) -> impl Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(Self::Id, f32) + Send,
+    {
+        std::future::ready(Err(ANNError::new(ExplicitStartingPointsUnsupported)))
+    }
 
     /// A primitive routine used by graph search. This is purposely implemented as a
     /// coarse-grained operation to enable optimization opportunities by the backend.
@@ -427,6 +445,19 @@ pub trait FilteredAccessor: HasId + Send + Sync {
     ) -> impl std::future::Future<Output = ANNResult<()>> + Send
     where
         F: FnMut(Decision<Self::Id>, f32) + Send;
+
+    /// Evaluate and classify explicit query entry points. See
+    /// [`SearchAccessor::start_point_distances_from`].
+    fn start_point_distances_from<F>(
+        &mut self,
+        _ids: &[Self::Id],
+        _f: F,
+    ) -> impl Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(Decision<Self::Id>, f32) + Send,
+    {
+        std::future::ready(Err(ANNError::new(ExplicitStartingPointsUnsupported)))
+    }
 
     /// This function has similar semantics to [`SearchAccessor::expand_beam`] except that
     /// the `on_neighbors` callback receives [`Decision`] rather than raw IDs. This is used

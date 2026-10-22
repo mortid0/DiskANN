@@ -215,6 +215,21 @@ where
         })
     }
 
+    fn start_point_distances_from<F>(
+        &mut self,
+        ids: &[Self::Id],
+        mut f: F,
+    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(Self::Id, f32) + Send,
+    {
+        let filter = &self.filter;
+        self.inner
+            .start_point_distances_from(ids, move |id, distance| {
+                f(id, filter.apply(id, distance));
+            })
+    }
+
     fn expand_beam<Itr, P, F>(
         &mut self,
         ids: Itr,

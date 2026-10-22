@@ -46,6 +46,8 @@ pub(super) struct DiskSearchStats {
     pub(super) beam_width: usize,
     pub(super) recall_at: u32,
     pub(crate) is_flat_search: bool,
+    #[serde(default)]
+    pub(crate) is_single_hop_search: bool,
     pub(crate) distance: SimilarityMeasure,
     pub(crate) uses_vector_filters: bool,
     pub(super) num_nodes_to_cache: Option<usize>,
@@ -198,6 +200,21 @@ where
         anyhow::bail!("Mismatch in query and vector filter sizes");
     }
 
+    let starting_points = search_params
+        .search_mode
+        .single_hop_starting_points
+        .as_ref()
+        .map(|path| crate::utils::filters::load_starting_points(path, num_queries))
+        .transpose()?;
+    if let Some(rows) = &starting_points {
+        for (query, (ids, filter)) in rows.iter().zip(&vector_filters).enumerate() {
+            anyhow::ensure!(
+                ids.iter().all(|id| filter.contains(id)),
+                "single-hop entry point does not match filter for query {query}"
+            );
+        }
+    }
+
     // Prepare ground truth context
     let gt_context = prepare_ground_truth_context(
         search_params.vector_filters_file.is_some(),
@@ -264,19 +281,19 @@ where
             .zip(result_ids.par_chunks_mut(search_params.recall_at as usize))
             .zip(result_dists.par_chunks_mut(search_params.recall_at as usize))
             .zip(statistics_vec.par_iter_mut())
-            .zip(result_counts.par_iter_mut());
+            .zip(result_counts.par_iter_mut())
+            .enumerate();
 
         zipped.for_each_in_pool(
             pool.as_ref(),
-            |(((((q, vf), id_chunk), dist_chunk), stats), rc)| {
-                // Construct the SearchMode from the JSON-driven
-                // `adaptive_l` is now encapsulated in `DiskSearchMode`, so the
-                // benchmark only supplies the per-query filter and post-processor.
+            |(query_id, (((((q, vf), id_chunk), dist_chunk), stats), rc))| {
+                // Filters and explicit seeds were loaded before the timed loop.
                 let has_filter = search_params.vector_filters_file.is_some();
                 let mode: SearchMode<'_> = search_params.search_mode.search_mode(
                     has_filter,
                     vf,
                     search_params.post_processor.as_ref(),
+                    starting_points.as_ref().map_or(&[], |rows| &rows[query_id]),
                 );
 
                 match searcher.search(
@@ -351,6 +368,10 @@ where
         beam_width: search_params.beam_width,
         recall_at: search_params.recall_at,
         is_flat_search: search_params.search_mode.is_flat_search,
+        is_single_hop_search: search_params
+            .search_mode
+            .single_hop_starting_points
+            .is_some(),
         distance: search_params.distance,
         uses_vector_filters: search_params.vector_filters_file.is_some(),
         num_nodes_to_cache: search_params.num_nodes_to_cache,
@@ -435,6 +456,7 @@ impl fmt::Display for DiskSearchStats {
         writeln!(f, "Beam width,       : {}", self.beam_width)?;
         writeln!(f, "Recall at,        : {}", self.recall_at)?;
         writeln!(f, "Flat search,      : {}", self.is_flat_search)?;
+        writeln!(f, "Single-hop search,: {}", self.is_single_hop_search)?;
         writeln!(f, "Distance,         : {}", self.distance)?;
         writeln!(f, "Vector filters,   : {}", self.uses_vector_filters)?;
         writeln!(

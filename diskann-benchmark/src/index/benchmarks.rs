@@ -79,6 +79,7 @@ pub(crate) fn register_benchmarks(registry: &mut Registry) -> anyhow::Result<()>
             .search(plugins::FilteredRange)
             .search(plugins::TopkBetaFilter)
             .search(plugins::TopkMultihopFilter)
+            .search(plugins::TopkSingleHopFilter)
             .search(plugins::TopkInlineFilter)
             .search(plugins::DeterminantDiversity),
     )?;
@@ -758,6 +759,68 @@ where
         )?;
 
         let result = search::knn::run(&multihop, &groundtruth, steps)?;
+        Ok(AggregatedSearchResults::Topk(result))
+    }
+}
+
+impl<DP, S> search::Plugin<DP, SearchPhase, Strategy<S>> for plugins::TopkSingleHopFilter
+where
+    DP: DataProvider<Context: Default, InternalId = u32, ExternalId = u32> + QueryType,
+    S: for<'a> glue::DefaultSearchStrategy<
+            'a,
+            DP,
+            &'a [DP::Element],
+            SearchAccessor: glue::SearchAccessor,
+        > + Clone
+        + AsyncFriendly,
+{
+    fn is_match(&self, phase: &SearchPhase) -> bool {
+        plugins::TopkSingleHopFilter::is_match(phase)
+    }
+
+    fn kind(&self) -> &'static str {
+        plugins::TopkSingleHopFilter::as_str()
+    }
+
+    fn run(
+        &self,
+        index: Arc<DiskANNIndex<DP>>,
+        phase: &SearchPhase,
+        strategy: &Strategy<S>,
+    ) -> anyhow::Result<AggregatedSearchResults> {
+        let single_hop = phase.as_topk_single_hop_filter()?;
+        let filtered = &single_hop.filtered;
+
+        let queries: Arc<rowmajor::Owned<DP::Element>> = Arc::new(datafiles::load_dataset(
+            datafiles::BinFile(&filtered.queries),
+        )?);
+
+        let groundtruth =
+            datafiles::load_range_groundtruth(datafiles::BinFile(&filtered.groundtruth))?;
+
+        let steps = search::knn::SearchSteps::new(
+            filtered.reps,
+            &filtered.num_threads,
+            &filtered.runs,
+            GroundTruthMode::Flexible,
+        );
+
+        let starting_points =
+            utils::filters::load_starting_points(&single_hop.starting_points, queries.nrows())?;
+        let bit_maps = generate_bitmaps(&filtered.query_predicates, &filtered.data_labels)?;
+
+        let filtered = benchmark_core::search::graph::SingleHop::new(
+            index,
+            queries,
+            benchmark_core::search::graph::Strategy::broadcast(strategy.inner()),
+            bit_maps
+                .into_iter()
+                .map(utils::filters::as_query_label_provider)
+                .collect(),
+            starting_points,
+        )?;
+
+        let result = search::knn::run(&filtered, &groundtruth, steps)?;
         Ok(AggregatedSearchResults::Topk(result))
     }
 }

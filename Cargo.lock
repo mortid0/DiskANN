@@ -571,6 +571,7 @@ version = "0.60.0"
 dependencies = [
  "anyhow",
  "approx",
+ "arc-swap",
  "bincode",
  "bytemuck",
  "byteorder",
@@ -594,6 +595,7 @@ dependencies = [
  "rayon",
  "rstest",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",

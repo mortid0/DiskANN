@@ -22,7 +22,7 @@ use diskann::{
         self, DiskANNIndex,
         ext::labeled::{self, QueryLabelProvider},
         glue::{self, DefaultPostProcessor, SearchPostProcess, SearchStrategy},
-        search::{AdaptiveL, InlineFilterSearch, Knn},
+        search::{AdaptiveL, InlineFilterSearch, Knn, SingleHopFilterSearch},
         search_output_buffer::{self, BufferState, IdDistanceAssociatedData},
     },
     neighbor::{self, Neighbor},
@@ -56,7 +56,7 @@ use crate::{
             aligned_file_reader::AlignedFileReaderFactory,
             disk_vertex_provider_factory::DiskVertexProviderFactory,
         },
-        search_mode::SearchMode,
+        search_mode::{FnLabelProvider, SearchMode},
         traits::{VertexProvider, VertexProviderFactory},
     },
     storage::{api::AsyncDiskLoadContext, disk_index_reader::DiskIndexReader},
@@ -284,6 +284,8 @@ impl IOTracker {
 #[derive(Clone, Copy)]
 pub struct RerankAndFilter<'a> {
     filter: PostprocessStrategy<'a>,
+    expanded_only: bool,
+    break_ties_by_id: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -303,7 +305,27 @@ pub enum DiskSearchPostProcessor<'a> {
 
 impl<'a> RerankAndFilter<'a> {
     pub fn new(filter: PostprocessStrategy<'a>) -> Self {
-        Self { filter }
+        Self {
+            filter,
+            expanded_only: false,
+            break_ties_by_id: false,
+        }
+    }
+
+    fn expanded() -> Self {
+        Self {
+            filter: PostprocessStrategy::AcceptAll,
+            expanded_only: true,
+            break_ties_by_id: true,
+        }
+    }
+
+    fn strict_frontier() -> Self {
+        Self {
+            filter: PostprocessStrategy::AcceptAll,
+            expanded_only: false,
+            break_ties_by_id: true,
+        }
     }
 }
 
@@ -469,7 +491,11 @@ where
                 if let Some(entry) = accessor.scratch.distance_cache.get(&n) {
                     Some(Neighbor::new((n, entry.1), entry.0))
                 } else {
-                    uncached_ids.push(n);
+                    // A finite I/O budget can truncate a selected expansion beam.
+                    // Strict expanded reranking must not load these unexpanded IDs.
+                    if !self.expanded_only {
+                        uncached_ids.push(n);
+                    }
                     None
                 }
             };
@@ -496,7 +522,13 @@ where
         }
 
         // Sort the full precision distances.
-        reranked.sort_unstable_by(neighbor::ord::fast_distance);
+        if self.break_ties_by_id {
+            reranked.sort_unstable_by(|a, b| {
+                neighbor::ord::fast_distance(a, b).then_with(|| a.id().0.cmp(&b.id().0))
+            });
+        } else {
+            reranked.sort_unstable_by(neighbor::ord::fast_distance);
+        }
 
         // Store the reranked results.
         extend_output(accessor, reranked, output)
@@ -869,6 +901,26 @@ where
         self.pq_distances(&[start_vertex_id], |dist, id| f(id, dist))
     }
 
+    async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+    where
+        F: FnMut(u32, f32) + Send,
+    {
+        if ids
+            .iter()
+            .any(|&id| id as usize >= self.provider.num_points)
+        {
+            return Err(diskann_error!(
+                ErrorKind::IndexError,
+                "starting point ID is outside the dataset"
+            ));
+        }
+        let batch_size = self.scratch.pq_scratch.max_vectors().max(1);
+        for batch in ids.chunks(batch_size) {
+            self.pq_distances(batch, |distance, id| f(id, distance))?;
+        }
+        Ok(())
+    }
+
     fn expand_beam<Itr, P, F>(
         &mut self,
         ids: Itr,
@@ -1127,6 +1179,48 @@ where
             vertex_provider_factory,
             scratch_pool,
         })
+    }
+
+    /// Read C++ sidecars and materialize missing global centroid vectors once at load.
+    /// No journal, manifest or generation catalog is required.
+    pub fn load_cpp_metadata(
+        &self,
+        disk_index_path: impl AsRef<std::path::Path>,
+    ) -> ANNResult<crate::filtered::metadata::LabelMetadata> {
+        let provider = &self.index.data_provider;
+        let shape = provider.graph_header.metadata();
+        let mut labels = crate::filtered::metadata::LabelMetadata::load_cpp(
+            disk_index_path,
+            provider.num_points,
+            shape.dims,
+        )?;
+        if labels.centroids().is_none() {
+            let medoids = if labels.medoids().is_empty() {
+                vec![u32::try_from(shape.medoid).map_err(|e| ANNError::message(e.to_string()))?]
+            } else {
+                labels.medoids().to_vec()
+            };
+            if medoids.iter().any(|&id| id as usize >= provider.num_points) {
+                return Err(ANNError::message("global medoid is outside the graph"));
+            }
+            let mut vertices = self
+                .vertex_provider_factory
+                .create_vertex_provider(1, &provider.graph_header)?;
+            let mut values = Vec::with_capacity(medoids.len() * shape.dims);
+            for id in &medoids {
+                ensure_vertex_loaded(&mut vertices, std::slice::from_ref(id))?;
+                let vector =
+                    Data::VectorDataType::as_f32(vertices.get_vector(id)?).into_ann_result()?;
+                values.extend_from_slice(&vector);
+                drop(vector);
+                vertices.clear();
+            }
+            let centroids =
+                rowmajor::Owned::try_from_data(values.into(), medoids.len(), shape.dims)
+                    .map_err(|e| ANNError::message(e.to_string()))?;
+            labels.set_global_starts(medoids, centroids);
+        }
+        Ok(labels)
     }
 
     fn search_strategy<'a>(
@@ -1412,6 +1506,79 @@ where
         // * `DiverseGraph` — `index.search_with` runs `DeterminantDiversityAndFilter`
         //                    as the post-processor over the L candidate pool.
         let stats = match mode {
+            SearchMode::Cpp { metadata, label } => {
+                if self.index.data_provider.metric != Metric::L2 {
+                    return Err(ANNError::message(
+                        "C++ sidecar search currently supports L2 only",
+                    ));
+                }
+                if metadata.point_count() != self.index.data_provider.num_points {
+                    return Err(ANNError::message(
+                        "C++ metadata does not match graph row count",
+                    ));
+                }
+                let global_start;
+                let starts = match label {
+                    Some(label) => {
+                        let starts = metadata.entries(*label);
+                        if starts.is_empty() {
+                            return Err(ANNError::message(
+                                "cannot find medoid for specified filter",
+                            ));
+                        }
+                        starts
+                    }
+                    None => {
+                        let centroids = metadata.centroids().ok_or_else(|| {
+                            ANNError::message(
+                                "load global centroid vectors with load_cpp_metadata first",
+                            )
+                        })?;
+                        if centroids.ncols() != query.len() || centroids.nrows() == 0 {
+                            return Err(ANNError::message(
+                                "centroid dimensions do not match query",
+                            ));
+                        }
+                        let query = Data::VectorDataType::as_f32(query).into_ann_result()?;
+                        let distance = f32::distance(Metric::L2, Some(query.len()));
+                        let mut best = 0;
+                        let mut best_distance = f32::INFINITY;
+                        for (row, centroid) in centroids.rows().enumerate() {
+                            let value = distance.evaluate_similarity(&*query, centroid);
+                            if value < best_distance {
+                                best = row;
+                                best_distance = value;
+                            }
+                        }
+                        global_start = [metadata.medoids()[best]];
+                        &global_start
+                    }
+                };
+                let filter = |id: &u32| {
+                    label.map_or_else(
+                        || !metadata.is_dummy(*id),
+                        |label| metadata.matches(label, *id),
+                    )
+                };
+                let filter = FnLabelProvider(filter);
+                let strategy = self.search_strategy(
+                    &io_tracker,
+                    PostprocessStrategy::AcceptAll,
+                    cache_indexed_vectors,
+                );
+                let strategy = labeled::Filtered::new(strategy, &filter);
+                self.runtime.block_on(
+                    self.index.search_with(
+                        SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starts)
+                            .with_closest_start(),
+                        &strategy,
+                        glue::Pipeline::new(labeled::Unfiltered, RerankAndFilter::expanded()),
+                        &DefaultContext,
+                        query,
+                        &mut result_output_buffer,
+                    ),
+                )?
+            }
             SearchMode::FlatScan { filter } => {
                 let strategy = self.search_strategy(
                     &io_tracker,
@@ -1463,6 +1630,39 @@ where
                     &mut result_output_buffer,
                 ))?
             }
+            SearchMode::SingleHopFilter {
+                filter,
+                starting_points,
+            }
+            | SearchMode::SingleHopFilterFrontier {
+                filter,
+                starting_points,
+            } => {
+                let strategy = self.search_strategy(
+                    &io_tracker,
+                    PostprocessStrategy::AcceptAll,
+                    cache_indexed_vectors,
+                );
+                let strategy = labeled::Filtered::new(strategy, filter.as_ref());
+                let frontier_only = matches!(mode, SearchMode::SingleHopFilterFrontier { .. });
+                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starting_points);
+                let (search, processor) = if frontier_only {
+                    (
+                        search.with_frontier_reranking(),
+                        RerankAndFilter::strict_frontier(),
+                    )
+                } else {
+                    (search, RerankAndFilter::expanded())
+                };
+                self.runtime.block_on(self.index.search_with(
+                    search,
+                    &strategy,
+                    glue::Pipeline::new(labeled::Unfiltered, processor),
+                    &DefaultContext,
+                    query,
+                    &mut result_output_buffer,
+                ))?
+            }
             SearchMode::DiverseGraph { filter, params } => {
                 // Strategy installs the filter so `RerankAndFilter` would also
                 // honor it, but the active post-processor here is the
@@ -1486,6 +1686,11 @@ where
                 ))?
             }
         };
+        if let SearchMode::Cpp { metadata, .. } = mode {
+            for id in &mut indices[..stats.result_count as usize] {
+                *id = metadata.real_id(*id);
+            }
+        }
         query_stats.total_comparisons = stats.cmps;
         query_stats.search_hops = stats.hops;
 
@@ -1589,6 +1794,88 @@ mod disk_provider_tests {
     // 0.015625. Allow one ULP for architecture-dependent SIMD accumulation;
     // an absolute tolerance of 1e-4 would require identical f32 results.
     const SIFT_DISTANCE_ABS_TOLERANCE: f32 = 0.02;
+
+    #[test]
+    fn cpp_sidecars_drive_dummy_universal_and_global_seed_search() {
+        use crate::test_utils::GraphDataF32VectorUnitData;
+        use std::fs;
+        let storage = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let searcher = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED,
+                index_path: TEST_INDEX,
+                index_path_prefix: TEST_INDEX_PREFIX,
+                io_limit: 1,
+                ..Default::default()
+            },
+            &storage,
+        );
+        let dir = tempfile::tempdir().unwrap();
+        let index = dir.path().join("index_disk.index");
+        let file = |suffix| dir.path().join(format!("index_disk.index{suffix}"));
+        let rows = (0..256)
+            .map(|id| match id {
+                1 => "0\n",
+                2 => "7\n",
+                _ => "9\n",
+            })
+            .collect::<String>();
+        fs::write(file("_labels.txt"), rows).unwrap();
+        fs::write(file("_labels_map.txt"), "sports\t7\nnews\t9\n").unwrap();
+        fs::write(file("_universal_label.txt"), "0").unwrap();
+        fs::write(file("_labels_to_medoids.txt"), "7,2\n9,3\n0,1\n").unwrap();
+        fs::write(file("_dummy_map.txt"), "2,0\n").unwrap();
+        let labels = searcher.load_cpp_metadata(&index).unwrap();
+        let query = [0f32; 128];
+        let search = |labels: &crate::filtered::metadata::LabelMetadata, label| {
+            let result = searcher
+                .search(&query, 1, 1, Some(1), SearchMode::cpp(labels, label))
+                .unwrap();
+            assert_eq!(result.stats.result_count, 1);
+            result.results[0].vertex_id
+        };
+        assert_eq!(
+            search(&labels, Some(labels.resolve_label("sports").unwrap())),
+            0
+        );
+        assert_eq!(
+            search(&labels, Some(labels.resolve_label("unknown").unwrap())),
+            1
+        );
+        // The selected sports entry has only the universal label.
+        fs::write(file("_labels_to_medoids.txt"), "7,1\n9,3\n0,1\n").unwrap();
+        let labels = searcher.load_cpp_metadata(&index).unwrap();
+        assert_eq!(search(&labels, Some(7)), 1);
+        // Global start selection must follow centroid distances, not medoid ID or PQ distance.
+        let medoids = rowmajor::Ref::try_from_data(&[3u32, 4], 2, 1).unwrap();
+        diskann_utils::io::write_bin(
+            medoids,
+            &mut fs::File::create(file("_medoids.bin")).unwrap(),
+        )
+        .unwrap();
+        let mut values = vec![100f32; 256];
+        values[128..].fill(0.);
+        let centroids = rowmajor::Ref::try_from_data(&values, 2, 128).unwrap();
+        diskann_utils::io::write_bin(
+            centroids,
+            &mut fs::File::create(file("_centroids.bin")).unwrap(),
+        )
+        .unwrap();
+        let labels = searcher.load_cpp_metadata(&index).unwrap();
+        assert_eq!(search(&labels, None), 4);
+        // Missing centroids are loaded from the medoid vectors once.
+        fs::remove_file(file("_centroids.bin")).unwrap();
+        let labels = searcher.load_cpp_metadata(&index).unwrap();
+        assert_eq!(labels.medoids(), &[3, 4]);
+        assert_eq!(labels.centroids().unwrap().nrows(), 2);
+        assert!(!labels
+            .centroids()
+            .unwrap()
+            .as_slice()
+            .iter()
+            .all(|&x| x == 0.));
+    }
 
     #[test]
     fn test_disk_search_k10_l20_single_or_multi_thread_100dim() {
@@ -2825,6 +3112,207 @@ mod disk_provider_tests {
         );
         assert_eq!(result.stats.cmps, 256);
         assert_eq!(result.stats.result_count, 10);
+    }
+
+    #[test]
+    fn single_hop_uses_matching_dataset_entry_points() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                None,
+                SearchMode::single_hop_filter(|id| *id == 0, &[0, 0]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 1);
+        assert_eq!(result.results[0].vertex_id, 0);
+        assert_eq!(result.stats.cmps, 1, "rejected PQ distances are skipped");
+        assert_eq!(result.stats.query_statistics.search_hops, 1);
+        assert_eq!(result.stats.query_statistics.total_vertices_loaded, 1);
+
+        let mismatching = search_engine.search(
+            &[0.1; 128],
+            10,
+            10,
+            None,
+            SearchMode::single_hop_filter(|id| *id == 0, &[1]),
+        );
+        assert!(mismatching
+            .err()
+            .expect("mismatching seed must fail")
+            .to_string()
+            .contains("starting point"));
+
+        let out_of_range = search_engine.search(
+            &[0.1; 128],
+            10,
+            10,
+            None,
+            SearchMode::single_hop_filter(|_| true, &[256]),
+        );
+        assert!(out_of_range
+            .err()
+            .expect("out-of-range seed must fail")
+            .to_string()
+            .contains("outside the dataset"));
+    }
+
+    #[test]
+    fn filtered_modes_respect_empty_entry_points() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        for mode in [
+            SearchMode::single_hop_filter(|_| true, &[]),
+            SearchMode::single_hop_filter_frontier(|_| true, &[]),
+        ] {
+            let result = search_engine
+                .search(&[0.1; 128], 10, 10, None, mode)
+                .unwrap();
+            assert_eq!(result.stats.result_count, 0);
+            assert_eq!(result.stats.cmps, 0);
+            assert_eq!(result.stats.query_statistics.total_vertices_loaded, 0);
+        }
+    }
+
+    #[test]
+    fn single_hop_supports_more_entry_points_than_graph_degree() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        assert_eq!(
+            search_engine
+                .index
+                .provider()
+                .graph_header
+                .max_degree::<f32>()
+                .unwrap(),
+            4,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                None,
+                SearchMode::single_hop_filter(|id| *id < 8, &[0, 1, 2, 3, 4, 5, 6, 7]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 8);
+        assert_eq!(result.stats.cmps, 8);
+        let mut ids: Vec<_> = result.results[..8].iter().map(|r| r.vertex_id).collect();
+        ids.sort_unstable();
+        assert_eq!(ids, (0..8).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn single_hop_expanded_reranking_does_not_load_budget_truncated_beam() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                io_limit: 1,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let result = search_engine
+            .search(
+                &[0.1; 128],
+                10,
+                10,
+                Some(4),
+                SearchMode::single_hop_filter(|_| true, &[0]),
+            )
+            .unwrap();
+        assert_eq!(result.stats.result_count, 1, "only the start was expanded");
+        assert_eq!(result.results[0].vertex_id, 0);
+        assert_eq!(result.stats.query_statistics.total_vertices_loaded, 1);
+    }
+
+    #[test]
+    fn strict_reranking_orders_equal_exact_distances_by_dataset_id() {
+        let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            &storage_provider,
+        );
+        let query = [0.1; 128];
+        let io_tracker = IOTracker::default();
+        let strategy =
+            search_engine.search_strategy(&io_tracker, PostprocessStrategy::AcceptAll, false);
+        let mut accessor = strategy
+            .search_accessor(
+                search_engine.index.provider(),
+                &DefaultContext,
+                query.as_slice(),
+            )
+            .unwrap();
+        for (id, distance) in [(7u32, 1.0), (3, 1.0), (5, 0.0)] {
+            accessor
+                .scratch
+                .distance_cache
+                .insert(id, (distance, (), None));
+        }
+        for processor in [
+            RerankAndFilter::expanded(),
+            RerankAndFilter::strict_frontier(),
+        ] {
+            let mut ids = [0u32; 3];
+            let mut distances = [0.0; 3];
+            let mut data = [(); 3];
+            let mut output = SearchOutput::new(&mut ids, &mut distances, &mut data, None).unwrap();
+            let count = search_engine
+                .runtime
+                .block_on(processor.post_process(
+                    &mut accessor,
+                    query.as_slice(),
+                    [7u32, 3, 5].into_iter().map(|id| Neighbor::new(id, 1.0)),
+                    &mut output,
+                ))
+                .unwrap();
+            assert_eq!(count, 3);
+            assert_eq!(ids, [5, 3, 7]);
+            assert_eq!(distances, [0.0, 1.0, 1.0]);
+            assert_eq!(io_tracker.io_count(), 0);
+        }
     }
 
     #[test]

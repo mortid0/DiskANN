@@ -337,3 +337,10 @@ target/
 
 # Ignore local settings for claude code AI agent
 .claude/settings.local.json
+
+# Generated benchmark datasets, results and local branch-review patches.
+/benchmark-results/
+/branch-cleanup/
+/tools/single-hop-benchmark/cpp-port/*-evidence.json
+/tools/single-hop-benchmark/cpp-port/*-summary.json
+/tools/single-hop-benchmark/cpp-port/patch-verification.json

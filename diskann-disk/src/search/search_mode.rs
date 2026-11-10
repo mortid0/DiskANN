@@ -19,9 +19,26 @@ use diskann_providers::model::graph::provider::DeterminantDiversityParams;
 /// on the disk path by construction).
 pub type SearchPredicate<'a> = Box<dyn Fn(&u32) -> bool + Send + Sync + 'a>;
 
+pub(super) struct FnLabelProvider<F>(pub(super) F);
+
+impl<F> std::fmt::Debug for FnLabelProvider<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FnLabelProvider").finish_non_exhaustive()
+    }
+}
+
+impl<F> QueryLabelProvider<u32> for FnLabelProvider<F>
+where
+    F: Fn(&u32) -> bool + Send + Sync,
+{
+    fn is_match(&self, id: u32) -> bool {
+        (self.0)(&id)
+    }
+}
+
 /// Top-level disk search mode.
 ///
-/// Three variants encode the algorithm + filter combination:
+/// Variants encode the algorithm + filter combination:
 ///
 /// * `FlatScan` — brute-force linear scan, with or without an inline filter.
 /// * `Graph` — plain greedy beam search; the optional filter is applied as a
@@ -29,11 +46,19 @@ pub type SearchPredicate<'a> = Box<dyn Fn(&u32) -> bool + Send + Sync + 'a>;
 /// * `InlineFilter` — label-filtered graph search; the predicate is consulted
 ///   at visit time (not just during rerank). `adaptive_l = Some(_)` grows the
 ///   beam mid-search if the observed match specificity is low.
+/// * `SingleHopFilter` — strict traversal within a label-connected graph.
 /// * `DiverseGraph` — greedy graph search with determinant-diversity
 ///   post-processing; selects a maximally diverse top-k from the candidate
 ///   pool using `DeterminantDiversityParams`. Optional hard post-filter is
 ///   applied during the diversity selection step.
 pub enum SearchMode<'a> {
+    /// C++ sidecar semantics: one seed, universal membership and dummy ID translation.
+    /// `None` uses global medoids/centroids and excludes dummy nodes from traversal.
+    Cpp {
+        metadata: &'a crate::filtered::metadata::LabelMetadata,
+        label: Option<u32>,
+    },
+
     FlatScan {
         filter: Option<SearchPredicate<'a>>,
     },
@@ -47,6 +72,18 @@ pub enum SearchMode<'a> {
         adaptive_l: Option<AdaptiveL>,
     },
 
+    /// Experimental strict traversal; requires a label-connected graph and matching starts.
+    SingleHopFilter {
+        starting_points: &'a [u32],
+        filter: Box<dyn QueryLabelProvider<u32> + 'a>,
+    },
+
+    /// Ablation: strict traversal with reranking limited to the final PQ frontier.
+    SingleHopFilterFrontier {
+        starting_points: &'a [u32],
+        filter: Box<dyn QueryLabelProvider<u32> + 'a>,
+    },
+
     DiverseGraph {
         filter: Option<SearchPredicate<'a>>,
         params: DeterminantDiversityParams,
@@ -54,6 +91,12 @@ pub enum SearchMode<'a> {
 }
 
 impl<'a> SearchMode<'a> {
+    /// Query an L2 disk index using metadata loaded by `DiskIndexSearcher::load_cpp_metadata`.
+    /// Resolve original names with `LabelMetadata::resolve_label` before calling.
+    pub fn cpp(metadata: &'a crate::filtered::metadata::LabelMetadata, label: Option<u32>) -> Self {
+        Self::Cpp { metadata, label }
+    }
+
     /// Flat scan over all vectors. Recall baseline.
     pub fn flat() -> Self {
         Self::FlatScan { filter: None }
@@ -95,26 +138,40 @@ impl<'a> SearchMode<'a> {
     where
         F: Fn(&u32) -> bool + Send + Sync + 'a,
     {
-        struct FnLabelProvider<F>(F);
-
-        impl<F> std::fmt::Debug for FnLabelProvider<F> {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.debug_struct("FnLabelProvider").finish_non_exhaustive()
-            }
-        }
-
-        impl<F> QueryLabelProvider<u32> for FnLabelProvider<F>
-        where
-            F: Fn(&u32) -> bool + Send + Sync,
-        {
-            fn is_match(&self, vec_id: u32) -> bool {
-                (self.0)(&vec_id)
-            }
-        }
-
         Self::InlineFilter {
             filter: Box::new(FnLabelProvider(predicate)),
             adaptive_l,
+        }
+    }
+
+    /// Experimental strict single-hop traversal. All starts must match the predicate.
+    ///
+    /// Use a graph built to retain connectivity for this label; restricting an ordinary
+    /// graph can substantially reduce recall. Entry points are borrowed and required;
+    /// an empty slice returns no results. Every expanded candidate is reranked
+    /// using its cached full-precision distance, even if later evicted from the PQ frontier.
+    /// An I/O limit can yield fewer than k results: uncached frontier nodes are omitted.
+    pub fn single_hop_filter<F>(predicate: F, starting_points: &'a [u32]) -> Self
+    where
+        F: Fn(&u32) -> bool + Send + Sync + 'a,
+    {
+        Self::SingleHopFilter {
+            starting_points,
+            filter: Box::new(FnLabelProvider(predicate)),
+        }
+    }
+
+    /// Ablation of strict search that reranks only the final best `L` PQ candidates.
+    ///
+    /// Traversal is identical to [`Self::single_hop_filter`], but expanded candidates
+    /// evicted from the frontier are excluded from the result pool.
+    pub fn single_hop_filter_frontier<F>(predicate: F, starting_points: &'a [u32]) -> Self
+    where
+        F: Fn(&u32) -> bool + Send + Sync + 'a,
+    {
+        Self::SingleHopFilterFrontier {
+            starting_points,
+            filter: Box::new(FnLabelProvider(predicate)),
         }
     }
 

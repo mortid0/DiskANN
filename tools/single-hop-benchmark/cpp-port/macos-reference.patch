@@ -1,0 +1,916 @@
+--- a/src/distance.cpp
++++ b/src/distance.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // TODO
+ // CHECK COSINE ON LINUX
+ 
+@@ -10,8 +11,10 @@
+ #include <immintrin.h>
+ #endif
+ 
++#if defined(__x86_64__) || defined(_WINDOWS)
+ #include "simd_utils.h"
+ #include <cosine_similarity.h>
++#endif
+ #include <iostream>
+ 
+ #include "distance.h"
+@@ -118,6 +121,7 @@
+ 
+ float DistanceL2Int8::compare(const int8_t *a, const int8_t *b, uint32_t size) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+ #ifdef _WINDOWS
+ #ifdef USE_AVX2
+     __m256 r = _mm256_setzero_ps();
+@@ -162,6 +166,7 @@
+ 
+ float DistanceL2UInt8::compare(const uint8_t *a, const uint8_t *b, uint32_t size) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+     uint32_t result = 0;
+ #ifndef _WINDOWS
+ #pragma omp simd reduction(+ : result) aligned(a, b : 8)
+@@ -183,6 +188,7 @@
+ {
+ #endif
+ 
++    ++diskann_reference::metrics.full_distance_comparisons;
+     float result = 0;
+ #ifdef USE_AVX2
+     // assume size is divisible by 8
+@@ -222,6 +228,7 @@
+ 
+ template <typename T> float SlowDistanceL2<T>::compare(const T *a, const T *b, uint32_t length) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+     float result = 0.0f;
+     for (uint32_t i = 0; i < length; i++)
+     {
+@@ -386,8 +393,8 @@
+ #else
+ 
+     float dot0, dot1, dot2, dot3;
+-    const float *last = a + size;
+-    const float *unroll_group = last - 3;
++    const T *last = a + size;
++    const T *unroll_group = last - 3;
+ 
+     /* Process 4 items with each loop for efficiency. */
+     while (a < unroll_group)
+@@ -494,8 +501,8 @@
+     result += unpack[0] + unpack[1] + unpack[2] + unpack[3];
+ #else
+     float dot0, dot1, dot2, dot3;
+-    const float *last = a + size;
+-    const float *unroll_group = last - 3;
++    const T *last = a + size;
++    const T *unroll_group = last - 3;
+ 
+     /* Process 4 items with each loop for efficiency. */
+     while (a < unroll_group)
+@@ -522,42 +529,7 @@
+ float AVXDistanceInnerProductFloat::compare(const float *a, const float *b, uint32_t size) const
+ {
+     float result = 0.0f;
+-#define AVX_DOT(addr1, addr2, dest, tmp1, tmp2)                                                                        \
+-    tmp1 = _mm256_loadu_ps(addr1);                                                                                     \
+-    tmp2 = _mm256_loadu_ps(addr2);                                                                                     \
+-    tmp1 = _mm256_mul_ps(tmp1, tmp2);                                                                                  \
+-    dest = _mm256_add_ps(dest, tmp1);
+-
+-    __m256 sum;
+-    __m256 l0, l1;
+-    __m256 r0, r1;
+-    uint32_t D = (size + 7) & ~7U;
+-    uint32_t DR = D % 16;
+-    uint32_t DD = D - DR;
+-    const float *l = (float *)a;
+-    const float *r = (float *)b;
+-    const float *e_l = l + DD;
+-    const float *e_r = r + DD;
+-#ifndef _WINDOWS
+-    float unpack[8] __attribute__((aligned(32))) = {0, 0, 0, 0, 0, 0, 0, 0};
+-#else
+-    __declspec(align(32)) float unpack[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+-#endif
+-
+-    sum = _mm256_loadu_ps(unpack);
+-    if (DR)
+-    {
+-        AVX_DOT(e_l, e_r, sum, l0, r0);
+-    }
+-
+-    for (uint32_t i = 0; i < DD; i += 16, l += 16, r += 16)
+-    {
+-        AVX_DOT(l, r, sum, l0, r0);
+-        AVX_DOT(l + 8, r + 8, sum, l1, r1);
+-    }
+-    _mm256_storeu_ps(unpack, sum);
+-    result = unpack[0] + unpack[1] + unpack[2] + unpack[3] + unpack[4] + unpack[5] + unpack[6] + unpack[7];
+-
++    for (uint32_t i = 0; i < size; ++i) result += a[i] * b[i];
+     return -result;
+ }
+ 
+--- a/src/utils.cpp
++++ b/src/utils.cpp
+@@ -66,7 +66,7 @@
+ 
+ #else
+ 
+-bool Avx2SupportedCPU = true;
++bool Avx2SupportedCPU = false;
+ bool AvxSupportedCPU = false;
+ #endif
+ 
+--- a/src/linux_aligned_file_reader.cpp
++++ b/src/linux_aligned_file_reader.cpp
+@@ -1,226 +1,65 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
++// Benchmark-only macOS adapter: positional reads with F_NOCACHE.
++#include "linux_aligned_file_reader.h"
++#include <cerrno>
++#include <cstring>
++#include <stdexcept>
++#include <system_error>
+ 
+-#include "linux_aligned_file_reader.h"
+-
+-#include <cassert>
+-#include <cstdio>
+-#include <iostream>
+-#include "tsl/robin_map.h"
+-#include "utils.h"
+-#define MAX_EVENTS 1024
+-
+-namespace
++LinuxAlignedFileReader::LinuxAlignedFileReader() { file_desc = -1; }
++LinuxAlignedFileReader::~LinuxAlignedFileReader() { close(); }
++IOContext &LinuxAlignedFileReader::get_ctx()
+ {
+-typedef struct io_event io_event_t;
+-typedef struct iocb iocb_t;
+-
+-void execute_io(io_context_t ctx, int fd, std::vector<AlignedRead> &read_reqs, uint64_t n_retries = 0)
++    std::lock_guard<std::mutex> lock(ctx_mut);
++    auto it = ctx_map.find(std::this_thread::get_id());
++    if (it == ctx_map.end()) throw std::runtime_error("unregistered C++ reference read thread");
++    return it.value();
++}
++void LinuxAlignedFileReader::register_thread()
+ {
+-#ifdef DEBUG
+-    for (auto &req : read_reqs)
+-    {
+-        assert(IS_ALIGNED(req.len, 512));
+-        // std::cout << "request:"<<req.offset<<":"<<req.len << std::endl;
+-        assert(IS_ALIGNED(req.offset, 512));
+-        assert(IS_ALIGNED(req.buf, 512));
+-        // assert(malloc_usable_size(req.buf) >= req.len);
+-    }
+-#endif
+-
+-    // break-up requests into chunks of size MAX_EVENTS each
+-    uint64_t n_iters = ROUND_UP(read_reqs.size(), MAX_EVENTS) / MAX_EVENTS;
+-    for (uint64_t iter = 0; iter < n_iters; iter++)
+-    {
+-        uint64_t n_ops = std::min((uint64_t)read_reqs.size() - (iter * MAX_EVENTS), (uint64_t)MAX_EVENTS);
+-        std::vector<iocb_t *> cbs(n_ops, nullptr);
+-        std::vector<io_event_t> evts(n_ops);
+-        std::vector<struct iocb> cb(n_ops);
+-        for (uint64_t j = 0; j < n_ops; j++)
+-        {
+-            io_prep_pread(cb.data() + j, fd, read_reqs[j + iter * MAX_EVENTS].buf, read_reqs[j + iter * MAX_EVENTS].len,
+-                          read_reqs[j + iter * MAX_EVENTS].offset);
+-        }
+-
+-        // initialize `cbs` using `cb` array
+-        //
+-
+-        for (uint64_t i = 0; i < n_ops; i++)
+-        {
+-            cbs[i] = cb.data() + i;
+-        }
+-
+-        uint64_t n_tries = 0;
+-        while (n_tries <= n_retries)
+-        {
+-            // issue reads
+-            int64_t ret = io_submit(ctx, (int64_t)n_ops, cbs.data());
+-            // if requests didn't get accepted
+-            if (ret != (int64_t)n_ops)
+-            {
+-                std::cerr << "io_submit() failed; returned " << ret << ", expected=" << n_ops << ", ernno=" << errno
+-                          << "=" << ::strerror(-ret) << ", try #" << n_tries + 1;
+-                std::cout << "ctx: " << ctx << "\n";
+-                exit(-1);
+-            }
+-            else
+-            {
+-                // wait on io_getevents
+-                ret = io_getevents(ctx, (int64_t)n_ops, (int64_t)n_ops, evts.data(), nullptr);
+-                // if requests didn't complete
+-                if (ret != (int64_t)n_ops)
+-                {
+-                    std::cerr << "io_getevents() failed; returned " << ret << ", expected=" << n_ops
+-                              << ", ernno=" << errno << "=" << ::strerror(-ret) << ", try #" << n_tries + 1;
+-                    exit(-1);
+-                }
+-                else
+-                {
+-                    break;
+-                }
+-            }
+-        }
+-        // disabled since req.buf could be an offset into another buf
+-        /*
+-        for (auto &req : read_reqs) {
+-          // corruption check
+-          assert(malloc_usable_size(req.buf) >= req.len);
+-        }
+-        */
++    std::lock_guard<std::mutex> lock(ctx_mut);
++    ctx_map.emplace(std::this_thread::get_id(), 0);
++}
++void LinuxAlignedFileReader::deregister_thread()
++{
++    std::lock_guard<std::mutex> lock(ctx_mut);
++    ctx_map.erase(std::this_thread::get_id());
++}
++void LinuxAlignedFileReader::deregister_all_threads()
++{
++    std::lock_guard<std::mutex> lock(ctx_mut);
++    ctx_map.clear();
++}
++void LinuxAlignedFileReader::open(const std::string &fname)
++{
++    file_desc = ::open(fname.c_str(), O_RDONLY);
++    if (file_desc < 0) throw std::system_error(errno, std::generic_category(), fname);
++    if (::fcntl(file_desc, F_NOCACHE, 1) != 0) {
++        const auto code = errno;
++        close();
++        throw std::system_error(code, std::generic_category(), "F_NOCACHE");
+     }
+ }
+-} // namespace
+-
+-LinuxAlignedFileReader::LinuxAlignedFileReader()
++void LinuxAlignedFileReader::close()
+ {
+-    this->file_desc = -1;
++    if (file_desc >= 0) { ::close(file_desc); file_desc = -1; }
+ }
+-
+-LinuxAlignedFileReader::~LinuxAlignedFileReader()
++void LinuxAlignedFileReader::read(std::vector<AlignedRead> &requests, IOContext &, bool async)
+ {
+-    int64_t ret;
+-    // check to make sure file_desc is closed
+-    ret = ::fcntl(this->file_desc, F_GETFD);
+-    if (ret == -1)
+-    {
+-        if (errno != EBADF)
+-        {
+-            std::cerr << "close() not called" << std::endl;
+-            // close file desc
+-            ret = ::close(this->file_desc);
+-            // error checks
+-            if (ret == -1)
+-            {
+-                std::cerr << "close() failed; returned " << ret << ", errno=" << errno << ":" << ::strerror(errno)
+-                          << std::endl;
+-            }
++    if (async) throw std::runtime_error("asynchronous reads are unsupported by the macOS reference adapter");
++    for (auto &request : requests) {
++        ++diskann_reference::metrics.read_requests;
++        diskann_reference::metrics.requested_read_bytes += request.len;
++        std::uint64_t completed = 0;
++        while (completed < request.len) {
++            const auto count = ::pread(file_desc, static_cast<char *>(request.buf) + completed,
++                                       request.len - completed, request.offset + completed);
++            if (count < 0 && errno == EINTR) continue;
++            if (count < 0) throw std::system_error(errno, std::generic_category(), "pread");
++            if (count == 0) throw std::runtime_error("unexpected end of C++ reference index");
++            completed += static_cast<std::uint64_t>(count);
+         }
+     }
+ }
+-
+-io_context_t &LinuxAlignedFileReader::get_ctx()
+-{
+-    std::unique_lock<std::mutex> lk(ctx_mut);
+-    // perform checks only in DEBUG mode
+-    if (ctx_map.find(std::this_thread::get_id()) == ctx_map.end())
+-    {
+-        std::cerr << "bad thread access; returning -1 as io_context_t" << std::endl;
+-        return this->bad_ctx;
+-    }
+-    else
+-    {
+-        return ctx_map[std::this_thread::get_id()];
+-    }
+-}
+-
+-void LinuxAlignedFileReader::register_thread()
+-{
+-    auto my_id = std::this_thread::get_id();
+-    std::unique_lock<std::mutex> lk(ctx_mut);
+-    if (ctx_map.find(my_id) != ctx_map.end())
+-    {
+-        std::cerr << "multiple calls to register_thread from the same thread" << std::endl;
+-        return;
+-    }
+-    io_context_t ctx = 0;
+-    int ret = io_setup(MAX_EVENTS, &ctx);
+-    if (ret != 0)
+-    {
+-        if (ret == -EAGAIN)
+-        {
+-            std::cerr << "io_setup() failed with EAGAIN: Consider increasing /proc/sys/fs/aio-max-nr" << std::endl;
+-        }
+-        else
+-        {
+-            std::cerr << "io_setup() failed; returned " << ret << ": " << ::strerror(-ret) << std::endl;
+-        }
+-    }
+-    else
+-    {
+-        diskann::cout << "allocating ctx: " << ctx << " to thread-id:" << my_id << std::endl;
+-        ctx_map[my_id] = ctx;
+-    }
+-}
+-
+-void LinuxAlignedFileReader::deregister_thread()
+-{
+-    auto my_id = std::this_thread::get_id();
+-    std::unique_lock<std::mutex> lk(ctx_mut);
+-    assert(ctx_map.find(my_id) != ctx_map.end());
+-
+-    lk.unlock();
+-    io_context_t ctx = this->get_ctx();
+-    io_destroy(ctx);
+-    //  assert(ret == 0);
+-    lk.lock();
+-    ctx_map.erase(my_id);
+-    std::cerr << "returned ctx from thread-id:" << my_id << std::endl;
+-    lk.unlock();
+-}
+-
+-void LinuxAlignedFileReader::deregister_all_threads()
+-{
+-    std::unique_lock<std::mutex> lk(ctx_mut);
+-    for (auto x = ctx_map.begin(); x != ctx_map.end(); x++)
+-    {
+-        io_context_t ctx = x.value();
+-        io_destroy(ctx);
+-        //  assert(ret == 0);
+-        //  lk.lock();
+-        //  ctx_map.erase(my_id);
+-        //  std::cerr << "returned ctx from thread-id:" << my_id << std::endl;
+-    }
+-    ctx_map.clear();
+-    //  lk.unlock();
+-}
+-
+-void LinuxAlignedFileReader::open(const std::string &fname)
+-{
+-    int flags = O_DIRECT | O_RDONLY | O_LARGEFILE;
+-    this->file_desc = ::open(fname.c_str(), flags);
+-    // error checks
+-    assert(this->file_desc != -1);
+-    std::cerr << "Opened file : " << fname << std::endl;
+-}
+-
+-void LinuxAlignedFileReader::close()
+-{
+-    //  int64_t ret;
+-
+-    // check to make sure file_desc is closed
+-    ::fcntl(this->file_desc, F_GETFD);
+-    //  assert(ret != -1);
+-
+-    ::close(this->file_desc);
+-    //  assert(ret != -1);
+-}
+-
+-void LinuxAlignedFileReader::read(std::vector<AlignedRead> &read_reqs, io_context_t &ctx, bool async)
+-{
+-    if (async == true)
+-    {
+-        diskann::cout << "Async currently not supported in linux." << std::endl;
+-    }
+-    assert(this->file_desc != -1);
+-    execute_io(ctx, this->file_desc, read_reqs);
+-}
+--- a/src/pq_flash_index.cpp
++++ b/src/pq_flash_index.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -7,7 +8,9 @@
+ #include "pq.h"
+ #include "pq_scratch.h"
+ #include "pq_flash_index.h"
++#if defined(__x86_64__) || defined(_WINDOWS)
+ #include "cosine_similarity.h"
++#endif
+ 
+ #ifdef _WINDOWS
+ #include "windows_aligned_file_reader.h"
+@@ -335,7 +338,7 @@
+               });
+     node_list.clear();
+     node_list.shrink_to_fit();
+-    num_nodes_to_cache = std::min(num_nodes_to_cache, this->_node_visit_counter.size());
++    num_nodes_to_cache = std::min(num_nodes_to_cache, (uint64_t)this->_node_visit_counter.size());
+     node_list.reserve(num_nodes_to_cache);
+     for (uint64_t i = 0; i < num_nodes_to_cache; i++)
+     {
+@@ -424,7 +427,7 @@
+         {
+             diskann::cout << "." << std::flush;
+             size_t start = block * BLOCK_SIZE;
+-            size_t end = (std::min)((block + 1) * BLOCK_SIZE, nodes_to_expand.size());
++            size_t end = (std::min)((size_t)((block + 1) * BLOCK_SIZE), nodes_to_expand.size());
+ 
+             std::vector<uint32_t> nodes_to_read;
+             std::vector<T *> coord_buffers(end - start, nullptr);
+@@ -650,6 +653,7 @@
+ template <typename T, typename LabelT>
+ inline bool PQFlashIndex<T, LabelT>::point_has_label(uint32_t point_id, LabelT label_id)
+ {
++    ++diskann_reference::metrics.label_checks;
+     uint32_t start_vec = _pts_to_label_offsets[point_id];
+     uint32_t num_lbls = _pts_to_label_counts[point_id];
+     bool ret_val = false;
+@@ -1330,7 +1334,7 @@
+ 
+     // sector scratch
+     char *sector_scratch = query_scratch->sector_scratch;
+-    uint64_t &sector_scratch_idx = query_scratch->sector_idx;
++    auto &sector_scratch_idx = query_scratch->sector_idx;
+     const uint64_t num_sectors_per_node =
+         _nnodes_per_sector > 0 ? 1 : DIV_ROUND_UP(_max_node_len, defaults::SECTOR_LEN);
+ 
+@@ -1352,7 +1356,7 @@
+     };
+     Timer query_timer, io_timer, cpu_timer;
+ 
+-    tsl::robin_set<uint64_t> &visited = query_scratch->visited;
++    auto &visited = query_scratch->visited;
+     NeighborPriorityQueue &retset = query_scratch->retset;
+     retset.reserve(l_search);
+     std::vector<Neighbor> &full_retset = query_scratch->full_retset;
+@@ -1663,9 +1667,16 @@
+         std::sort(full_retset.begin(), full_retset.end());
+     }
+ 
++    // Record short results and avoid reading outside full_retset on disconnected filters.
++    diskann_reference::metrics.returned_results = std::min<uint64_t>(k_search, full_retset.size());
+     // copy k_search values
+     for (uint64_t i = 0; i < k_search; i++)
+     {
++        if (i >= full_retset.size()) {
++            indices[i] = std::numeric_limits<uint64_t>::max();
++            if (distances != nullptr) distances[i] = std::numeric_limits<float>::infinity();
++            continue;
++        }
+         indices[i] = full_retset[i].id;
+         auto key = (uint32_t)indices[i];
+         if (_dummy_pts.find(key) != _dummy_pts.end())
+--- a/src/disk_utils.cpp
++++ b/src/disk_utils.cpp
+@@ -419,7 +419,7 @@
+         {
+             // Gopal. random_shuffle() is deprecated.
+             std::shuffle(final_nhood.begin(), final_nhood.end(), urng);
+-            nnbrs = (uint32_t)(std::min)(final_nhood.size(), (uint64_t)max_degree);
++            nnbrs = (uint32_t)(std::min)(final_nhood.size(), (size_t)max_degree);
+             // write into merged ofstream
+             merged_vamana_writer.write((char *)&nnbrs, sizeof(uint32_t));
+             merged_vamana_writer.write((char *)final_nhood.data(), nnbrs * sizeof(uint32_t));
+@@ -458,7 +458,7 @@
+ 
+     // Gopal. random_shuffle() is deprecated.
+     std::shuffle(final_nhood.begin(), final_nhood.end(), urng);
+-    nnbrs = (uint32_t)(std::min)(final_nhood.size(), (uint64_t)max_degree);
++    nnbrs = (uint32_t)(std::min)(final_nhood.size(), (size_t)max_degree);
+     // write into merged ofstream
+     merged_vamana_writer.write((char *)&nnbrs, sizeof(uint32_t));
+     if (nnbrs > 0)
+--- a/src/pq.cpp
++++ b/src/pq.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -289,6 +290,7 @@
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+                     std::vector<float> &dists_out)
+ {
++    diskann_reference::metrics.pq_distance_comparisons += n_pts;
+     //_mm_prefetch((char*) dists_out, _MM_HINT_T0);
+     _mm_prefetch((char *)pq_ids, _MM_HINT_T0);
+     _mm_prefetch((char *)(pq_ids + 64), _MM_HINT_T0);
+@@ -324,6 +326,7 @@
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+                     float *dists_out)
+ {
++    diskann_reference::metrics.pq_distance_comparisons += n_pts;
+     _mm_prefetch((char *)dists_out, _MM_HINT_T0);
+     _mm_prefetch((char *)pq_ids, _MM_HINT_T0);
+     _mm_prefetch((char *)(pq_ids + 64), _MM_HINT_T0);
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -132,7 +132,8 @@
+ #ifdef _WINDOWS
+         auto ret = std::to_string(strerror_s(buff, 1024, errno));
+ #else
+-        auto ret = std::string(strerror_r(errno, buff, 1024));
++        strerror_r(errno, buff, 1024);
++        auto ret = std::string(buff);
+ #endif
+         auto message = std::string("Failed to open file") + filename + " for write because " + buff + ", ret=" + ret;
+         diskann::cerr << message << std::endl;
+@@ -705,7 +706,8 @@
+ #ifdef _WINDOWS
+         auto ret = std::to_string(strerror_s(buff, 1024, errno));
+ #else
+-        auto ret = std::string(strerror_r(errno, buff, 1024));
++        strerror_r(errno, buff, 1024);
++        auto ret = std::string(buff);
+ #endif
+         std::string error_message =
+             std::string("Failed to open file") + filename + " for write because " + buff + ", ret=" + ret;
+@@ -1250,3 +1252,5 @@
+ 
+ extern bool AvxSupportedCPU;
+ extern bool Avx2SupportedCPU;
++
++#include "macos_sizes.h"
+--- a/include/pq.h
++++ b/include/pq.h
+@@ -47,13 +47,13 @@
+     void populate_chunk_inner_products(const float *query_vec, float *dist_vec);
+ };
+ 
+-void aggregate_coords(const std::vector<unsigned> &ids, const uint8_t *all_coords, const uint64_t ndims, uint8_t *out);
++void aggregate_coords(const std::vector<unsigned> &ids, const uint8_t *all_coords, const size_t ndims, uint8_t *out);
+ 
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+                     std::vector<float> &dists_out);
+ 
+ // Need to replace calls to these with calls to vector& based functions above
+-void aggregate_coords(const unsigned *ids, const uint64_t n_ids, const uint8_t *all_coords, const uint64_t ndims,
++void aggregate_coords(const unsigned *ids, const size_t n_ids, const uint8_t *all_coords, const size_t ndims,
+                       uint8_t *out);
+ 
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+@@ -88,6 +88,6 @@
+ template <typename T>
+ void generate_quantized_data(const std::string &data_file_to_use, const std::string &pq_pivots_path,
+                              const std::string &pq_compressed_vectors_path, const diskann::Metric compareMetric,
+-                             const double p_val, const uint64_t num_pq_chunks, const bool use_opq,
++                             const double p_val, const size_t num_pq_chunks, const bool use_opq,
+                              const std::string &codebook_prefix = "");
+ } // namespace diskann
+--- a/apps/search_disk_index.cpp
++++ b/apps/search_disk_index.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -220,19 +221,22 @@
+         query_result_dists[test_id].resize(recall_at * query_num);
+ 
+         auto stats = new diskann::QueryStats[query_num];
++        std::vector<diskann_reference::Metrics> reference_metrics(query_num);
++        std::vector<double> reference_call_latency_us(query_num);
+ 
+         std::vector<uint64_t> query_result_ids_64(recall_at * query_num);
+-        auto s = std::chrono::high_resolution_clock::now();
+-
++        const char *warmup_flag = std::getenv("DISKANN_REFERENCE_WARMUP_QUERIES");
++        const uint64_t reference_warmup_queries =
++            (warmup_flag != nullptr && std::string(warmup_flag) == "1") ? query_num : 0;
+ #pragma omp parallel for schedule(dynamic, 1)
+-        for (int64_t i = 0; i < (int64_t)query_num; i++)
++        for (int64_t i = 0; i < (int64_t)reference_warmup_queries; ++i)
+         {
+             if (!filtered_search)
+             {
+                 _pFlashIndex->cached_beam_search(query + (i * query_aligned_dim), recall_at, L,
+                                                  query_result_ids_64.data() + (i * recall_at),
+                                                  query_result_dists[test_id].data() + (i * recall_at),
+-                                                 optimized_beamwidth, use_reorder_data, stats + i);
++                                                 optimized_beamwidth, use_reorder_data, nullptr);
+             }
+             else
+             {
+@@ -248,8 +252,44 @@
+                 _pFlashIndex->cached_beam_search(
+                     query + (i * query_aligned_dim), recall_at, L, query_result_ids_64.data() + (i * recall_at),
+                     query_result_dists[test_id].data() + (i * recall_at), optimized_beamwidth, true, label_for_search,
++                    use_reorder_data, nullptr);
++            }
++        }
++        auto s = std::chrono::high_resolution_clock::now();
++
++#pragma omp parallel for schedule(dynamic, 1)
++        for (int64_t i = 0; i < (int64_t)query_num; i++)
++        {
++            diskann_reference::metrics = {};
++            std::chrono::steady_clock::time_point reference_call_started;
++            if (!filtered_search)
++            {
++                reference_call_started = std::chrono::steady_clock::now();
++                _pFlashIndex->cached_beam_search(query + (i * query_aligned_dim), recall_at, L,
++                                                 query_result_ids_64.data() + (i * recall_at),
++                                                 query_result_dists[test_id].data() + (i * recall_at),
++                                                 optimized_beamwidth, use_reorder_data, stats + i);
++            }
++            else
++            {
++                LabelT label_for_search;
++                if (query_filters.size() == 1)
++                { // one label for all queries
++                    label_for_search = _pFlashIndex->get_converted_label(query_filters[0]);
++                }
++                else
++                { // one label for each query
++                    label_for_search = _pFlashIndex->get_converted_label(query_filters[i]);
++                }
++                reference_call_started = std::chrono::steady_clock::now();
++                _pFlashIndex->cached_beam_search(
++                    query + (i * query_aligned_dim), recall_at, L, query_result_ids_64.data() + (i * recall_at),
++                    query_result_dists[test_id].data() + (i * recall_at), optimized_beamwidth, true, label_for_search,
+                     use_reorder_data, stats + i);
+             }
++            reference_call_latency_us[i] = std::chrono::duration<double, std::micro>(
++                std::chrono::steady_clock::now() - reference_call_started).count();
++            reference_metrics[i] = diskann_reference::metrics;
+         }
+         auto e = std::chrono::high_resolution_clock::now();
+         std::chrono::duration<double> diff = e - s;
+@@ -290,6 +330,38 @@
+         }
+         else
+             diskann::cout << std::endl;
++        if (const char *stats_path = std::getenv("DISKANN_REFERENCE_STATS_JSONL"))
++        {
++            std::ofstream json(stats_path, std::ios::app);
++            if (!json) throw std::runtime_error("could not open reference stats JSONL");
++            json << std::setprecision(10);
++            json << "{\"kind\":\"summary\",\"algorithm\":\"cpp_filtered_single_hop\",\"query_count\":" << query_num
++                 << ",\"threads\":" << num_threads << ",\"k\":" << recall_at << ",\"l\":" << L
++                 << ",\"beam_width\":" << optimized_beamwidth << ",\"elapsed_seconds\":" << diff.count()
++                 << ",\"qps\":" << qps << ",\"recall_percent\":" << recall
++                 << ",\"latency_contract\":\"public_search_call\""
++                 << ",\"warmup_queries\":" << reference_warmup_queries
++                 << ",\"inner_mean_latency_us\":" << mean_latency
++                 << ",\"inner_p50_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.50, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p95_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.95, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p99_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.99, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p999_latency_us\":" << latency_999 << "}\n";
++            for (size_t i = 0; i < query_num; ++i)
++            {
++                const auto &m = reference_metrics[i];
++                json << "{\"kind\":\"query\",\"query_index\":" << i
++                     << ",\"threads\":" << num_threads << ",\"k\":" << recall_at << ",\"l\":" << L
++                     << ",\"beam_width\":" << optimized_beamwidth << ",\"latency_us\":" << reference_call_latency_us[i]
++                     << ",\"inner_search_latency_us\":" << stats[i].total_us
++                     << ",\"read_requests\":" << m.read_requests << ",\"requested_read_bytes\":" << m.requested_read_bytes
++                     << ",\"pq_distance_comparisons\":" << m.pq_distance_comparisons
++                     << ",\"full_distance_comparisons\":" << m.full_distance_comparisons
++                     << ",\"label_checks\":" << m.label_checks << ",\"hops\":" << stats[i].n_hops
++                     << ",\"cache_hits\":" << stats[i].n_cache_hits
++                     << ",\"reader_time_us\":" << stats[i].io_us
++                     << ",\"returned_results\":" << m.returned_results << "}\n";
++            }
++        }
+         delete[] stats;
+     }
+ 
+--- a/apps/build_stitched_index.cpp
++++ b/apps/build_stitched_index.cpp
+@@ -236,7 +236,7 @@
+ 
+         std::tie(curr_label_index, curr_label_index_size) =
+             diskann::load_label_index(curr_label_index_path, labels_to_number_of_points[lbl]);
+-        curr_label_entry_point = (uint32_t)random(0, curr_label_index.size());
++        curr_label_entry_point = (uint32_t)random(0, curr_label_index.size() - 1);
+         label_entry_points[lbl] = label_id_to_orig_id_map[lbl][curr_label_entry_point];
+ 
+         for (uint32_t node_point = 0; node_point < curr_label_index.size(); node_point++)
+--- /dev/null
++++ b/portability/CMakeLists.txt
+@@ -0,0 +1,35 @@
++# Copyright (c) Microsoft Corporation. All rights reserved.
++# Licensed under the MIT license.
++cmake_minimum_required(VERSION 3.20)
++project(diskann_macos_reference LANGUAGES C CXX)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++if(NOT APPLE OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
++  message(FATAL_ERROR "This reference adapter is only for Apple arm64")
++endif()
++get_filename_component(CPP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
++set(BOOST_ROOT "/private/tmp/diskann-single-hop-deps/boost_1_85_0" CACHE PATH "Local Boost source")
++set(OMP_ROOT "/opt/homebrew/opt/libomp" CACHE PATH "Existing libomp install")
++include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}" "${OMP_ROOT}/include" "${BOOST_ROOT}" "${CPP_ROOT}/include")
++add_compile_options(-O3 -DNDEBUG -Xpreprocessor -fopenmp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -include "${CMAKE_CURRENT_SOURCE_DIR}/macos_compat.h")
++link_directories("${OMP_ROOT}/lib")
++link_libraries(omp "-framework Accelerate")
++set(SOURCE_NAMES abstract_data_store ann_exception disk_utils distance index in_mem_graph_store in_mem_data_store
++    linux_aligned_file_reader math_utils natural_number_map natural_number_set memory_mapper partition pq
++    pq_flash_index scratch logger utils filter_utils index_factory abstract_index pq_l2_distance pq_data_store)
++foreach(name IN LISTS SOURCE_NAMES)
++  list(APPEND SOURCES "${CPP_ROOT}/src/${name}.cpp")
++endforeach()
++add_library(diskann_reference STATIC ${SOURCES})
++file(GLOB BOOST_PROGRAM_OPTIONS "${BOOST_ROOT}/libs/program_options/src/*.cpp")
++add_library(boost_program_options_reference STATIC ${BOOST_PROGRAM_OPTIONS})
++foreach(name build_memory_index search_memory_index build_disk_index search_disk_index build_stitched_index)
++  add_executable(${name} "${CPP_ROOT}/apps/${name}.cpp")
++  target_link_libraries(${name} PRIVATE diskann_reference boost_program_options_reference)
++endforeach()
++
++add_executable(create_disk_layout_reference "${CMAKE_CURRENT_SOURCE_DIR}/create_disk_layout_reference.cpp")
++target_link_libraries(create_disk_layout_reference PRIVATE diskann_reference)
++
++add_executable(encode_pq_reference "${CMAKE_CURRENT_SOURCE_DIR}/encode_pq_reference.cpp")
++target_link_libraries(encode_pq_reference PRIVATE diskann_reference)
+--- /dev/null
++++ b/portability/create_disk_layout_reference.cpp
+@@ -0,0 +1,18 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#include "disk_utils.h"
++#include <iostream>
++
++int main(int argc, char **argv)
++{
++    if (argc != 4) {
++        std::cerr << "Usage: create_disk_layout_reference BASE.u8bin MEMORY_GRAPH OUTPUT_disk.index\n";
++        return 2;
++    }
++    try {
++        diskann::create_disk_layout<uint8_t>(argv[1], argv[2], argv[3]);
++    } catch (const std::exception &error) {
++        std::cerr << error.what() << "\n";
++        return 1;
++    }
++}
+--- /dev/null
++++ b/portability/encode_pq_reference.cpp
+@@ -0,0 +1,23 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#include "pq.h"
++#include <omp.h>
++#include <iostream>
++
++int main(int argc, char **argv)
++{
++    if (argc != 6) {
++        std::cerr << "Usage: encode_pq_reference BASE.u8bin PIVOTS.bin CODES.bin PQ_BYTES THREADS\n";
++        return 2;
++    }
++    try {
++        const auto bytes = static_cast<uint32_t>(std::stoul(argv[4]));
++        const auto threads = static_cast<int>(std::stoul(argv[5]));
++        if (bytes == 0 || threads <= 0) throw std::invalid_argument("positive PQ bytes and threads required");
++        omp_set_num_threads(threads);
++        return diskann::generate_pq_data_from_pivots<uint8_t>(argv[1], 256, bytes, argv[2], argv[3], false);
++    } catch (const std::exception &error) {
++        std::cerr << error.what() << "\n";
++        return 1;
++    }
++}
+--- /dev/null
++++ b/portability/immintrin.h
+@@ -0,0 +1,2 @@
++#pragma once
++#include "macos_compat.h"
+--- /dev/null
++++ b/portability/libaio.h
+@@ -0,0 +1,3 @@
++#pragma once
++#include <cstdint>
++using io_context_t = std::uint64_t;
+--- /dev/null
++++ b/portability/macos_compat.h
+@@ -0,0 +1,10 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#pragma once
++#include <cstdlib>
++#include <cstdint>
++#ifndef _MM_HINT_T0
++#define _MM_HINT_T0 3
++#define _MM_HINT_T1 2
++#define _mm_prefetch(addr, hint) __builtin_prefetch((addr), 0, (hint))
++#endif
+--- /dev/null
++++ b/portability/macos_metrics.h
+@@ -0,0 +1,15 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#pragma once
++#include <cstdint>
++namespace diskann_reference {
++struct Metrics {
++    std::uint64_t full_distance_comparisons = 0;
++    std::uint64_t pq_distance_comparisons = 0;
++    std::uint64_t label_checks = 0;
++    std::uint64_t returned_results = 0;
++    std::uint64_t read_requests = 0;
++    std::uint64_t requested_read_bytes = 0;
++};
++inline thread_local Metrics metrics;
++}
+--- /dev/null
++++ b/portability/macos_sizes.h
+@@ -0,0 +1,49 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++// Darwin uint64_t and size_t are distinct 64-bit types. Preserve the Linux API semantics.
++#pragma once
++namespace diskann {
++template <typename N, typename D,
++          std::enable_if_t<!std::is_same_v<N, size_t> || !std::is_same_v<D, size_t>, int> = 0>
++inline void get_bin_metadata(const std::string &file, N &rows, D &columns, size_t offset = 0)
++{
++    size_t n, d;
++    get_bin_metadata(file, n, d, offset);
++    rows = n; columns = d;
++}
++template <typename T, typename N, typename D,
++          std::enable_if_t<!std::is_same_v<N, size_t> || !std::is_same_v<D, size_t>, int> = 0>
++inline void load_bin(const std::string &file, T *&data, N &rows, D &columns, size_t offset = 0)
++{
++    size_t n, d;
++    load_bin<T>(file, data, n, d, offset);
++    rows = n; columns = d;
++}
++template <typename T, typename N, typename D,
++          std::enable_if_t<!std::is_same_v<N, size_t> || !std::is_same_v<D, size_t>, int> = 0>
++inline void load_bin(const std::string &file, std::unique_ptr<T[]> &data, N &rows, D &columns, size_t offset = 0)
++{
++    size_t n, d;
++    load_bin<T>(file, data, n, d, offset);
++    rows = n; columns = d;
++}
++template <typename T, typename N, typename D, typename A,
++          std::enable_if_t<!std::is_same_v<N, size_t> || !std::is_same_v<D, size_t> || !std::is_same_v<A, size_t>, int> = 0>
++inline void load_aligned_bin(const std::string &file, T *&data, N &rows, D &columns, A &aligned)
++{
++    size_t n, d, a;
++    load_aligned_bin<T>(file, data, n, d, a);
++    rows = n; columns = d; aligned = a;
++}
++}
++namespace diskann {
++template <typename T, typename N, typename D,
++          std::enable_if_t<!std::is_same_v<N, size_t> || !std::is_same_v<D, size_t>, int> = 0>
++inline void copy_aligned_data_from_file(const char *file, T *&data, N &rows, D &columns,
++                                        const size_t &aligned, size_t offset = 0)
++{
++    size_t n = rows, d = columns;
++    copy_aligned_data_from_file<T>(file, data, n, d, aligned, offset);
++    rows = n; columns = d;
++}
++}
+--- /dev/null
++++ b/portability/malloc.h
+@@ -0,0 +1,2 @@
++#pragma once
++#include <stdlib.h>
+--- /dev/null
++++ b/portability/mkl.h
+@@ -0,0 +1,12 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#pragma once
++#include <Accelerate/Accelerate.h>
++#include <stdexcept>
++using MKL_INT = int;
++#define LAPACK_ROW_MAJOR 101
++inline void mkl_set_num_threads(int) {}
++inline int LAPACKE_sgesdd(int, char, int, int, float*, int, float*, float*, int, float*, int)
++{
++    throw std::runtime_error("OPQ is unsupported by the macOS C++ reference adapter; use plain PQ");
++}
+--- /dev/null
++++ b/portability/xmmintrin.h
+@@ -0,0 +1,2 @@
++#pragma once
++#include "macos_compat.h"

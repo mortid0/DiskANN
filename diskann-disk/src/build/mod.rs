@@ -16,3 +16,4 @@ pub use configuration::{
     DiskIndexBuildParameters, QuantizationType, SphericalBits, disk_index_build_parameter,
     filter_parameter,
 };
+pub mod filtered;

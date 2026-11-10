@@ -88,19 +88,15 @@ pub(crate) trait Knn<I> {
 // Impls //
 ///////////
 
-impl<DP, T, S, PP> Knn<DP::InternalId> for Arc<core_search::graph::KNN<DP, T, S, PP>>
+impl<S> Knn<S::Id> for Arc<S>
 where
-    DP: diskann::provider::DataProvider,
-    core_search::graph::KNN<DP, T, S, PP>: core_search::Search<
-        Id = DP::InternalId,
-        Parameters = KnnParams,
-        Output = core_search::graph::knn::Metrics,
-    >,
+    S: core_search::Search<Parameters = KnnParams, Output = core_search::graph::knn::Metrics>,
+    S::Id: benchmark_core::recall::RecallCompatible,
 {
     fn search_all(
         &self,
-        parameters: Vec<core_search::Run<KnnParams>>,
-        groundtruth: &dyn benchmark_core::recall::Rows<DP::InternalId>,
+        parameters: Vec<Run>,
+        groundtruth: &dyn benchmark_core::recall::Rows<S::Id>,
         recall_k: usize,
         recall_n: usize,
         groundtruth_mode: GroundTruthMode,
@@ -115,71 +111,6 @@ where
                 groundtruth_mode,
             ),
         )?;
-
-        Ok(results.into_iter().map(SearchResults::new).collect())
-    }
-}
-
-impl<DP, T, S> Knn<DP::InternalId> for Arc<core_search::graph::MultiHop<DP, T, S>>
-where
-    DP: diskann::provider::DataProvider,
-    core_search::graph::MultiHop<DP, T, S>: core_search::Search<
-        Id = DP::InternalId,
-        Parameters = KnnParams,
-        Output = core_search::graph::knn::Metrics,
-    >,
-{
-    fn search_all(
-        &self,
-        parameters: Vec<core_search::Run<KnnParams>>,
-        groundtruth: &dyn benchmark_core::recall::Rows<DP::InternalId>,
-        recall_k: usize,
-        recall_n: usize,
-        groundtruth_mode: GroundTruthMode,
-    ) -> anyhow::Result<Vec<SearchResults>> {
-        let results = core_search::search_all(
-            self.clone(),
-            parameters,
-            core_search::graph::knn::Aggregator::new(
-                groundtruth,
-                recall_k,
-                recall_n,
-                groundtruth_mode,
-            ),
-        )?;
-
-        Ok(results.into_iter().map(SearchResults::new).collect())
-    }
-}
-
-impl<DP, T, S> Knn<DP::InternalId> for Arc<core_search::graph::InlineFilterSearch<DP, T, S>>
-where
-    DP: diskann::provider::DataProvider,
-    core_search::graph::InlineFilterSearch<DP, T, S>: core_search::Search<
-        Id = DP::InternalId,
-        Parameters = KnnParams,
-        Output = core_search::graph::knn::Metrics,
-    >,
-{
-    fn search_all(
-        &self,
-        parameters: Vec<core_search::Run<KnnParams>>,
-        groundtruth: &dyn benchmark_core::recall::Rows<DP::InternalId>,
-        recall_k: usize,
-        recall_n: usize,
-        groundtruth_mode: GroundTruthMode,
-    ) -> anyhow::Result<Vec<SearchResults>> {
-        let results = core_search::search_all(
-            self.clone(),
-            parameters,
-            core_search::graph::knn::Aggregator::new(
-                groundtruth,
-                recall_k,
-                recall_n,
-                groundtruth_mode,
-            ),
-        )?;
-
         Ok(results.into_iter().map(SearchResults::new).collect())
     }
 }

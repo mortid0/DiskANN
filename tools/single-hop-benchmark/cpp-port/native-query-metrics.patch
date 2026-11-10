@@ -1,0 +1,248 @@
+--- a/src/distance.cpp
++++ b/src/distance.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // TODO
+ // CHECK COSINE ON LINUX
+ 
+@@ -118,6 +119,7 @@
+ 
+ float DistanceL2Int8::compare(const int8_t *a, const int8_t *b, uint32_t size) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+ #ifdef _WINDOWS
+ #ifdef USE_AVX2
+     __m256 r = _mm256_setzero_ps();
+@@ -162,6 +164,7 @@
+ 
+ float DistanceL2UInt8::compare(const uint8_t *a, const uint8_t *b, uint32_t size) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+     uint32_t result = 0;
+ #ifndef _WINDOWS
+ #pragma omp simd reduction(+ : result) aligned(a, b : 8)
+@@ -183,6 +186,7 @@
+ {
+ #endif
+ 
++    ++diskann_reference::metrics.full_distance_comparisons;
+     float result = 0;
+ #ifdef USE_AVX2
+     // assume size is divisible by 8
+@@ -222,6 +226,7 @@
+ 
+ template <typename T> float SlowDistanceL2<T>::compare(const T *a, const T *b, uint32_t length) const
+ {
++    ++diskann_reference::metrics.full_distance_comparisons;
+     float result = 0.0f;
+     for (uint32_t i = 0; i < length; i++)
+     {
+--- a/src/pq.cpp
++++ b/src/pq.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -289,6 +290,7 @@
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+                     std::vector<float> &dists_out)
+ {
++    diskann_reference::metrics.pq_distance_comparisons += n_pts;
+     //_mm_prefetch((char*) dists_out, _MM_HINT_T0);
+     _mm_prefetch((char *)pq_ids, _MM_HINT_T0);
+     _mm_prefetch((char *)(pq_ids + 64), _MM_HINT_T0);
+@@ -324,6 +326,7 @@
+ void pq_dist_lookup(const uint8_t *pq_ids, const size_t n_pts, const size_t pq_nchunks, const float *pq_dists,
+                     float *dists_out)
+ {
++    diskann_reference::metrics.pq_distance_comparisons += n_pts;
+     _mm_prefetch((char *)dists_out, _MM_HINT_T0);
+     _mm_prefetch((char *)pq_ids, _MM_HINT_T0);
+     _mm_prefetch((char *)(pq_ids + 64), _MM_HINT_T0);
+--- a/src/pq_flash_index.cpp
++++ b/src/pq_flash_index.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -650,6 +651,7 @@
+ template <typename T, typename LabelT>
+ inline bool PQFlashIndex<T, LabelT>::point_has_label(uint32_t point_id, LabelT label_id)
+ {
++    ++diskann_reference::metrics.label_checks;
+     uint32_t start_vec = _pts_to_label_offsets[point_id];
+     uint32_t num_lbls = _pts_to_label_counts[point_id];
+     bool ret_val = false;
+@@ -1663,9 +1665,16 @@
+         std::sort(full_retset.begin(), full_retset.end());
+     }
+ 
++    // Record short results and avoid reading outside full_retset on disconnected filters.
++    diskann_reference::metrics.returned_results = std::min<uint64_t>(k_search, full_retset.size());
+     // copy k_search values
+     for (uint64_t i = 0; i < k_search; i++)
+     {
++        if (i >= full_retset.size()) {
++            indices[i] = std::numeric_limits<uint64_t>::max();
++            if (distances != nullptr) distances[i] = std::numeric_limits<float>::infinity();
++            continue;
++        }
+         indices[i] = full_retset[i].id;
+         auto key = (uint32_t)indices[i];
+         if (_dummy_pts.find(key) != _dummy_pts.end())
+--- a/src/linux_aligned_file_reader.cpp
++++ b/src/linux_aligned_file_reader.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -49,6 +50,10 @@
+         {
+             cbs[i] = cb.data() + i;
+         }
++
++        diskann_reference::metrics.read_requests += n_ops;
++        for (uint64_t j = 0; j < n_ops; ++j)
++            diskann_reference::metrics.requested_read_bytes += read_reqs[j + iter * MAX_EVENTS].len;
+ 
+         uint64_t n_tries = 0;
+         while (n_tries <= n_retries)
+--- a/apps/search_disk_index.cpp
++++ b/apps/search_disk_index.cpp
+@@ -1,3 +1,4 @@
++#include "macos_metrics.h"
+ // Copyright (c) Microsoft Corporation. All rights reserved.
+ // Licensed under the MIT license.
+ 
+@@ -220,19 +221,22 @@
+         query_result_dists[test_id].resize(recall_at * query_num);
+ 
+         auto stats = new diskann::QueryStats[query_num];
++        std::vector<diskann_reference::Metrics> reference_metrics(query_num);
++        std::vector<double> reference_call_latency_us(query_num);
+ 
+         std::vector<uint64_t> query_result_ids_64(recall_at * query_num);
+-        auto s = std::chrono::high_resolution_clock::now();
+-
++        const char *warmup_flag = std::getenv("DISKANN_REFERENCE_WARMUP_QUERIES");
++        const uint64_t reference_warmup_queries =
++            (warmup_flag != nullptr && std::string(warmup_flag) == "1") ? query_num : 0;
+ #pragma omp parallel for schedule(dynamic, 1)
+-        for (int64_t i = 0; i < (int64_t)query_num; i++)
++        for (int64_t i = 0; i < (int64_t)reference_warmup_queries; ++i)
+         {
+             if (!filtered_search)
+             {
+                 _pFlashIndex->cached_beam_search(query + (i * query_aligned_dim), recall_at, L,
+                                                  query_result_ids_64.data() + (i * recall_at),
+                                                  query_result_dists[test_id].data() + (i * recall_at),
+-                                                 optimized_beamwidth, use_reorder_data, stats + i);
++                                                 optimized_beamwidth, use_reorder_data, nullptr);
+             }
+             else
+             {
+@@ -248,8 +252,44 @@
+                 _pFlashIndex->cached_beam_search(
+                     query + (i * query_aligned_dim), recall_at, L, query_result_ids_64.data() + (i * recall_at),
+                     query_result_dists[test_id].data() + (i * recall_at), optimized_beamwidth, true, label_for_search,
++                    use_reorder_data, nullptr);
++            }
++        }
++        auto s = std::chrono::high_resolution_clock::now();
++
++#pragma omp parallel for schedule(dynamic, 1)
++        for (int64_t i = 0; i < (int64_t)query_num; i++)
++        {
++            diskann_reference::metrics = {};
++            std::chrono::steady_clock::time_point reference_call_started;
++            if (!filtered_search)
++            {
++                reference_call_started = std::chrono::steady_clock::now();
++                _pFlashIndex->cached_beam_search(query + (i * query_aligned_dim), recall_at, L,
++                                                 query_result_ids_64.data() + (i * recall_at),
++                                                 query_result_dists[test_id].data() + (i * recall_at),
++                                                 optimized_beamwidth, use_reorder_data, stats + i);
++            }
++            else
++            {
++                LabelT label_for_search;
++                if (query_filters.size() == 1)
++                { // one label for all queries
++                    label_for_search = _pFlashIndex->get_converted_label(query_filters[0]);
++                }
++                else
++                { // one label for each query
++                    label_for_search = _pFlashIndex->get_converted_label(query_filters[i]);
++                }
++                reference_call_started = std::chrono::steady_clock::now();
++                _pFlashIndex->cached_beam_search(
++                    query + (i * query_aligned_dim), recall_at, L, query_result_ids_64.data() + (i * recall_at),
++                    query_result_dists[test_id].data() + (i * recall_at), optimized_beamwidth, true, label_for_search,
+                     use_reorder_data, stats + i);
+             }
++            reference_call_latency_us[i] = std::chrono::duration<double, std::micro>(
++                std::chrono::steady_clock::now() - reference_call_started).count();
++            reference_metrics[i] = diskann_reference::metrics;
+         }
+         auto e = std::chrono::high_resolution_clock::now();
+         std::chrono::duration<double> diff = e - s;
+@@ -290,6 +330,38 @@
+         }
+         else
+             diskann::cout << std::endl;
++        if (const char *stats_path = std::getenv("DISKANN_REFERENCE_STATS_JSONL"))
++        {
++            std::ofstream json(stats_path, std::ios::app);
++            if (!json) throw std::runtime_error("could not open reference stats JSONL");
++            json << std::setprecision(10);
++            json << "{\"kind\":\"summary\",\"algorithm\":\"cpp_filtered_single_hop\",\"query_count\":" << query_num
++                 << ",\"threads\":" << num_threads << ",\"k\":" << recall_at << ",\"l\":" << L
++                 << ",\"beam_width\":" << optimized_beamwidth << ",\"elapsed_seconds\":" << diff.count()
++                 << ",\"qps\":" << qps << ",\"recall_percent\":" << recall
++                 << ",\"latency_contract\":\"public_search_call\""
++                 << ",\"warmup_queries\":" << reference_warmup_queries
++                 << ",\"inner_mean_latency_us\":" << mean_latency
++                 << ",\"inner_p50_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.50, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p95_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.95, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p99_latency_us\":" << diskann::get_percentile_stats<float>(stats, query_num, 0.99, [](const diskann::QueryStats &s) { return s.total_us; })
++                 << ",\"inner_p999_latency_us\":" << latency_999 << "}\n";
++            for (size_t i = 0; i < query_num; ++i)
++            {
++                const auto &m = reference_metrics[i];
++                json << "{\"kind\":\"query\",\"query_index\":" << i
++                     << ",\"threads\":" << num_threads << ",\"k\":" << recall_at << ",\"l\":" << L
++                     << ",\"beam_width\":" << optimized_beamwidth << ",\"latency_us\":" << reference_call_latency_us[i]
++                     << ",\"inner_search_latency_us\":" << stats[i].total_us
++                     << ",\"read_requests\":" << m.read_requests << ",\"requested_read_bytes\":" << m.requested_read_bytes
++                     << ",\"pq_distance_comparisons\":" << m.pq_distance_comparisons
++                     << ",\"full_distance_comparisons\":" << m.full_distance_comparisons
++                     << ",\"label_checks\":" << m.label_checks << ",\"hops\":" << stats[i].n_hops
++                     << ",\"cache_hits\":" << stats[i].n_cache_hits
++                     << ",\"reader_time_us\":" << stats[i].io_us
++                     << ",\"returned_results\":" << m.returned_results << "}\n";
++            }
++        }
+         delete[] stats;
+     }
+ 
+--- /dev/null
++++ b/include/macos_metrics.h
+@@ -0,0 +1,15 @@
++// Copyright (c) Microsoft Corporation. All rights reserved.
++// Licensed under the MIT license.
++#pragma once
++#include <cstdint>
++namespace diskann_reference {
++struct Metrics {
++    std::uint64_t full_distance_comparisons = 0;
++    std::uint64_t pq_distance_comparisons = 0;
++    std::uint64_t label_checks = 0;
++    std::uint64_t returned_results = 0;
++    std::uint64_t read_requests = 0;
++    std::uint64_t requested_read_bytes = 0;
++};
++inline thread_local Metrics metrics;
++}

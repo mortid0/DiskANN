@@ -211,6 +211,91 @@ pub(crate) mod tests {
     // Callbacks for use with `simplified_builder`.
     fn no_modify(_: &mut diskann::graph::config::Builder) {}
 
+    #[tokio::test]
+    async fn single_hop_in_memory_matches_filtered_groundtruth() {
+        use diskann::graph::{
+            ext::labeled::Filtered,
+            search::{Knn, SingleHopFilterSearch},
+        };
+        #[derive(Debug)]
+        struct EvenIds;
+        impl QueryLabelProvider<u32> for EvenIds {
+            fn is_match(&self, id: u32) -> bool {
+                id < 64 && id.is_multiple_of(2)
+            }
+        }
+
+        let (config, params) = simplified_builder(32, 4, Metric::L2, 2, 64, no_modify).unwrap();
+        let index = new_index::<f32, _>(config, params, NoDeletes).unwrap();
+        let data: Vec<_> = (0..64).map(|i| vec![i as f32, (i % 7) as f32]).collect();
+        populate_data(index.provider(), &DefaultContext, &data).await;
+        index
+            .provider()
+            .set_start_points(std::iter::once(&[100.0, 100.0][..]))
+            .unwrap();
+        for id in 0..64 {
+            // Each label has a cycle; crossing to the other parity must be rejected.
+            index
+                .provider()
+                .neighbors()
+                .set_neighbors_sync(id, &[((id + 2) % 64) as u32, ((id + 1) % 64) as u32])
+                .unwrap();
+        }
+
+        let strategy = Filtered::new(FullPrecision, &EvenIds);
+        for beam in [1, 4] {
+            for q in [0.25, 15.5, 33.75, 62.0] {
+                let query = [q, 2.0];
+                let mut truth: Vec<_> = data
+                    .iter()
+                    .enumerate()
+                    .step_by(2)
+                    .map(|(id, vector)| {
+                        Neighbor::new(
+                            id as u32,
+                            (vector[0] - query[0]).powi(2) + (vector[1] - query[1]).powi(2),
+                        )
+                    })
+                    .collect();
+                truth.sort_unstable_by(neighbor::ord::fast_distance_total);
+                let mut ids = [u32::MAX; 5];
+                let mut distances = [f32::MAX; 5];
+                let mut output = search_output_buffer::IdDistance::new(&mut ids, &mut distances);
+                let stats = index
+                    .search(
+                        SingleHopFilterSearch::new(Knn::new(32, Some(beam)).unwrap(), &[2]),
+                        &strategy,
+                        &DefaultContext,
+                        query.as_slice(),
+                        &mut output,
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(stats.result_count, 5);
+                assert_eq!(
+                    ids.as_slice(),
+                    &truth[..5].iter().map(|n| *n.id()).collect::<Vec<_>>()
+                );
+                for (distance, expected) in distances.iter().zip(&truth) {
+                    assert_abs_diff_eq!(distance, expected.distance());
+                }
+            }
+        }
+        let mut results = Vec::<Neighbor<u32>>::new();
+        let error = index
+            .search_with(
+                SingleHopFilterSearch::new(Knn::new_default(32).unwrap(), &[u32::MAX]),
+                &strategy,
+                glue::CopyIds,
+                &DefaultContext,
+                &[0.0, 0.0][..],
+                &mut results,
+            )
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("outside the dataset"));
+    }
+
     /////////////////////////////////////////
     // Tests from the original async index //
     /////////////////////////////////////////

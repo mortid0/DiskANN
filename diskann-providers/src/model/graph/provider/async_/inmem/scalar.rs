@@ -512,15 +512,29 @@ where
         std::future::ready(Ok(self.provider.num_start_points()))
     }
 
-    fn start_point_distances<F>(
+    async fn start_point_distances<F>(&mut self, f: F) -> ANNResult<()>
+    where
+        F: FnMut(Self::Id, f32) + Send,
+    {
+        let ids = self.provider.starting_points()?;
+        self.start_point_distances_from(&ids, f).await
+    }
+
+    fn start_point_distances_from<F>(
         &mut self,
+        ids: &[Self::Id],
         mut f: F,
     ) -> impl std::future::Future<Output = ANNResult<()>> + Send
     where
         F: FnMut(Self::Id, f32) + Send,
     {
         let mut f = move || -> ANNResult<()> {
-            for i in self.provider.starting_points()? {
+            for &i in ids {
+                if i.into_usize() >= self.provider.total_points() {
+                    return Err(diskann::ANNError::message(
+                        "starting point ID is outside the dataset",
+                    ));
+                }
                 let vector = self.provider.aux_vectors.get_vector(i.into_usize())?;
                 f(i, self.computer.evaluate_similarity(vector));
             }

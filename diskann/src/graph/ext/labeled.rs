@@ -163,6 +163,15 @@ impl<'a, A> glue::FilteredAccessor for FilteredAccessor<'a, A>
 where
     A: glue::SearchAccessor,
 {
+    async fn start_point_distances_from<F>(&mut self, ids: &[Self::Id], mut f: F) -> ANNResult<()>
+    where
+        F: FnMut(Decision<Self::Id>, f32) + Send,
+    {
+        self.inner
+            .start_point_distances_from(ids, |id, distance| f(decide(self.labels, id), distance))
+            .await
+    }
+
     async fn start_point_distances<F>(&mut self, mut f: F) -> ANNResult<()>
     where
         F: FnMut(Decision<Self::Id>, f32) + Send,

@@ -260,6 +260,63 @@ is running. This incremental saving allows benchmarks to be interrupted without 
 In addition to the machine-readable JSON output files, a (hopefully) helpful summary of the
 results will be printed to `stdout`.
 
+### single-hop filtered search
+
+single-hop uses the existing benchmark runner, top-k recall aggregation, repetition
+and thread sweeps. the graph input selects `"search-type": "topk-single-hop-filter"`
+and supplies a `"starting_points"` file in addition to the existing filtered inputs.
+the file is a json array containing one array of dataset ids per query, for example
+`[[17], [23, 41], []]`. empty lists intentionally return no results. seeds are loaded
+once before timed queries, and the normal result buffers retain actual result lengths.
+
+```sh
+mkdir -p benchmark-results/single-hop
+cargo run --release --package diskann-benchmark -- run \
+  --input-file diskann-benchmark/example/graph-index-single-hop-filter.json \
+  --output-file benchmark-results/single-hop/harness.json
+```
+
+the example is a small wiring check using an ordinary graph. for meaningful quality
+comparisons, load a graph built to preserve connectivity for the requested labels
+and supply entry points from that graph. enabling this search mode does not change
+an ordinary graph's construction.
+
+the existing disk-index benchmark also accepts explicit seeds:
+
+```json
+"search_mode": {
+  "single_hop_starting_points": "label-starts.json"
+}
+```
+
+build the runner with `--features disk-index`. use the existing `vector_filters_file`,
+ground truth, `beam_width`, `search_list` and `search_io_limit` fields. single-hop
+requires vector filters and cannot combine flat search, adaptive-l or a separate
+post-processor. the output records `is_single_hop_search` alongside the existing
+recall, qps, latency, comparison, hop and i/o measurements. finite i/o limits may
+produce short result rows; the existing filtered recall evaluator uses their actual
+lengths.
+
+to use c++ sidecars directly, supply one original label name per query line:
+
+```json
+"search_mode": {
+  "cpp_query_labels": "query-labels.txt"
+}
+```
+
+this loads the sidecars next to the disk index once, resolves names through
+`_labels_map.txt`, and chooses one label medoid by pq distance per query. universal
+labels and dummy-to-real result ids follow c++ semantics. omit `vector_filters_file`,
+explicit starting points and post-processors in this mode; use squared l2 and the
+usual ground truth and search settings. the sidecars are independent of the optional
+rust update lifecycle's journal and generation catalog.
+
+ordinary single-hop evaluation belongs here. custom experiment scripts remain useful
+for cpp comparisons and lifecycle-specific experiments, not as a second implementation
+of timing or recall. generated results belong in ignored `benchmark-results/`; small
+input examples and fixtures remain versioned.
+
 ### Streaming Runs
 Running the benchmark on a streaming workload is similar to other registered benchmarks,
 relying on the file formats and streaming runbooks of `big-ann-benchmarks`

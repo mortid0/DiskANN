@@ -8,6 +8,7 @@ pub mod inline;
 pub mod knn;
 pub mod multihop;
 pub mod range;
+pub mod single_hop;
 
 pub mod strategy;
 
@@ -16,6 +17,7 @@ pub use inline::InlineFilterSearch;
 pub use knn::{KNN, KnnParams};
 pub use multihop::MultiHop;
 pub use range::Range;
+pub use single_hop::SingleHop;
 
 pub use strategy::Strategy;
 

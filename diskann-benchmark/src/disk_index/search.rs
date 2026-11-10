@@ -46,6 +46,8 @@ pub(super) struct DiskSearchStats {
     pub(super) beam_width: usize,
     pub(super) recall_at: u32,
     pub(crate) is_flat_search: bool,
+    #[serde(default)]
+    pub(crate) is_single_hop_search: bool,
     pub(crate) distance: SimilarityMeasure,
     pub(crate) uses_vector_filters: bool,
     pub(super) num_nodes_to_cache: Option<usize>,
@@ -111,15 +113,43 @@ impl DiskSearchResult {
                 .gt_ids
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("GT IDs missing"))?;
-            let recall_value = search_index_utils::calculate_recall(
-                num_queries,
-                gt,
-                gt_context.gt_dists.as_ref(),
-                gt_context.gt_dim,
-                result_ids,
-                gt_context.recall_at,
-                KRecallAtN::new(gt_context.recall_at, gt_context.recall_at)?,
-            )?;
+            // Fixed-width C++ truthsets still need actual result lengths when an
+            // I/O budget or a small label yields fewer than k hits. Option padding
+            // cannot collide with a real ID, and reuses the existing tie handling.
+            let recall_value = if result_counts
+                .iter()
+                .any(|&count| count < gt_context.recall_at)
+            {
+                let truth: Vec<_> = gt.iter().copied().map(Some).collect();
+                let ours: Vec<_> = result_ids
+                    .chunks_exact(gt_context.recall_at as usize)
+                    .zip(result_counts)
+                    .flat_map(|(row, &count)| {
+                        row.iter()
+                            .enumerate()
+                            .map(move |(i, &id)| (i < count as usize).then_some(id))
+                    })
+                    .collect();
+                search_index_utils::calculate_recall(
+                    num_queries,
+                    &truth,
+                    gt_context.gt_dists.as_ref(),
+                    gt_context.gt_dim,
+                    &ours,
+                    gt_context.recall_at,
+                    KRecallAtN::new(gt_context.recall_at, gt_context.recall_at)?,
+                )?
+            } else {
+                search_index_utils::calculate_recall(
+                    num_queries,
+                    gt,
+                    gt_context.gt_dists.as_ref(),
+                    gt_context.gt_dim,
+                    result_ids,
+                    gt_context.recall_at,
+                    KRecallAtN::new(gt_context.recall_at, gt_context.recall_at)?,
+                )?
+            };
             recall_value as f32
         };
 
@@ -198,6 +228,21 @@ where
         anyhow::bail!("Mismatch in query and vector filter sizes");
     }
 
+    let starting_points = search_params
+        .search_mode
+        .single_hop_starting_points
+        .as_ref()
+        .map(|path| crate::utils::filters::load_starting_points(path, num_queries))
+        .transpose()?;
+    if let Some(rows) = &starting_points {
+        for (query, (ids, filter)) in rows.iter().zip(&vector_filters).enumerate() {
+            anyhow::ensure!(
+                ids.iter().all(|id| filter.contains(id)),
+                "single-hop entry point does not match filter for query {query}"
+            );
+        }
+    }
+
     // Prepare ground truth context
     let gt_context = prepare_ground_truth_context(
         search_params.vector_filters_file.is_some(),
@@ -220,7 +265,7 @@ where
     };
 
     let vertex_provider_factory =
-        DiskVertexProviderFactory::from_disk_index_path(disk_index_path, caching_strategy)?;
+        DiskVertexProviderFactory::from_disk_index_path(disk_index_path.clone(), caching_strategy)?;
 
     let searcher = &DiskIndexSearcher::<AdHoc<T>, _>::new(
         search_params.num_threads,
@@ -234,6 +279,31 @@ where
         search_params.distance.into(),
         None,
     )?;
+
+    let cpp = search_params
+        .search_mode
+        .cpp_query_labels
+        .as_ref()
+        .map(|path| -> anyhow::Result<_> {
+            let metadata = searcher.load_cpp_metadata(&disk_index_path)?;
+            let text = std::fs::read_to_string(&**path)?;
+            let labels = text
+                .lines()
+                .map(|name| metadata.resolve_label(name))
+                .collect::<Result<Vec<_>, _>>()?;
+            anyhow::ensure!(
+                labels.len() == num_queries,
+                "C++ query-label count must match query rows"
+            );
+            anyhow::ensure!(
+                labels
+                    .iter()
+                    .all(|&label| !metadata.entries(label).is_empty()),
+                "missing medoid for C++ query label"
+            );
+            Ok((metadata, labels))
+        })
+        .transpose()?;
 
     logger.log_checkpoint("index_loaded");
 
@@ -264,20 +334,24 @@ where
             .zip(result_ids.par_chunks_mut(search_params.recall_at as usize))
             .zip(result_dists.par_chunks_mut(search_params.recall_at as usize))
             .zip(statistics_vec.par_iter_mut())
-            .zip(result_counts.par_iter_mut());
+            .zip(result_counts.par_iter_mut())
+            .enumerate();
 
         zipped.for_each_in_pool(
             pool.as_ref(),
-            |(((((q, vf), id_chunk), dist_chunk), stats), rc)| {
-                // Construct the SearchMode from the JSON-driven
-                // `adaptive_l` is now encapsulated in `DiskSearchMode`, so the
-                // benchmark only supplies the per-query filter and post-processor.
+            |(query_id, (((((q, vf), id_chunk), dist_chunk), stats), rc))| {
+                // Filters and explicit seeds were loaded before the timed loop.
                 let has_filter = search_params.vector_filters_file.is_some();
-                let mode: SearchMode<'_> = search_params.search_mode.search_mode(
-                    has_filter,
-                    vf,
-                    search_params.post_processor.as_ref(),
-                );
+                let mode: SearchMode<'_> = if let Some((metadata, labels)) = &cpp {
+                    SearchMode::cpp(metadata, Some(labels[query_id]))
+                } else {
+                    search_params.search_mode.search_mode(
+                        has_filter,
+                        vf,
+                        search_params.post_processor.as_ref(),
+                        starting_points.as_ref().map_or(&[], |rows| &rows[query_id]),
+                    )
+                };
 
                 match searcher.search(
                     q,
@@ -351,8 +425,13 @@ where
         beam_width: search_params.beam_width,
         recall_at: search_params.recall_at,
         is_flat_search: search_params.search_mode.is_flat_search,
+        is_single_hop_search: search_params
+            .search_mode
+            .single_hop_starting_points
+            .is_some()
+            || cpp.is_some(),
         distance: search_params.distance,
-        uses_vector_filters: search_params.vector_filters_file.is_some(),
+        uses_vector_filters: search_params.vector_filters_file.is_some() || cpp.is_some(),
         num_nodes_to_cache: search_params.num_nodes_to_cache,
         search_results_per_l,
         span_metrics,
@@ -435,6 +514,7 @@ impl fmt::Display for DiskSearchStats {
         writeln!(f, "Beam width,       : {}", self.beam_width)?;
         writeln!(f, "Recall at,        : {}", self.recall_at)?;
         writeln!(f, "Flat search,      : {}", self.is_flat_search)?;
+        writeln!(f, "Single-hop search,: {}", self.is_single_hop_search)?;
         writeln!(f, "Distance,         : {}", self.distance)?;
         writeln!(f, "Vector filters,   : {}", self.uses_vector_filters)?;
         writeln!(
@@ -481,5 +561,39 @@ impl fmt::Display for DiskSearchStats {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cpp_fixed_truth_recall_excludes_padding_and_preserves_distance_ties() {
+        let truth = GroundTruthContext {
+            gt_ids: Some(vec![0, 1, 2]),
+            gt_ids_variable_length: None,
+            gt_dists: Some(vec![0., 1., 1.]),
+            gt_dim: 3,
+            recall_at: 2,
+        };
+        for (ids, count, expected) in [
+            ([2, 0], 0, 0.),
+            ([2, 0], 1, 50.),
+            ([2, 0], 2, 100.),
+            ([2, 2], 2, 50.),
+        ] {
+            let result = DiskSearchResult::new(
+                &[QueryStatistics::default()],
+                &ids,
+                &[count],
+                2,
+                1.,
+                1,
+                &truth,
+            )
+            .unwrap();
+            assert_eq!(result.recall, expected);
+        }
     }
 }

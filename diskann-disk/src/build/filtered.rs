@@ -29,7 +29,11 @@ use diskann_providers::{
 };
 use diskann_utils::views::rowmajor::{self, Matrix};
 use diskann_vector::{distance::Metric, DistanceFunction};
-use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
+use rand::{
+    rngs::StdRng,
+    seq::{index, SliceRandom},
+    SeedableRng,
+};
 use rayon::prelude::*;
 use tokio::task::JoinSet;
 
@@ -131,19 +135,23 @@ where
         }
     }
     let protected_counts: Vec<_> = neighbors.iter().map(|row| row.len()).collect();
-    let mut entry_points = BTreeMap::new();
     let mut entry_scratch = EntryScratch::new(vectors.row(0))?;
+    let entry_points: BTreeMap<_, _> = postings
+        .iter()
+        .map(|&(label, members)| Ok((label, vec![entry_scratch.select(vectors, label, members)?])))
+        .collect::<ANNResult<_>>()?;
 
     for &(label, members) in &postings {
-        let entry = entry_scratch.select(vectors, label, members)?;
-        entry_points.insert(label, vec![entry]);
+        // Keep ordinary builds on one centroid route. Additional corpus entry
+        // pools remain available through the explicit selector below.
+        let entry = entry_points[&label][0];
         if members.len() <= settings.label_degree.saturating_add(1) {
             // Exact small-label graphs avoid a provider and Tokio task per tiny label.
             for &id in members {
                 neighbors[id as usize].extend(members.iter().copied().filter(|&n| n != id));
             }
         } else {
-            append_label_graph(vectors, label, members, settings, &mut neighbors).await?;
+            append_label_graph(vectors, label, members, entry, settings, &mut neighbors).await?;
         }
     }
 
@@ -168,9 +176,57 @@ where
     })
 }
 
+const ENTRY_CLUSTERS: usize = 4;
+const ENTRY_SAMPLE_LIMIT: usize = 4096;
+const ENTRY_LLOYD_ITERATIONS: usize = 8;
+const ENTRY_SAMPLE_SEED: u64 = 0x6c61_6265_6c5f_7633;
+
+/// Select up to five corpus-only search representatives for each atomic label.
+///
+/// The first entry is the actual member nearest the full-label centroid and is
+/// also the default construction seed. Labels with at most five members return all
+/// members. For larger labels, four centers use deterministic farthest-first
+/// initialization, followed by eight Lloyd iterations on at most 4096 members.
+/// The uniform, without-replacement sample uses `StdRng` seeded by
+/// `0x6c61_6265_6c5f_7633 ^ u64::from(label)`. Sorted sample indices include the
+/// global centroid medoid, replacing the largest sampled index when necessary.
+/// A final full-label assignment pass selects the actual nearest assigned member
+/// to each cluster center. Empty clusters contribute no representative.
+///
+/// All distance and mean accumulation uses finite `f64` values. Distance ties
+/// between real members use the smaller global ID; assignment ties use the
+/// center's deterministic initialization order. Results keep the global centroid
+/// first, then distinct cluster medoids in global-ID order. Only posting members
+/// are converted, so calls for separate labels have the same result as one call.
+/// Memory is bounded by the sample and vector dimension, independently of label
+/// cardinality; graph edges and query data are not used.
+///
+/// # Errors
+/// Returns an error for an empty or invalid vector shape, malformed postings,
+/// non-finite eligible vectors, or non-finite mean/distance calculations.
+pub fn select_label_entries<'a, T, I>(
+    vectors: rowmajor::Ref<'_, T>,
+    postings: I,
+) -> ANNResult<BTreeMap<u32, Vec<u32>>>
+where
+    T: VectorRepr,
+    I: IntoIterator<Item = (u32, &'a [u32])>,
+{
+    validate_vector_shape(vectors.nrows(), vectors.ncols())?;
+    let mut postings: Vec<_> = postings.into_iter().collect();
+    postings.sort_unstable_by_key(|(label, _)| *label);
+    validate_postings(vectors.nrows(), &postings)?;
+    let mut scratch = EntryScratch::new(vectors.row(0))?;
+    postings
+        .into_iter()
+        .map(|(label, members)| Ok((label, scratch.select_pool(vectors, label, members)?)))
+        .collect()
+}
+
 /// Scratch is shared across labels; conversion never allocates for an individual row.
 struct EntryScratch {
     row: Vec<f32>,
+    row64: Vec<f64>,
     centroid: Vec<f64>,
 }
 
@@ -185,6 +241,7 @@ impl EntryScratch {
         }
         Ok(Self {
             row: vec![0.; dimensions],
+            row64: vec![0.; dimensions],
             centroid: vec![0.; dimensions],
         })
     }
@@ -204,6 +261,9 @@ impl EntryScratch {
             return Err(ANNError::message(format!(
                 "non-finite full-precision entry-point row {id} of label {label}"
             )));
+        }
+        for (destination, &value) in self.row64.iter_mut().zip(&self.row) {
+            *destination = f64::from(value);
         }
         Ok(())
     }
@@ -258,14 +318,152 @@ impl EntryScratch {
         }
         Ok(best.1)
     }
+
+    fn select_pool<T: VectorRepr>(
+        &mut self,
+        vectors: rowmajor::Ref<'_, T>,
+        label: u32,
+        members: &[u32],
+    ) -> ANNResult<Vec<u32>> {
+        let centroid = self.select(vectors, label, members)?;
+        if members.len() <= ENTRY_CLUSTERS + 1 {
+            let mut entries = vec![centroid];
+            entries.extend(members.iter().copied().filter(|&id| id != centroid));
+            return Ok(entries);
+        }
+        let centroid_local = members
+            .binary_search(&centroid)
+            .map_err(|_| ANNError::message("entry centroid is outside its label"))?;
+        let mut sample = if members.len() > ENTRY_SAMPLE_LIMIT {
+            let mut rng = StdRng::seed_from_u64(ENTRY_SAMPLE_SEED ^ u64::from(label));
+            index::sample(&mut rng, members.len(), ENTRY_SAMPLE_LIMIT).into_vec()
+        } else {
+            (0..members.len()).collect()
+        };
+        sample.sort_unstable();
+        if sample.binary_search(&centroid_local).is_err() {
+            sample[ENTRY_SAMPLE_LIMIT - 1] = centroid_local;
+            sample.sort_unstable();
+        }
+        let mut points = Vec::with_capacity(sample.len());
+        for &local in &sample {
+            self.convert(vectors.row(members[local] as usize), label, members[local])?;
+            points.push(self.row64.clone());
+        }
+        let first = sample
+            .binary_search(&centroid_local)
+            .map_err(|_| ANNError::message("entry sample omitted its centroid"))?;
+        let mut centers = vec![points[first].clone()];
+        let mut nearest = vec![f64::INFINITY; points.len()];
+        while centers.len() < ENTRY_CLUSTERS {
+            let newest = &centers[centers.len() - 1];
+            let mut farthest = (0., u32::MAX, 0);
+            for (position, point) in points.iter().enumerate() {
+                nearest[position] =
+                    nearest[position].min(entry_squared_distance(point, newest, label)?);
+                let id = members[sample[position]];
+                if nearest[position] > farthest.0
+                    || (nearest[position] == farthest.0 && id < farthest.1)
+                {
+                    farthest = (nearest[position], id, position);
+                }
+            }
+            if farthest.0 == 0. {
+                break;
+            }
+            centers.push(points[farthest.2].clone());
+        }
+        let mut sums = vec![vec![0.; self.row64.len()]; centers.len()];
+        let mut counts = vec![0usize; centers.len()];
+        for _ in 0..ENTRY_LLOYD_ITERATIONS {
+            for sum in &mut sums {
+                sum.fill(0.);
+            }
+            counts.fill(0);
+            for point in &points {
+                let (cluster, _) = nearest_entry_center(point, &centers, label)?;
+                counts[cluster] += 1;
+                for (sum, &value) in sums[cluster].iter_mut().zip(point) {
+                    *sum += value;
+                }
+            }
+            for ((center, sum), &count) in centers.iter_mut().zip(&sums).zip(&counts) {
+                if count == 0 {
+                    continue;
+                }
+                for (value, &total) in center.iter_mut().zip(sum) {
+                    *value = total / count as f64;
+                    if !value.is_finite() {
+                        return Err(ANNError::message(format!(
+                            "invalid entry cluster mean for label {label}"
+                        )));
+                    }
+                }
+            }
+        }
+        // The fit is bounded; representatives themselves are selected from every
+        // eligible row, so a useful medoid need not occur in the training sample.
+        let mut medoids = vec![(f64::INFINITY, u32::MAX); centers.len()];
+        for &id in members {
+            self.convert(vectors.row(id as usize), label, id)?;
+            let (cluster, score) = nearest_entry_center(&self.row64, &centers, label)?;
+            let best = &mut medoids[cluster];
+            if score < best.0 || (score == best.0 && id < best.1) {
+                *best = (score, id);
+            }
+        }
+        let mut entries: Vec<_> = medoids
+            .into_iter()
+            .filter_map(|(_, id)| (id != u32::MAX && id != centroid).then_some(id))
+            .collect();
+        entries.sort_unstable();
+        entries.dedup();
+        entries.insert(0, centroid);
+        Ok(entries)
+    }
 }
 
-fn validate_settings(rows: usize, dim: usize, settings: &StitchedBuildConfig) -> ANNResult<()> {
+fn entry_squared_distance(left: &[f64], right: &[f64], label: u32) -> ANNResult<f64> {
+    let value: f64 = left
+        .iter()
+        .zip(right)
+        .map(|(&a, &b)| (a - b) * (a - b))
+        .sum();
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err(ANNError::message(format!(
+            "invalid entry-pool distance for label {label}"
+        )))
+    }
+}
+
+fn nearest_entry_center(
+    point: &[f64],
+    centers: &[Vec<f64>],
+    label: u32,
+) -> ANNResult<(usize, f64)> {
+    let mut best = (0, f64::INFINITY);
+    for (cluster, center) in centers.iter().enumerate() {
+        let score = entry_squared_distance(point, center, label)?;
+        if score < best.1 {
+            best = (cluster, score);
+        }
+    }
+    Ok(best)
+}
+
+fn validate_vector_shape(rows: usize, dim: usize) -> ANNResult<()> {
     if rows == 0 || rows >= u32::MAX as usize || dim == 0 {
         return Err(ANNError::message(
             "filtered build requires nonzero dimensions and 0 < rows < u32::MAX",
         ));
     }
+    Ok(())
+}
+
+fn validate_settings(rows: usize, dim: usize, settings: &StitchedBuildConfig) -> ANNResult<()> {
+    validate_vector_shape(rows, dim)?;
     if settings.label_degree == 0
         || settings.max_degree == 0
         || settings.max_degree > u32::MAX as usize
@@ -364,9 +562,15 @@ async fn append_label_graph<T: VectorRepr>(
     vectors: rowmajor::Ref<'_, T>,
     label: u32,
     members: &[u32],
+    entry: u32,
     settings: &StitchedBuildConfig,
     stitched: &mut [Vec<u32>],
 ) -> ANNResult<()> {
+    let local_entry = members
+        .binary_search(&entry)
+        .map_err(|_| ANNError::message("construction entry is outside its label"))?;
+    let entry_id = u32::try_from(local_entry)?;
+    let entry_vector = vectors.row(entry as usize);
     let mut builder = config::Builder::new(
         settings.label_degree,
         config::MaxDegree::default_slack(),
@@ -384,17 +588,14 @@ async fn append_label_graph<T: VectorRepr>(
     let index = diskann_async::new_index::<T, _>(config, params, NoDeletes)?;
     index
         .provider()
-        .set_start_points(std::iter::once(vectors.row(members[0] as usize)))?;
+        .set_start_points(std::iter::once(entry_vector))?;
     index
-        .insert(
-            &FullPrecision,
-            &DefaultContext,
-            &0,
-            vectors.row(members[0] as usize),
-        )
+        .insert(&FullPrecision, &DefaultContext, &entry_id, entry_vector)
         .await?;
 
-    let mut order: Vec<_> = (1..members.len()).collect();
+    let mut order: Vec<_> = (0..members.len())
+        .filter(|&local| local != local_entry)
+        .collect();
     order.shuffle(&mut StdRng::seed_from_u64(settings.seed ^ u64::from(label)));
     let mut tasks = JoinSet::new();
     for local in order {
@@ -430,7 +631,6 @@ async fn append_label_graph<T: VectorRepr>(
         join_one(&mut tasks).await?;
     }
 
-    let virtual_id = u32::try_from(members.len())?;
     let mut virtual_neighbors = AdjacencyList::new();
     index
         .provider()
@@ -442,17 +642,44 @@ async fn append_label_graph<T: VectorRepr>(
             .provider()
             .neighbors()
             .get_neighbors_sync(local, &mut local_neighbors)?;
-        // The real start inherits the virtual start's neighborhood. Omitting this
-        // remap can leave a perfectly good in-memory graph disconnected on SSD.
-        let virtual_edges = if local == 0 { &*virtual_neighbors } else { &[] };
-        for &neighbor in virtual_edges.iter().chain(local_neighbors.iter()) {
-            let neighbor = if neighbor == virtual_id { 0 } else { neighbor };
-            if neighbor as usize >= members.len() {
-                return Err(ANNError::message("per-label Vamana emitted an invalid ID"));
-            }
-            if neighbor as usize != local {
-                stitched[global as usize].push(members[neighbor as usize]);
-            }
+        append_remapped_label_neighbors(
+            local,
+            local_entry,
+            members,
+            &virtual_neighbors,
+            &local_neighbors,
+            &mut stitched[global as usize],
+        )?;
+    }
+    Ok(())
+}
+
+fn append_remapped_label_neighbors(
+    local: usize,
+    local_entry: usize,
+    members: &[u32],
+    virtual_neighbors: &[u32],
+    local_neighbors: &[u32],
+    stitched: &mut Vec<u32>,
+) -> ANNResult<()> {
+    // The selected real centroid entry inherits the identical virtual start's
+    // neighborhood. Every virtual edge must resolve to that same real member.
+    let inherited = if local == local_entry {
+        virtual_neighbors
+    } else {
+        &[]
+    };
+    for &neighbor in inherited.iter().chain(local_neighbors) {
+        let neighbor = if neighbor as usize == members.len() {
+            local_entry
+        } else {
+            neighbor as usize
+        };
+        if neighbor >= members.len() {
+            return Err(ANNError::message("per-label Vamana emitted an invalid ID"));
+        }
+        if neighbor != local {
+            stitched.push(members[neighbor]);
         }
     }
     Ok(())
@@ -490,6 +717,14 @@ fn prune_row<T: VectorRepr>(
         scored.push((candidate, score));
     }
     scored.sort_unstable_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
+    // The per-label graphs were already geometrically pruned. A second prune
+    // would remove their routing edges even when the stitched union fits on SSD.
+    // Keep the protected prefix and use distance/ID order for the other edges.
+    if selected.len() + scored.len() <= settings.max_degree {
+        selected.extend(scored.into_iter().map(|(candidate, _)| candidate));
+        *row = selected;
+        return Ok(());
+    }
     for (candidate, score) in scored {
         if selected.len() == settings.max_degree {
             break;
@@ -573,6 +808,150 @@ mod tests {
         assert_eq!(graph.entry_points[&99], [0]);
         assert_connected(&graph, 7, &[0, 1, 2, 3]);
         assert_connected(&graph, 99, &[0]);
+    }
+
+    #[test]
+    fn corpus_entry_pool_keeps_global_centroid_and_four_spatial_cluster_medoids() {
+        let values = [
+            -100f32, -99., -98., -10., -9., -8., 10., 11., 12., 100., 101., 102.,
+        ];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let members: Vec<_> = (0..values.len() as u32).collect();
+        let entries = select_label_entries(vectors, [(7, members.as_slice())]).unwrap();
+        // Global mean is1; IDs5(-8) and6(10) tie, so the smaller ID remains
+        // the construction fallback. Cluster means are -99,-9,11,101.
+        assert_eq!(entries[&7], [5, 1, 4, 7, 10]);
+    }
+
+    #[test]
+    fn corpus_entry_pool_small_labels_deduplicate_and_ignore_unrelated_vectors() {
+        let values = [f32::NAN, 1., 9., 2., 10., 3., 11., 4.];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let entries =
+            select_label_entries(vectors, [(7, &[1, 3, 5, 7][..]), (99, &[2][..])]).unwrap();
+        assert_eq!(entries[&7], [3, 1, 5, 7]);
+        assert_eq!(entries[&99], [2]);
+        let identical = [f32::MAX; 8];
+        let members: Vec<_> = (0..8).collect();
+        let entries = select_label_entries(
+            rowmajor::Ref::column_vector(&identical),
+            [(7, members.as_slice())],
+        )
+        .unwrap();
+        assert_eq!(entries[&7], [0]);
+    }
+
+    #[test]
+    fn corpus_entry_pool_sampling_is_independent_of_label_enumeration_and_call_batching() {
+        let values: Vec<_> = (0..5000).map(|id| ((id * 37) % 1009) as f32).collect();
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let even: Vec<_> = (0..5000).step_by(2).collect();
+        let all: Vec<_> = (0..5000).collect();
+        let combined =
+            select_label_entries(vectors, [(99, even.as_slice()), (7, all.as_slice())]).unwrap();
+        let separate = select_label_entries(vectors, [(7, all.as_slice())]).unwrap();
+        assert_eq!(combined[&7], separate[&7]);
+        assert_eq!(
+            combined[&99],
+            select_label_entries(vectors, [(99, even.as_slice())]).unwrap()[&99]
+        );
+        for (label, members) in [(7, &all), (99, &even)] {
+            let entries = &combined[&label];
+            assert!(!entries.is_empty() && entries.len() <= ENTRY_CLUSTERS + 1);
+            assert!(entries.iter().all(|id| members.binary_search(id).is_ok()));
+            assert_eq!(entries.iter().collect::<BTreeSet<_>>().len(), entries.len());
+            assert!(entries[1..].windows(2).all(|pair| pair[0] < pair[1]));
+            let mut scratch = EntryScratch::new(vectors.row(0)).unwrap();
+            assert_eq!(entries[0], scratch.select(vectors, label, members).unwrap());
+        }
+    }
+
+    #[test]
+    fn corpus_entry_pool_can_choose_a_medoid_outside_the_bounded_fit_sample() {
+        let values: Vec<_> = (0..5000).map(|id| id as f32).collect();
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let members: Vec<_> = (0..5000).collect();
+        let mut found = false;
+        for label in 0..16 {
+            let entries = select_label_entries(vectors, [(label, members.as_slice())]).unwrap();
+            let entries = &entries[&label];
+            let mut rng = StdRng::seed_from_u64(ENTRY_SAMPLE_SEED ^ u64::from(label));
+            let mut sample = index::sample(&mut rng, members.len(), ENTRY_SAMPLE_LIMIT).into_vec();
+            sample.sort_unstable();
+            if sample.binary_search(&(entries[0] as usize)).is_err() {
+                sample[ENTRY_SAMPLE_LIMIT - 1] = entries[0] as usize;
+                sample.sort_unstable();
+            }
+            if entries[1..]
+                .iter()
+                .any(|&id| sample.binary_search(&(id as usize)).is_err())
+            {
+                found = true;
+                break;
+            }
+        }
+        assert!(
+            found,
+            "full-label representatives must not be restricted to fit rows"
+        );
+    }
+
+    #[test]
+    fn corpus_entry_pool_uses_f64_for_extreme_values_and_rejects_invalid_members() {
+        let values = [f32::MAX, -f32::MAX, f32::MAX, -f32::MAX, 0., 0., 0., 0.];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let members: Vec<_> = (0..8).collect();
+        let entries = select_label_entries(vectors, [(7, members.as_slice())]).unwrap();
+        assert_eq!(entries[&7][0], 4);
+        assert!(entries[&7].contains(&0) && entries[&7].contains(&1));
+        for invalid in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+            let values = [0., invalid];
+            assert!(select_label_entries(
+                rowmajor::Ref::column_vector(&values),
+                [(7, &[0, 1][..])]
+            )
+            .is_err());
+        }
+        for invalid in [&[][..], &[0, 0][..], &[1, 0][..], &[8][..]] {
+            assert!(select_label_entries(vectors, [(7, invalid)]).is_err());
+        }
+        assert!(select_label_entries(vectors, [(7, &[0][..]), (7, &[1][..])]).is_err());
+    }
+
+    #[test]
+    fn virtual_edges_and_inherited_neighbors_resolve_to_the_nonfirst_centroid_entry() {
+        let members = [10, 20, 30, 40];
+        let mut other = Vec::new();
+        append_remapped_label_neighbors(0, 2, &members, &[0, 1], &[4], &mut other).unwrap();
+        // A non-entry row resolves its virtual neighbor to the centroid member,
+        // and does not inherit the virtual start's outgoing neighborhood.
+        assert_eq!(other, [30]);
+        let mut entry = Vec::new();
+        append_remapped_label_neighbors(2, 2, &members, &[0, 1], &[4, 3], &mut entry).unwrap();
+        assert_eq!(entry, [10, 20, 40]);
+        assert!(append_remapped_label_neighbors(0, 2, &members, &[], &[5], &mut other).is_err());
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn vamana_constructs_from_a_nonfirst_centroid_and_exports_only_real_label_members() {
+        let values = [255u8, 255, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+        let vectors = rowmajor::Ref::try_from_data(&values, 8, 2).unwrap();
+        let members = [0, 1, 2, 3, 4, 5, 6, 7];
+        let settings = StitchedBuildConfig {
+            label_degree: 2,
+            max_degree: 8,
+            l_build: 8,
+            concurrency: 2,
+            ..Default::default()
+        };
+        // This forces real Vamana construction, rather than the exact-small-label
+        // shortcut exercised by the separate centroid metadata tests.
+        let graph = build_stitched(vectors, [(7, members.as_slice())], &settings)
+            .await
+            .unwrap();
+        assert_eq!(graph.entry_points[&7][0], 7);
+        assert_connected(&graph, 7, &members);
+        assert!(graph.neighbors[7].iter().all(|&id| id != 7 && id < 8));
     }
 
     #[tokio::test]
@@ -765,5 +1144,74 @@ mod tests {
         // Candidate1 has labels1+2; source0 only requires label1, which selected2 covers.
         assert!(membership.covered(0, 1, 2));
         assert!(!membership.covered(0, 1, 3));
+    }
+
+    #[test]
+    fn in_budget_union_keeps_geometric_edges_and_cleans_duplicate_candidates() {
+        let values = [0f32, 1., 1.1, 2.];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let membership = Membership::new(4, &[(7, &[0, 1, 2, 3])]).unwrap();
+        let settings = StitchedBuildConfig {
+            max_degree: 3,
+            ..Default::default()
+        };
+        let distance = f32::distance(Metric::L2, Some(1));
+        let mut row = vec![3, 2, 1, 0, 2];
+        prune_row(0, &mut row, 1, vectors, &membership, &settings, &distance).unwrap();
+        // Edge0->2 is geometrically occluded by edge0->1, but still belongs to
+        // the already-pruned per-label union. The protected edge stays first.
+        assert_eq!(row, [3, 1, 2]);
+
+        let mut overflow = vec![3, 2, 1, 0, 2];
+        let settings = StitchedBuildConfig {
+            max_degree: 2,
+            ..settings
+        };
+        prune_row(
+            0,
+            &mut overflow,
+            1,
+            vectors,
+            &membership,
+            &settings,
+            &distance,
+        )
+        .unwrap();
+        assert_eq!(overflow, [3, 1]);
+    }
+
+    #[tokio::test]
+    async fn stitching_preserves_in_budget_cliques_and_bounds_overflow_with_connectivity() {
+        let values = [0f32, 1., 2., 3.];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let members = [0, 1, 2, 3];
+        let settings = StitchedBuildConfig {
+            label_degree: 3,
+            max_degree: 3,
+            l_build: 4,
+            ..Default::default()
+        };
+        let graph = build_stitched(vectors, [(7, members.as_slice())], &settings)
+            .await
+            .unwrap();
+        for (id, row) in graph.neighbors.iter().enumerate() {
+            assert_eq!(row.len(), 3);
+            assert!(members
+                .iter()
+                .filter(|&&member| member != id as u32)
+                .all(|member| row.contains(member)));
+        }
+        assert_connected(&graph, 7, &members);
+
+        let settings = StitchedBuildConfig {
+            max_degree: 2,
+            ..settings
+        };
+        let overflow = build_stitched(vectors, [(7, members.as_slice())], &settings)
+            .await
+            .unwrap();
+        assert_connected(&overflow, 7, &members);
+        assert!(overflow.neighbors.iter().all(|row| row.len() <= 2));
+        assert!(overflow.neighbors.iter().any(|row| row.len() < 3));
     }
 }

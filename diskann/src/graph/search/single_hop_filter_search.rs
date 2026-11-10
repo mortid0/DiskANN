@@ -34,6 +34,7 @@ pub struct SingleHopFilterSearch<'s, I: Eq> {
     /// Base graph search parameters.
     pub inner: Knn,
     starting_points: &'s [I],
+    start_selection: StartSelection<I>,
     rerank_frontier: bool,
     recorder: Option<&'s mut dyn SearchRecord<I>>,
 }
@@ -43,6 +44,7 @@ impl<I: Eq + std::fmt::Debug> std::fmt::Debug for SingleHopFilterSearch<'_, I> {
         f.debug_struct("SingleHopFilterSearch")
             .field("inner", &self.inner)
             .field("starting_points", &self.starting_points)
+            .field("start_selection", &self.start_selection)
             .field("rerank_frontier", &self.rerank_frontier)
             .finish_non_exhaustive()
     }
@@ -56,9 +58,16 @@ impl<'s, I: Eq> SingleHopFilterSearch<'s, I> {
         Self {
             inner,
             starting_points,
+            start_selection: StartSelection::All,
             rerank_frontier: false,
             recorder: None,
         }
+    }
+
+    /// Choose which of the supplied starting points seed the frontier.
+    pub fn with_start_selection(mut self, start_selection: StartSelection<I>) -> Self {
+        self.start_selection = start_selection;
+        self
     }
 
     /// Record nodes selected for expansion, with the current hop and comparison counts.
@@ -78,9 +87,32 @@ impl<'s, I: Eq> SingleHopFilterSearch<'s, I> {
     }
 }
 
+/// Which supplied starting points seed a [`SingleHopFilterSearch`] frontier.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum StartSelection<I> {
+    /// Seed every supplied starting point.
+    #[default]
+    All,
+    /// Score the whole pool with the search accessor's (possibly approximate)
+    /// distance and seed only the nearest point, breaking ties by lower ID.
+    ///
+    /// `fallback`, which must belong to the pool, is seeded as well. Every pool
+    /// member must still match the filter, and each distinct member counts as one
+    /// comparison. Distances are computed with the accessor's start-point routine,
+    /// so a disk accessor scores the pool from in-memory PQ codes without I/O.
+    Nearest {
+        /// An additional pool member to seed alongside the nearest one.
+        fallback: Option<I>,
+    },
+}
+
 #[derive(Debug, Error)]
 #[error("single-hop filtered search requires every starting point to match the filter")]
 struct RejectedStartingPoint;
+
+#[derive(Debug, Error)]
+#[error("fallback starting point must belong to the pool")]
+struct FallbackNotInPool;
 
 impl<'a, DP, S, T> Search<'a, DP, S, T> for SingleHopFilterSearch<'_, DP::InternalId>
 where
@@ -113,21 +145,55 @@ where
             let mut scratch = index.search_scratch(self.inner.l_value().get(), 0);
             let scratch = &mut *scratch;
             let mut rejected_start = false;
-            accessor
-                .start_point_distances_from(self.starting_points, |decision, distance| {
-                    if let glue::Decision::Accept(id) = decision {
-                        let id = id.into_inner();
-                        if scratch.visited.insert(id) {
-                            scratch
-                                .best
-                                .insert_with_id_ties(Neighbor::new(id, distance));
-                            scratch.cmps += 1;
-                        }
-                    } else {
-                        rejected_start = true;
+            match self.start_selection {
+                StartSelection::All => {
+                    accessor
+                        .start_point_distances_from(self.starting_points, |decision, distance| {
+                            if let glue::Decision::Accept(id) = decision {
+                                let id = id.into_inner();
+                                if scratch.visited.insert(id) {
+                                    scratch
+                                        .best
+                                        .insert_with_id_ties(Neighbor::new(id, distance));
+                                    scratch.cmps += 1;
+                                }
+                            } else {
+                                rejected_start = true;
+                            }
+                        })
+                        .await?;
+                }
+                StartSelection::Nearest { fallback } => {
+                    // Validate before scoring: an invalid pool must not be evaluated.
+                    if fallback.is_some_and(|id| !self.starting_points.contains(&id)) {
+                        return Err(ANNError::new(FallbackNotInPool));
                     }
-                })
-                .await?;
+                    let mut pool = Vec::with_capacity(self.starting_points.len());
+                    accessor
+                        .start_point_distances_from(self.starting_points, |decision, distance| {
+                            if let glue::Decision::Accept(id) = decision {
+                                pool.push(Neighbor::new(id.into_inner(), distance));
+                            } else {
+                                rejected_start = true;
+                            }
+                        })
+                        .await?;
+                    if !rejected_start {
+                        pool.sort_unstable_by_key(|n| *n.id());
+                        pool.dedup_by_key(|n| *n.id());
+                        scratch.cmps += pool.len() as u32;
+                        let nearest = pool
+                            .iter()
+                            .min_by(|a, b| crate::neighbor::ord::fast_distance_total(a, b));
+                        let fallback = fallback.and_then(|id| pool.iter().find(|n| *n.id() == id));
+                        for start in nearest.into_iter().chain(fallback) {
+                            if scratch.visited.insert(*start.id()) {
+                                scratch.best.insert_with_id_ties(*start);
+                            }
+                        }
+                    }
+                }
+            }
             if rejected_start {
                 return Err(ANNError::new(RejectedStartingPoint));
             }
@@ -647,5 +713,103 @@ mod tests {
             );
             assert_eq!(stats.hops as usize, ids.len());
         }
+    }
+
+    fn nearest_search(
+        starts: &[u32],
+        fallback: Option<u32>,
+        distance: fn(u32) -> f32,
+    ) -> (ANNResult<SearchStats>, Vec<u32>, Vec<u32>) {
+        let index = graph(10);
+        let trace = Mutex::new(Trace::default());
+        let mut results = Vec::<Neighbor<u32>>::new();
+        let stats = current_thread_runtime().block_on(
+            index.search_with(
+                SingleHopFilterSearch::new(Knn::new(10, Some(1)).unwrap(), starts)
+                    .with_start_selection(StartSelection::Nearest { fallback }),
+                &Filtered::new(ApproximateStrategy(&trace, distance), &Evens),
+                glue::CopyIds,
+                &provider::Context::new(),
+                &[0.0][..],
+                &mut results,
+            ),
+        );
+        let expanded = trace.into_inner().unwrap().expanded;
+        (stats, expanded, results.iter().map(|n| *n.id()).collect())
+    }
+
+    #[test]
+    fn nearest_start_seeds_only_the_nearest_pool_member_and_its_fallback() {
+        let (stats, expanded, _) = nearest_search(&[10, 2], None, approximate_distance);
+        let stats = stats.unwrap();
+        assert_eq!(expanded, [2, 0], "the farther pool member is never seeded");
+        assert_eq!(stats.cmps, 3, "both pool members plus one neighbor");
+        assert_eq!(stats.hops, 2);
+
+        let (stats, expanded, ids) = nearest_search(&[10, 2], Some(10), approximate_distance);
+        let stats = stats.unwrap();
+        assert_eq!(expanded, [2, 0, 10]);
+        assert_eq!(ids, [2, 0, 10]);
+        assert_eq!(stats.cmps, 3);
+
+        // Selecting the nearest point as its own fallback seeds it only once.
+        let (stats, expanded, _) = nearest_search(&[10, 2], Some(2), approximate_distance);
+        assert_eq!(expanded, [2, 0]);
+        assert_eq!(stats.unwrap().cmps, 3);
+    }
+
+    #[test]
+    fn nearest_start_breaks_ties_by_id_and_counts_duplicates_once() {
+        let tied = |id| match id {
+            0 | 2 => 1.0,
+            _ => panic!("only pool members and their matching neighbors are scored"),
+        };
+        let (stats, expanded, _) = nearest_search(&[2, 0, 2], None, tied);
+        let stats = stats.unwrap();
+        assert_eq!(
+            expanded,
+            [0, 2],
+            "ID 0 wins the tie; 2 is found as a neighbor"
+        );
+        assert_eq!(stats.cmps, 3, "two distinct pool members plus one neighbor");
+    }
+
+    #[test]
+    fn nearest_start_validates_the_pool() {
+        for (starts, fallback) in [(&[2, 0][..], Some(4)), (&[][..], Some(0))] {
+            let index = graph(10);
+            let error = current_thread_runtime()
+                .block_on(
+                    index.search_with(
+                        SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), starts)
+                            .with_start_selection(StartSelection::Nearest { fallback }),
+                        &Filtered::new(provider::Strategy::new(), &Evens),
+                        glue::CopyIds,
+                        &provider::Context::new(),
+                        &[0.0][..],
+                        &mut Vec::<Neighbor<u32>>::new(),
+                    ),
+                )
+                .unwrap_err();
+            assert!(error.to_string().contains("fallback starting point"));
+            assert_eq!(
+                index.provider().metrics().get_vector,
+                0,
+                "the pool must not be scored after a fallback error"
+            );
+        }
+
+        // An unselected pool member must still satisfy the strict filter.
+        let (stats, _, _) = nearest_search(&[2, 1], None, |id| id as f32);
+        assert!(
+            stats
+                .unwrap_err()
+                .to_string()
+                .contains("every starting point")
+        );
+
+        let (stats, expanded, ids) = nearest_search(&[], None, approximate_distance);
+        assert_eq!(stats.unwrap().cmps, 0);
+        assert!(expanded.is_empty() && ids.is_empty());
     }
 }

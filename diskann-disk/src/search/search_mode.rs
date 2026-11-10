@@ -10,7 +10,7 @@
 //! inline filter without a predicate) are unrepresentable at the API boundary.
 
 use diskann::graph::ext::labeled::QueryLabelProvider;
-use diskann::graph::search::AdaptiveL;
+use diskann::graph::search::{AdaptiveL, StartSelection};
 use diskann_providers::model::graph::provider::DeterminantDiversityParams;
 
 /// Owned closure used to filter vector IDs during disk search.
@@ -68,12 +68,14 @@ pub enum SearchMode<'a> {
     /// Experimental strict traversal; requires a label-connected graph and matching starts.
     SingleHopFilter {
         starting_points: &'a [u32],
+        start_selection: StartSelection<u32>,
         filter: Box<dyn QueryLabelProvider<u32> + 'a>,
     },
 
     /// Ablation: strict traversal with reranking limited to the final PQ frontier.
     SingleHopFilterFrontier {
         starting_points: &'a [u32],
+        start_selection: StartSelection<u32>,
         filter: Box<dyn QueryLabelProvider<u32> + 'a>,
     },
 
@@ -144,6 +146,28 @@ impl<'a> SearchMode<'a> {
     {
         Self::SingleHopFilter {
             starting_points,
+            start_selection: StartSelection::All,
+            filter: Box::new(FnLabelProvider(predicate)),
+        }
+    }
+
+    /// Strict single-hop traversal seeded from the nearest member of an entry pool.
+    ///
+    /// The pool is ranked using the query's in-memory PQ distances, so selection
+    /// reads no vectors from SSD; ties go to the lower ID. `fallback`, which must
+    /// belong to the pool, is seeded as well. Every pool member must match the
+    /// predicate, and each distinct member counts as one comparison.
+    pub fn single_hop_filter_nearest_start<F>(
+        predicate: F,
+        pool: &'a [u32],
+        fallback: Option<u32>,
+    ) -> Self
+    where
+        F: Fn(&u32) -> bool + Send + Sync + 'a,
+    {
+        Self::SingleHopFilter {
+            starting_points: pool,
+            start_selection: StartSelection::Nearest { fallback },
             filter: Box::new(FnLabelProvider(predicate)),
         }
     }
@@ -158,6 +182,23 @@ impl<'a> SearchMode<'a> {
     {
         Self::SingleHopFilterFrontier {
             starting_points,
+            start_selection: StartSelection::All,
+            filter: Box::new(FnLabelProvider(predicate)),
+        }
+    }
+
+    /// Frontier-reranking ablation seeded like [`Self::single_hop_filter_nearest_start`].
+    pub fn single_hop_filter_frontier_nearest_start<F>(
+        predicate: F,
+        pool: &'a [u32],
+        fallback: Option<u32>,
+    ) -> Self
+    where
+        F: Fn(&u32) -> bool + Send + Sync + 'a,
+    {
+        Self::SingleHopFilterFrontier {
+            starting_points: pool,
+            start_selection: StartSelection::Nearest { fallback },
             filter: Box::new(FnLabelProvider(predicate)),
         }
     }

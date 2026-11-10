@@ -11,6 +11,17 @@ filtered build/update/persistence API. Existing search defaults remain unchanged
 See `benchmark-results/single-hop/migration/REPORT.md` for current evidence and
 `diskann-disk/src/filtered/README.md` for the serving contract.
 
+## local artifacts and recovery
+
+`benchmark-results/` is ignored by git. datasets, indexes, reports, plots, and
+measurement outputs stay on disk when removed from the index. keep benchmark
+scripts and tests under `tools/single-hop-benchmark/` so they remain versioned.
+
+benchmark artifacts are not stored in git history. retain separate copies of
+local measurements you need to preserve; datasets and indexes can be regenerated
+with the preparation and runner scripts below. `git clean -x` also deletes ignored
+artifacts.
+
 ## Dataset and scope
 
 Use the public BigANN 2023 YFCC10M filtered-search dataset: 10 million 192-dimensional

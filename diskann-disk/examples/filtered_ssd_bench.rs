@@ -359,7 +359,7 @@ mod experiment {
             starts == "label" || starts == "global",
             "--starts must be label or global"
         );
-        let modes = get("modes", "inline,multihop,single");
+        let modes = get("modes", "single");
         let repetitions: usize = get("reps", "3").parse()?;
         let limit: usize = get("limit", "2000").parse()?;
         let k: usize = get("k", "10").parse()?;

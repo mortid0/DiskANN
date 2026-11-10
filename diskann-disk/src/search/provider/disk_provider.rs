@@ -1528,10 +1528,12 @@ where
             SearchMode::SingleHopFilter {
                 filter,
                 starting_points,
+                start_selection,
             }
             | SearchMode::SingleHopFilterFrontier {
                 filter,
                 starting_points,
+                start_selection,
             } => {
                 let strategy = self.search_strategy(
                     &io_tracker,
@@ -1540,7 +1542,8 @@ where
                 );
                 let strategy = labeled::Filtered::new(strategy, filter.as_ref());
                 let frontier_only = matches!(mode, SearchMode::SingleHopFilterFrontier { .. });
-                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starting_points);
+                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starting_points)
+                    .with_start_selection(*start_selection);
                 let (search, processor) = if frontier_only {
                     (
                         search.with_frontier_reranking(),
@@ -2928,6 +2931,201 @@ mod disk_provider_tests {
         assert_eq!(result.stats.result_count, 10);
     }
 
+    fn nearest_start_engine(
+        storage: &Arc<VirtualStorageProvider<OverlayFS>>,
+    ) -> DiskIndexSearcher<
+        GraphDataF32VectorUnitData,
+        DiskVertexProviderFactory<
+            GraphDataF32VectorUnitData,
+            VirtualAlignedReaderFactory<OverlayFS>,
+        >,
+    > {
+        create_disk_index_searcher::<GraphDataF32VectorUnitData>(
+            CreateDiskIndexSearcherParams {
+                pq_pivot_file_path: TEST_PQ_PIVOT_128DIM,
+                pq_compressed_file_path: TEST_PQ_COMPRESSED_128DIM,
+                index_path: TEST_INDEX_128DIM,
+                index_path_prefix: TEST_INDEX_PREFIX_128DIM,
+                ..Default::default()
+            },
+            storage,
+        )
+    }
+
+    /// PQ distances of `pool` as seen by the search accessor, without SSD reads.
+    fn pool_pq_scores<F: VertexProviderFactory<GraphDataF32VectorUnitData>>(
+        engine: &DiskIndexSearcher<GraphDataF32VectorUnitData, F>,
+        query: &[f32],
+        pool: &[u32],
+    ) -> Vec<(u32, f32)> {
+        let tracker = IOTracker::default();
+        let strategy = engine.search_strategy(&tracker, PostprocessStrategy::AcceptAll, false);
+        let mut accessor = strategy
+            .search_accessor(engine.index.provider(), &DefaultContext, query)
+            .unwrap();
+        let mut scores = Vec::new();
+        engine
+            .runtime
+            .block_on(glue::SearchAccessor::start_point_distances_from(
+                &mut accessor,
+                pool,
+                |id, distance| scores.push((id, distance)),
+            ))
+            .unwrap();
+        assert_eq!(
+            tracker.io_count(),
+            0,
+            "pool scoring must read no SSD vectors"
+        );
+        scores.sort_unstable_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
+        scores
+    }
+
+    #[test]
+    fn nearest_pq_start_and_fallback_match_explicit_starts() {
+        let storage = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let engine = nearest_start_engine(&storage);
+        let query = [0.1; 128];
+        let pool: Vec<u32> = (0..8).collect();
+        let scores = pool_pq_scores(&engine, &query, &pool);
+        let nearest = scores[0].0;
+        let farthest = scores.last().unwrap().0;
+        assert_ne!(nearest, farthest);
+        let mut duplicate_pool = pool.clone();
+        duplicate_pool.extend(&pool);
+
+        for fallback in [None, Some(farthest), Some(nearest)] {
+            let mut chosen: Vec<_> = std::iter::once(nearest).chain(fallback).collect();
+            chosen.sort_unstable();
+            chosen.dedup();
+            for l in [1, 8] {
+                let selected = engine
+                    .search(
+                        &query,
+                        1,
+                        l,
+                        Some(4),
+                        SearchMode::single_hop_filter_nearest_start(
+                            |id| *id < 8,
+                            &duplicate_pool,
+                            fallback,
+                        ),
+                    )
+                    .unwrap();
+                let explicit = engine
+                    .search(
+                        &query,
+                        1,
+                        l,
+                        Some(4),
+                        SearchMode::single_hop_filter(|id| *id < 8, &chosen),
+                    )
+                    .unwrap();
+                assert_eq!(selected.stats.result_count, explicit.stats.result_count);
+                assert_eq!(selected.results[0].vertex_id, explicit.results[0].vertex_id);
+                assert_eq!(selected.results[0].distance, explicit.results[0].distance);
+                assert_eq!(
+                    selected.stats.query_statistics.search_hops,
+                    explicit.stats.query_statistics.search_hops
+                );
+                assert_eq!(
+                    selected.stats.query_statistics.total_vertices_loaded,
+                    explicit.stats.query_statistics.total_vertices_loaded,
+                    "selection must not load extra vertices"
+                );
+                assert_eq!(
+                    selected.stats.cmps,
+                    explicit.stats.cmps + (pool.len() - chosen.len()) as u32,
+                    "every distinct pool member is scored once"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn nearest_pq_start_ranks_pools_larger_than_one_pq_batch() {
+        let storage = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let engine = nearest_start_engine(&storage);
+        let query = [0.1; 128];
+        let pool: Vec<u32> = (0..256).rev().collect();
+        {
+            let tracker = IOTracker::default();
+            let strategy = engine.search_strategy(&tracker, PostprocessStrategy::AcceptAll, false);
+            let accessor = strategy
+                .search_accessor(engine.index.provider(), &DefaultContext, query.as_slice())
+                .unwrap();
+            assert!(pool.len() > accessor.scratch.pq_scratch.max_vectors());
+        }
+        let nearest = pool_pq_scores(&engine, &query, &pool)[0].0;
+        for frontier in [false, true] {
+            let (selected, explicit) = if frontier {
+                (
+                    SearchMode::single_hop_filter_frontier_nearest_start(|_| true, &pool, None),
+                    SearchMode::single_hop_filter_frontier(
+                        |_| true,
+                        std::slice::from_ref(&nearest),
+                    ),
+                )
+            } else {
+                (
+                    SearchMode::single_hop_filter_nearest_start(|_| true, &pool, None),
+                    SearchMode::single_hop_filter(|_| true, std::slice::from_ref(&nearest)),
+                )
+            };
+            let selected = engine.search(&query, 1, 1, Some(4), selected).unwrap();
+            let explicit = engine.search(&query, 1, 1, Some(4), explicit).unwrap();
+            assert_eq!(selected.results[0].vertex_id, explicit.results[0].vertex_id);
+            assert_eq!(
+                selected.stats.query_statistics.search_hops,
+                explicit.stats.query_statistics.search_hops
+            );
+            assert_eq!(selected.stats.cmps, explicit.stats.cmps + 255);
+        }
+    }
+
+    #[test]
+    fn nearest_pq_start_rejects_invalid_pools() {
+        let storage = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
+        let engine = nearest_start_engine(&storage);
+        fn search<F: VertexProviderFactory<GraphDataF32VectorUnitData>>(
+            engine: &DiskIndexSearcher<GraphDataF32VectorUnitData, F>,
+            mode: SearchMode<'_>,
+        ) -> Option<String> {
+            engine
+                .search(&[0.1; 128], 1, 1, Some(4), mode)
+                .err()
+                .map(|e| e.to_string())
+        }
+        for (pool, fallback) in [(vec![0, 1], 2), (Vec::new(), 0), (vec![0], 256)] {
+            let error = search(
+                &engine,
+                SearchMode::single_hop_filter_nearest_start(|_| true, &pool, Some(fallback)),
+            )
+            .expect("missing or invalid fallback must be rejected");
+            assert!(error.contains("fallback starting point"), "{error}");
+        }
+        for fallback in [None, Some(1)] {
+            for mode in [
+                SearchMode::single_hop_filter_nearest_start(|id| *id == 0, &[0, 1], fallback),
+                SearchMode::single_hop_filter_frontier_nearest_start(
+                    |id| *id == 0,
+                    &[0, 1],
+                    fallback,
+                ),
+            ] {
+                let error = search(&engine, mode)
+                    .expect("an unselected mismatching entry must be rejected");
+                assert!(error.contains("every starting point"), "{error}");
+            }
+        }
+        let error = search(
+            &engine,
+            SearchMode::single_hop_filter_nearest_start(|_| true, &[0, 256], None),
+        )
+        .expect("every pool ID must be in bounds");
+        assert!(error.contains("outside the dataset"), "{error}");
+    }
+
     #[test]
     fn single_hop_uses_matching_dataset_entry_points() {
         let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
@@ -2999,6 +3197,8 @@ mod disk_provider_tests {
         for mode in [
             SearchMode::single_hop_filter(|_| true, &[]),
             SearchMode::single_hop_filter_frontier(|_| true, &[]),
+            SearchMode::single_hop_filter_nearest_start(|_| true, &[], None),
+            SearchMode::single_hop_filter_frontier_nearest_start(|_| true, &[], None),
         ] {
             let result = search_engine
                 .search(&[0.1; 128], 10, 10, None, mode)

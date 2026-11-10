@@ -259,9 +259,15 @@ impl<T: NativeVector> FilteredSnapshot<T> {
                     let max_breadth = breadth.saturating_mul(4).min(postings.len());
                     loop {
                         let requested = if shadowed { breadth } else { k };
+                        // Route from the label's primary entry only. Metadata may
+                        // carry an extra entry pool for nearest-start experiments.
+                        let entries = base.labels.entries(label);
+                        if entries.is_empty() {
+                            return Err(ann("nonempty label has no entry point"));
+                        }
                         let mode = SearchMode::single_hop_filter(
                             |id| base.labels.contains(label, *id),
-                            base.labels.entries(label),
+                            &entries[..1],
                         );
                         let found = searcher.search(
                             query,
@@ -376,4 +382,108 @@ fn sort_hits(hits: &mut Vec<FilteredHit>, k: usize) {
         hits.truncate(k);
     }
     hits.sort_unstable_by(compare);
+}
+
+#[cfg(all(test, unix, not(miri)))]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use diskann_utils::views::rowmajor;
+    use tempfile::tempdir;
+
+    use super::*;
+    use crate::{build::filtered::StitchedGraph, filtered::persistence::GenerationStore};
+
+    #[test]
+    fn native_default_keeps_first_entry_route_when_metadata_has_an_extra_pool() {
+        const ROWS: usize = 256;
+        const DIMS: usize = 8;
+        const CENTROID: u32 = 127;
+        const OTHER_ENTRY: u32 = 255;
+
+        let directory = tempdir().unwrap();
+        let values: Vec<_> = (0..ROWS)
+            .flat_map(|id| std::iter::repeat_n(id as u8, DIMS))
+            .collect();
+        let vectors = rowmajor::Ref::try_from_data(&values, ROWS, DIMS).unwrap();
+        let members: Vec<_> = (0..ROWS as u32).collect();
+        // Two basins make choosing the extra entry observably different. The
+        // centroid is the smaller-ID tie at 127/128 in the complete corpus.
+        let graph = StitchedGraph {
+            neighbors: (0..ROWS as u32)
+                .map(|id| vec![(id / 128) * 128 + (id + 1) % 128])
+                .collect(),
+            entry_points: BTreeMap::from([(7, vec![CENTROID])]),
+            max_degree: 1,
+        };
+        let mut stored = Vec::with_capacity(8 + values.len());
+        stored.extend_from_slice(&(ROWS as u32).to_le_bytes());
+        stored.extend_from_slice(&(DIMS as u32).to_le_bytes());
+        stored.extend_from_slice(&values);
+        std::fs::write(directory.path().join("vectors.bin"), stored).unwrap();
+        native::write_native(directory.path(), vectors, &graph, 4, 1, 0).unwrap();
+        let store = Arc::new(GenerationStore::open(directory.path()).unwrap());
+        let make_snapshot = |entries| {
+            let labels = LabelMetadata::from_postings(
+                ROWS,
+                BTreeMap::from([(7, members.clone())]),
+                BTreeMap::from([(7, entries)]),
+            )
+            .unwrap();
+            let base = Arc::new(
+                Base::open(
+                    directory.path(),
+                    (1, 0),
+                    DIMS,
+                    labels,
+                    true,
+                    1,
+                    store.clone(),
+                )
+                .unwrap(),
+            );
+            FilteredSnapshot {
+                view: Arc::new(View::new(
+                    base,
+                    DeltaSnapshot::new(0, DIMS).unwrap(),
+                    ROWS as u64,
+                )),
+            }
+        };
+        let original = make_snapshot(vec![CENTROID]);
+        let pool = make_snapshot(vec![CENTROID, OTHER_ENTRY]);
+        let alternate = pool
+            .view
+            .base
+            .searcher
+            .as_ref()
+            .unwrap()
+            .search(
+                &[255; DIMS],
+                1,
+                1,
+                Some(4),
+                SearchMode::single_hop_filter_nearest_start(
+                    |_| true,
+                    &[CENTROID, OTHER_ENTRY],
+                    Some(CENTROID),
+                ),
+            )
+            .unwrap();
+        assert_eq!(alternate.results[0].vertex_id, OTHER_ENTRY);
+        for l in [1, 8] {
+            for query in [[0; DIMS], [200; DIMS], [255; DIMS]] {
+                let expected = original.search(&query, 7, 1, l).unwrap();
+                let actual = pool.search(&query, 7, 1, l).unwrap();
+                assert_eq!(actual.hits, expected.hits);
+                assert_eq!(actual.sequence, expected.sequence);
+                assert_eq!(actual.base_searches, 1);
+                assert!(!actual.exact_fallback);
+            }
+        }
+        assert_eq!(
+            pool.search(&[255; DIMS], 7, 1, 1).unwrap().hits[0].id,
+            CENTROID
+        );
+    }
 }

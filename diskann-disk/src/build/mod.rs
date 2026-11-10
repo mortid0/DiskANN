@@ -16,4 +16,7 @@ pub use configuration::{
     DiskIndexBuildParameters, QuantizationType, SphericalBits, disk_index_build_parameter,
     filter_parameter,
 };
+#[cfg(feature = "experimental_single_hop_search")]
 pub mod filtered;
+#[cfg(feature = "experimental_single_hop_search")]
+pub mod filtered_export;

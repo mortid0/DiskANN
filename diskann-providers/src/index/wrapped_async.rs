@@ -373,12 +373,7 @@ where
         init_ids: Option<&'a [DP::InternalId]>,
     ) -> ANNResult<PagedSearch<'a, DP, S::SearchAccessor>>
     where
-        S: SearchStrategy<
-                'a,
-                DP,
-                T,
-                SearchAccessor: SearchAccessor + graph::glue::SeedableAccessor,
-            > + 'static,
+        S: SearchStrategy<'a, DP, T, SearchAccessor: SearchAccessor> + 'static,
         T: Copy + Send + 'a,
     {
         let inner = self.handle.block_on(

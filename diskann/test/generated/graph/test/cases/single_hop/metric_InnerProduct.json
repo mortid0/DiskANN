@@ -1,0 +1,22 @@
+{
+  "file": "diskann/src/graph/test/cases/single_hop.rs",
+  "test": "graph/test/cases/single_hop/metric_InnerProduct",
+  "payload": {
+    "comparisons": 4,
+    "hops": 4,
+    "results": [
+      [
+        2,
+        -3.0
+      ],
+      [
+        0,
+        -1.0
+      ],
+      [
+        1,
+        -0.0
+      ]
+    ]
+  }
+}

@@ -64,6 +64,7 @@ required-features = [
 
 [features]
 default = []
+experimental_single_hop_search = ["diskann/experimental_single_hop_search"]
 
 # Enable spherical-quantization
 quantization = [

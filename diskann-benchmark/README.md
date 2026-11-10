@@ -260,62 +260,60 @@ is running. This incremental saving allows benchmarks to be interrupted without 
 In addition to the machine-readable JSON output files, a (hopefully) helpful summary of the
 results will be printed to `stdout`.
 
-### single-hop filtered search
+### Experimental single-hop construction and search
 
-single-hop uses the existing benchmark runner, top-k recall aggregation, repetition
-and thread sweeps. the graph input selects `"search-type": "topk-single-hop-filter"`
-and supplies a `"init_ids"` file in addition to the existing filtered inputs.
-the file is a json array containing one array of dataset ids per query, for example
-`[[17], [23, 41], []]`. empty lists intentionally return no results. seeds are loaded
-once before timed queries, and the normal result buffers retain actual result lengths.
+Build the runner with `--features experimental_single_hop_search` and use
+[`example/experimental-single-hop.json`](example/experimental-single-hop.json).
+The job compares single-hop on a StitchedVamana graph with inline and multihop on
+an independently built ordinary Vamana graph. All use `diskann-inmem`, full-precision
+L2 distances, and the same data, labels, queries, degree budget, and search sweeps.
+The ordinary graph has one global centroid start point; the stitched graph has
+construction-selected entry points for each label. Inline search uses a fixed L.
+Results identify the graph for each algorithm and report construction time, recall,
+distance comparisons, hops, latency, and QPS. Construction, import, and label
+preparation are outside timed queries. Parallel construction may vary between runs.
 
 ```sh
-mkdir -p benchmark-results/single-hop
-cargo run --release --package diskann-benchmark -- run \
-  --input-file diskann-benchmark/example/graph-index-single-hop-filter.json \
-  --output-file benchmark-results/single-hop/harness.json
+cargo run --release -p diskann-benchmark --features experimental_single_hop_search -- \
+  run --input-file diskann-benchmark/example/experimental-single-hop.json \
+  --output-file results.json
 ```
 
-the example is a small wiring check using an ordinary graph. for meaningful quality
-comparisons, load a graph built to preserve connectivity for the requested labels
-and supply entry points from that graph. enabling this search mode does not change
-an ordinary graph's construction.
+Vectors and queries are `f32` matrices in the existing bin format. `data_labels`
+uses `diskann-label-filter`'s JSON-lines format, with one unique `doc_id` for each
+vector row. The selected `label_field` is an RFC 6901 JSON pointer such as `/label`.
+Its value can be a string or an array of strings:
 
-the existing disk-index benchmark also accepts explicit seeds:
-
-```json
-"search_mode": {
-  "single_hop_init_ids": "label-seeds.json"
-}
+```jsonl
+{"doc_id":0,"label":"blue"}
+{"doc_id":1,"label":["blue","red"]}
+{"doc_id":2,"label":[]}
 ```
 
-build the runner with `--features disk-index`. use the existing `vector_filters_file`,
-ground truth, `beam_width`, `search_list` and `search_io_limit` fields. single-hop
-requires vector filters and cannot combine flat search, adaptive-l or a separate
-post-processor. the output records `is_single_hop_search` alongside the existing
-recall, qps, latency, comparison, hop and i/o measurements. finite i/o limits may
-produce short result rows; the existing filtered recall evaluator uses their actual
-lengths.
+Array order and duplicate labels do not change membership. Missing fields and
+empty arrays mean no labels. Non-string values are errors. JSON escaping applies
+to label names and JSON-pointer escaping applies to field names.
 
-to use c++ sidecars directly, supply one original label name per query line:
+`query_filters` explicitly selects one of two input formats:
 
-```json
-"search_mode": {
-  "cpp_query_labels": "query-labels.txt"
-}
-```
+- `{"type":"query_predicates","path":"query-predicates.jsonl"}` uses the upstream
+  JSON-lines query format, for example
+  `{"query_id":0,"filter":{"/label":{"$eq":"blue"}}}`. Exactly one string equality
+  on `label_field` is supported; query fields may use JSON pointers or dot notation.
+  Compound predicates, comparisons, other fields,
+  and malformed values are errors. IDs must cover every query row exactly once;
+  file order is arbitrary.
+- `{"type":"query_labels","path":"query-labels.json"}` uses a JSON string array
+  with one label per query row, for example `["blue","red"]`.
 
-this loads the sidecars next to the disk index once, resolves names through
-`_labels_map.txt`, and chooses one label medoid by pq distance per query. universal
-labels and dummy-to-real result ids follow c++ semantics. omit `vector_filters_file`,
-explicit starting points and post-processors in this mode; use squared l2 and the
-usual ground truth and search settings. the sidecars are independent of the optional
-rust update lifecycle's journal and generation catalog.
+Unknown labels have empty membership. `groundtruth` uses the existing variable-length
+range groundtruth format, sorted by distance for each query.
 
-ordinary single-hop evaluation belongs here. custom experiment scripts remain useful
-for cpp comparisons and lifecycle-specific experiments, not as a second implementation
-of timing or recall. generated results belong in ignored `benchmark-results/`; small
-input examples and fixtures remain versioned.
+This experiment supports in-memory L2 construction. FilteredVamana, universal-label
+semantics, dense-point splitting, other construction metrics, and out-of-core
+construction remain separate work. Record measurements in the project wiki with
+dataset, parameters, hardware, and build revision so recall and comparison counts
+can be evaluated together.
 
 ### Streaming Runs
 Running the benchmark on a streaming workload is similar to other registered benchmarks,

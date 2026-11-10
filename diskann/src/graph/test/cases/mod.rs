@@ -14,6 +14,8 @@ mod inplace_delete;
 mod multihop;
 mod paged_search;
 mod range_search;
+#[cfg(feature = "experimental_single_hop_search")]
+mod single_hop;
 
 /// Set to `true` and recompile to include full adjacency list state in participating
 /// baselines.

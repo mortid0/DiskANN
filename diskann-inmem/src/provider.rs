@@ -51,6 +51,10 @@ use crate::{
     repr,
 };
 
+#[cfg(feature = "experimental_single_hop_search")]
+#[cfg_attr(docsrs, doc(cfg(feature = "experimental_single_hop_search")))]
+pub mod filtered;
+
 /// Aggregate trait for the external ID type of [`Provider`].
 pub trait Id: Send + Sync + Hash + Eq + Clone + 'static {}
 

@@ -47,6 +47,7 @@ mod inline_filter_search;
 mod knn_search;
 pub(crate) mod multihop_filter_search;
 mod range_search;
+#[cfg(feature = "experimental_single_hop_search")]
 mod single_hop_filter_search;
 
 mod paged;
@@ -120,9 +121,8 @@ pub use inline_filter_search::{AdaptiveL, InlineFilterSearch};
 pub use knn_search::{Knn, KnnSearchError, RecordedKnn};
 pub use multihop_filter_search::MultihopFilterSearch;
 pub use range_search::{Range, RangeBuilder, RangeSearchError};
-pub use single_hop_filter_search::{
-    RecordedSingleHop, ResultPool, SeedError, SeedSelection, SingleHopFilterSearch,
-};
+#[cfg(feature = "experimental_single_hop_search")]
+pub use single_hop_filter_search::{RecordedSingleHop, SingleHopFilterSearch};
 
 // Feature-gated diverse search.
 #[cfg(feature = "experimental_diversity_search")]

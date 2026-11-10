@@ -194,29 +194,6 @@ where
     type Id = Inner::Id;
 }
 
-impl<Inner> glue::SeedableAccessor for BetaAccessor<Inner>
-where
-    Inner: glue::SeedableAccessor,
-{
-    fn distances_to_ids<F>(
-        &mut self,
-        ids: &[Self::Id],
-        mut f: F,
-    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Self::Id, f32) + Send,
-    {
-        let filter = &self.filter;
-        self.inner.distances_to_ids(ids, move |id, distance| {
-            f(id, filter.apply(id, distance));
-        })
-    }
-
-    fn default_result_pool(&self) -> diskann::graph::search::ResultPool {
-        self.inner.default_result_pool()
-    }
-}
-
 impl<Inner> glue::SearchAccessor for BetaAccessor<Inner>
 where
     Inner: glue::SearchAccessor,
@@ -376,41 +353,5 @@ mod tests {
             [(start_point, 32.0 * beta)],
             "u32::MAX is a multiple of 3"
         );
-    }
-
-    #[tokio::test]
-    async fn single_hop_beta_wrapper_preserves_seed_distances() {
-        use diskann::{
-            graph::{
-                DiskANNIndex, config,
-                ext::labeled::Filtered,
-                search::{Knn, SingleHopFilterSearch},
-            },
-            neighbor::Neighbor,
-        };
-        use diskann_vector::distance::Metric;
-        let provider = test_provider::Provider::grid(Grid::Two, 4).unwrap();
-        let config = config::Builder::new(4, config::MaxDegree::Same, 10, Metric::L2.into())
-            .build()
-            .unwrap();
-        let index = DiskANNIndex::new(config, provider, None);
-        let strategy = Filtered::new(
-            BetaFilter::new(test_provider::Strategy::new(), Arc::new(ThreeFilter), 0.25),
-            &ThreeFilter,
-        );
-        let mut results = Vec::<Neighbor<u32>>::new();
-        index
-            .search(
-                SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[6]),
-                &strategy,
-                &test_provider::Context::new(),
-                &[0.0, 0.0][..],
-                &mut results,
-            )
-            .await
-            .unwrap();
-        assert_eq!(results.len(), 1);
-        assert_eq!(*results[0].id(), 6);
-        assert_eq!(*results[0].distance(), 5.0 * 0.25);
     }
 }

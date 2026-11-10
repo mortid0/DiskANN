@@ -109,29 +109,6 @@ use crate::{
     provider::{self, DataProvider, HasId},
 };
 
-/// Optional batched distance access for caller-supplied query seeds.
-///
-/// Implement only when arbitrary initialized dataset IDs can be validated and evaluated.
-/// These IDs are query seeds, not provider start points. Wrappers classify the
-/// results through [`SeedableFilteredAccessor`] without changing start-point hooks.
-pub trait SeedableAccessor: HasId + Send + Sync {
-    /// Evaluate the query against each supplied internal ID, preserving input order.
-    /// Duplicate IDs are allowed. Reject missing or deleted IDs with
-    /// [`crate::graph::search::SeedError::InvalidId`] before accessing their data.
-    fn distances_to_ids<F>(
-        &mut self,
-        ids: &[Self::Id],
-        f: F,
-    ) -> impl Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Self::Id, f32) + Send;
-
-    /// Choose the candidates needed by the provider's post-processor.
-    /// Exact traversal distances usually need only the bounded frontier; approximate
-    /// distances may require retaining expanded candidates that leave that frontier.
-    fn default_result_pool(&self) -> crate::graph::search::ResultPool;
-}
-
 /// The main extension point for graph search.
 ///
 /// Search is a best-first graph traversal beginning at a collection of start points.
@@ -507,25 +484,6 @@ pub trait FilteredAccessor: HasId + Send + Sync {
 
     /// Return the number of starting points.
     fn num_starting_points(&self) -> impl std::future::Future<Output = ANNResult<usize>> + Send;
-}
-
-/// Optional query-seed distances with filter decisions.
-///
-/// This capability keeps the seed and filter in the same accessor layer. It does not
-/// change the provider's start points or how they are excluded during post-processing.
-pub trait SeedableFilteredAccessor: FilteredAccessor {
-    /// Evaluate and classify every supplied seed, including seeds rejected by the filter.
-    /// Input order is preserved; duplicate IDs are allowed.
-    fn filtered_distances_to_ids<F>(
-        &mut self,
-        ids: &[Self::Id],
-        f: F,
-    ) -> impl Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Decision<Self::Id>, f32) + Send;
-
-    /// Choose the candidates needed by the provider's post-processor.
-    fn default_result_pool(&self) -> crate::graph::search::ResultPool;
 }
 
 /// A predicate evaluating `item`.

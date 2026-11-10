@@ -14,8 +14,6 @@ mod platform;
 mod reader;
 #[cfg(all(not(miri), target_os = "linux"))]
 pub use reader::LinuxAlignedFileReader;
-#[cfg(unix)]
-pub use reader::PositionalAlignedFileReader;
 pub use reader::StorageProviderAlignedFileReader;
 #[cfg(all(not(miri), target_os = "windows"))]
 pub use reader::WindowsAlignedFileReader;

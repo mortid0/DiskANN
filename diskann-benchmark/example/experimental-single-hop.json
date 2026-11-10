@@ -1,0 +1,26 @@
+{
+  "search_directories": ["path/to/dataset"],
+  "jobs": [
+    {
+      "type": "experimental-single-hop",
+      "content": {
+        "data": "data.f32.bin",
+        "data_labels": "labels.jsonl",
+        "label_field": "/label",
+        "queries": "queries.f32.bin",
+        "query_filters": {"type": "query_predicates", "path": "query-predicates.jsonl"},
+        "groundtruth": "filtered-truth.bin",
+        "label_degree": 16,
+        "max_degree": 64,
+        "l_build": 100,
+        "alpha": 1.2,
+        "build_threads": 4,
+        "seed": 0,
+        "k": 10,
+        "search_l": [20, 40, 80],
+        "threads": [1, 4],
+        "reps": 3
+      }
+    }
+  ]
+}

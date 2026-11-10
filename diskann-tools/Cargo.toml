@@ -35,9 +35,13 @@ anyhow.workspace = true
 itertools.workspace = true
 diskann-label-filter.workspace = true
 serde_json.workspace = true
+diskann-disk = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true, features = ["rt-multi-thread"] }
+sha2 = { workspace = true, optional = true }
 
 [dev-dependencies]
 rstest.workspace = true
+tempfile.workspace = true
 vfs = { workspace = true }
 diskann-providers = { workspace = true, default-features = false, features = [
     "virtual_storage",
@@ -46,6 +50,15 @@ diskann-utils = { workspace = true, features = ["testing"] }
 
 [features]
 default = []
+experimental_single_hop_search = ["dep:diskann-disk", "diskann-disk/experimental_single_hop_search", "dep:tokio", "dep:sha2"]
+
+[[bin]]
+name = "build_filtered_index"
+required-features = ["experimental_single_hop_search"]
+
+[[bin]]
+name = "search_filtered_index"
+required-features = ["experimental_single_hop_search"]
 
 [lints]
 clippy.allow_attributes = "warn"

@@ -17,8 +17,3 @@ cfg_if::cfg_if! {
 
 mod storage_provider;
 pub use storage_provider::StorageProviderAlignedFileReader;
-
-#[cfg(unix)]
-mod positional;
-#[cfg(unix)]
-pub use positional::PositionalAlignedFileReader;

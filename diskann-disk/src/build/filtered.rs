@@ -3,7 +3,12 @@
  * Licensed under the MIT license.
  */
 
-//! Rust StitchedVamana construction for immutable, atomic-label SSD graphs.
+//! Experimental in-memory StitchedVamana construction for immutable atomic labels.
+//!
+//! This prototype supports squared L2 and data that fit in RAM. It does not
+//! implement FilteredVamana, universal labels, dense-point replication, or a
+//! persistent filtered-index format. Use the supported benchmark job to evaluate
+//! recall and distance comparisons before choosing it for a dataset.
 //!
 //! Per-label Vamana graphs supply geometric edges. A protected directed cycle for
 //! each posting list makes label connectivity independent of geometric pruning.
@@ -13,37 +18,188 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use diskann::{
-    error::ErrorContext,
-    graph::{config, AdjacencyList},
-    provider::DefaultContext,
-    utils::VectorRepr,
     ANNError, ANNResult,
-};
-use diskann_providers::{
-    index::diskann_async,
-    model::graph::provider::async_::{
-        common::{FullPrecision, NoDeletes},
-        inmem::{DefaultProviderParameters, SetStartPoints},
+    error::ErrorContext,
+    graph::{
+        AdjacencyList, DiskANNIndex, config,
+        glue::{PruneStrategy, SearchAccessor, SearchStrategy},
     },
-    utils::{create_thread_pool, ParallelIteratorInPool},
+    provider::{DataProvider, NeighborAccessor},
+    utils::VectorRepr,
 };
+use diskann_inmem::{
+    Context, Provider, Strategy,
+    num::{Capacity, MaxDegree},
+    repr::full::{Config as ProviderConfig, FullPrecision},
+};
+use diskann_providers::utils::{ParallelIteratorInPool, create_thread_pool};
 use diskann_utils::views::rowmajor::{self, Matrix};
-use diskann_vector::{distance::Metric, DistanceFunction};
-use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
+use diskann_vector::{DistanceFunction, distance::Metric};
+use rand::{SeedableRng, rngs::StdRng, seq::SliceRandom};
 use rayon::prelude::*;
+use thiserror::Error;
 use tokio::task::JoinSet;
 
 /// Construction settings for squared-L2 vector data.
 #[derive(Debug, Clone)]
 pub struct StitchedBuildConfig {
-    pub label_degree: usize,
-    pub max_degree: usize,
-    pub l_build: usize,
-    pub alpha: f32,
+    label_degree: usize,
+    max_degree: usize,
+    l_build: usize,
+    alpha: f32,
     /// Maximum simultaneous insertion tasks. The caller supplies the Tokio runtime.
-    pub concurrency: usize,
+    concurrency: usize,
     /// Controls insertion order; parallel graph updates need not be bit reproducible.
-    pub seed: u64,
+    seed: u64,
+}
+
+/// Invalid experimental construction settings.
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("label degree must be in 1..=u32::MAX, got {0}")]
+    LabelDegree(usize),
+    #[error("maximum degree must be in 1..=u32::MAX, got {0}")]
+    MaxDegree(usize),
+    #[error("construction L {l_build} must be at least label degree {label_degree} and fit u32")]
+    SearchList { l_build: usize, label_degree: usize },
+    #[error("alpha must be finite and at least one, got {0}")]
+    Alpha(f32),
+    #[error("construction concurrency must be positive")]
+    ZeroConcurrency,
+}
+
+#[derive(Debug, Error)]
+#[error(
+    "filtered build requires nonzero dimensions and 0 < rows < u32::MAX, got {rows} rows and {dimensions} dimensions"
+)]
+struct InvalidShape {
+    rows: usize,
+    dimensions: usize,
+}
+
+#[derive(Debug, Error)]
+enum InvalidPosting {
+    #[error("duplicate label {0}")]
+    DuplicateLabel(u32),
+    #[error("label {0} has an empty posting list")]
+    Empty(u32),
+    #[error("label {label} contains row {id}, outside a dataset of {rows} rows")]
+    OutOfBounds { label: u32, id: u32, rows: usize },
+    #[error("label {label} has non-increasing adjacent members {left} and {right}")]
+    Unsorted { label: u32, left: u32, right: u32 },
+}
+
+#[derive(Debug, Error)]
+#[error("non-finite vector at row {0}")]
+struct NonFiniteVector(u32);
+
+#[derive(Debug, Error)]
+#[error("row {row} needs {required} protected label edges but max_degree is {available}")]
+struct InsufficientDegree {
+    row: u32,
+    required: usize,
+    available: usize,
+}
+
+#[derive(Debug, Error)]
+enum InvalidEntryPoint {
+    #[error("entry-point full dimension must be positive")]
+    EmptyDimension,
+    #[error("row {row} of label {label} has full dimension {actual}, expected {expected}")]
+    Dimension {
+        label: u32,
+        row: u32,
+        expected: usize,
+        actual: usize,
+    },
+    #[error("non-finite full-precision entry-point row {row} of label {label}")]
+    NonFiniteRow { label: u32, row: u32 },
+    #[error("invalid centroid for label {0}")]
+    NonFiniteCentroid(u32),
+    #[error("invalid centroid distance {distance} for row {row} of label {label}")]
+    NonFiniteDistance { label: u32, row: u32, distance: f64 },
+}
+
+#[derive(Debug, Error)]
+#[error("membership count overflow at row {0}")]
+struct MembershipOverflow(usize);
+
+#[derive(Debug, Error)]
+enum InvalidLabelGraph {
+    #[error("construction entry {entry} is outside label {label}")]
+    MissingEntry { label: u32, entry: u32 },
+    #[error("graph for label {label} emitted unmapped internal ID {id}")]
+    UnmappedId { label: u32, id: u32 },
+    #[error(
+        "per-label Vamana emitted local ID {id}, outside {members} members and their virtual start"
+    )]
+    OutOfBounds { id: u32, members: usize },
+}
+
+#[derive(Debug, Error)]
+#[error("invalid squared L2 distance {distance} between rows {left} and {right}")]
+struct InvalidDistance {
+    left: u32,
+    right: u32,
+    distance: f32,
+}
+
+diskann::convert_error!(InvalidShape);
+diskann::convert_error!(InvalidPosting);
+diskann::convert_error!(NonFiniteVector);
+diskann::convert_error!(InsufficientDegree);
+diskann::convert_error!(InvalidEntryPoint);
+diskann::convert_error!(MembershipOverflow);
+diskann::convert_error!(InvalidLabelGraph);
+diskann::convert_error!(InvalidDistance);
+
+impl StitchedBuildConfig {
+    /// Validate construction settings before starting a build.
+    ///
+    /// # Errors
+    /// Rejects zero degrees/concurrency, L smaller than the label degree, and
+    /// non-finite alpha or alpha below one.
+    pub fn new(
+        label_degree: usize,
+        max_degree: usize,
+        l_build: usize,
+        alpha: f32,
+        concurrency: usize,
+        seed: u64,
+    ) -> Result<Self, ConfigError> {
+        let settings = Self {
+            label_degree,
+            max_degree,
+            l_build,
+            alpha,
+            concurrency,
+            seed,
+        };
+        settings.validate()?;
+        Ok(settings)
+    }
+
+    fn validate(&self) -> Result<(), ConfigError> {
+        if self.label_degree == 0 || self.label_degree > u32::MAX as usize {
+            return Err(ConfigError::LabelDegree(self.label_degree));
+        }
+        if self.max_degree == 0 || self.max_degree > u32::MAX as usize {
+            return Err(ConfigError::MaxDegree(self.max_degree));
+        }
+        if self.l_build < self.label_degree || self.l_build > u32::MAX as usize {
+            return Err(ConfigError::SearchList {
+                l_build: self.l_build,
+                label_degree: self.label_degree,
+            });
+        }
+        if !self.alpha.is_finite() || self.alpha < 1.0 {
+            return Err(ConfigError::Alpha(self.alpha));
+        }
+        if self.concurrency == 0 {
+            return Err(ConfigError::ZeroConcurrency);
+        }
+        Ok(())
+    }
 }
 
 impl Default for StitchedBuildConfig {
@@ -62,17 +218,39 @@ impl Default for StitchedBuildConfig {
 /// Dataset IDs remain the original row IDs; no frozen point is included.
 #[derive(Debug, Clone)]
 pub struct StitchedGraph {
-    pub neighbors: Vec<Vec<u32>>,
-    pub entry_points: BTreeMap<u32, Vec<u32>>,
-    pub max_degree: u32,
+    neighbors: Vec<Vec<u32>>,
+    postings: BTreeMap<u32, Vec<u32>>,
+    entry_points: BTreeMap<u32, Vec<u32>>,
+    max_degree: u32,
+}
+
+impl StitchedGraph {
+    pub fn neighbors(&self) -> &[Vec<u32>] {
+        &self.neighbors
+    }
+    pub fn entry_points(&self) -> &BTreeMap<u32, Vec<u32>> {
+        &self.entry_points
+    }
+    pub fn postings(&self) -> &BTreeMap<u32, Vec<u32>> {
+        &self.postings
+    }
+    pub fn max_degree(&self) -> u32 {
+        self.max_degree
+    }
+    /// Sorted dataset row IDs with this atomic label. Unknown labels are empty.
+    pub fn posting(&self, label: u32) -> &[u32] {
+        self.postings.get(&label).map_or(&[], Vec::as_slice)
+    }
 }
 
 /// Build a filtered graph using only Rust Vamana and vector kernels.
 ///
 /// Each posting list must be nonempty, strictly increasing and in bounds, and
-/// label IDs must be unique. Label IDs need not be dense. Unlabeled rows remain
-/// present with empty adjacency lists. A caller may supply an explicit unqueried
-/// label for those rows if it also requires unfiltered navigation.
+/// label IDs must be unique. Label IDs need not be dense. Rows without any
+/// geometric or protected edges receive an edge to the next dataset row, so
+/// unlabeled and singleton-only rows can be exported with the standard disk
+/// writer. Filtered traversal rejects these edges when the label does not match.
+/// A one-row dataset retains empty adjacency and cannot be exported to disk.
 ///
 /// Membership storage is O(rows + memberships), not O(rows * labels). Only one
 /// per-label vector provider is resident at a time. The stitched candidate graph
@@ -87,7 +265,7 @@ pub async fn build_stitched<'a, T, I>(
     settings: &StitchedBuildConfig,
 ) -> ANNResult<StitchedGraph>
 where
-    T: VectorRepr,
+    T: VectorRepr + FullPrecision,
     I: IntoIterator<Item = (u32, &'a [u32])>,
 {
     validate_settings(vectors.nrows(), vectors.ncols(), settings)?;
@@ -104,7 +282,7 @@ where
                 .evaluate_similarity(vectors.row(id), vectors.row(id))
                 .is_finite()
             {
-                return Err(ANNError::message(format!("non-finite vector at row {id}")));
+                return Err(ANNError::from(NonFiniteVector(id as u32)));
             }
             Ok(())
         })?;
@@ -121,11 +299,12 @@ where
             if !row.contains(&next) {
                 row.push(next);
                 if row.len() > settings.max_degree {
-                    return Err(ANNError::message(format!(
-                        "row {id} needs {} protected label edges but max_degree is {}",
-                        row.len(),
-                        settings.max_degree
-                    )));
+                    return Err(InsufficientDegree {
+                        row: id,
+                        required: row.len(),
+                        available: settings.max_degree,
+                    }
+                    .into());
                 }
             }
         }
@@ -161,8 +340,21 @@ where
                 &distance,
             )
         })?;
+    if vectors.nrows() > 1 {
+        for (id, row) in neighbors.iter_mut().enumerate() {
+            if row.is_empty() {
+                let neighbor = ((id + 1) % vectors.nrows()) as u32;
+                checked_distance(&distance, vectors, id as u32, neighbor)?;
+                row.push(neighbor);
+            }
+        }
+    }
     Ok(StitchedGraph {
         neighbors,
+        postings: postings
+            .into_iter()
+            .map(|(label, ids)| (label, ids.to_vec()))
+            .collect(),
         entry_points,
         max_degree: u32::try_from(settings.max_degree)?,
     })
@@ -179,9 +371,7 @@ impl EntryScratch {
     fn new<T: VectorRepr>(first: &[T]) -> ANNResult<Self> {
         let dimensions = T::full_dimension(first).map_err(Into::<ANNError>::into)?;
         if dimensions == 0 {
-            return Err(ANNError::message(
-                "entry-point full dimension must be positive",
-            ));
+            return Err(InvalidEntryPoint::EmptyDimension.into());
         }
         Ok(Self {
             row: vec![0.; dimensions],
@@ -193,17 +383,19 @@ impl EntryScratch {
     fn convert<T: VectorRepr>(&mut self, vector: &[T], label: u32, id: u32) -> ANNResult<()> {
         let dimensions = T::full_dimension(vector).map_err(Into::<ANNError>::into)?;
         if dimensions != self.row.len() {
-            return Err(ANNError::message(format!(
-                "row {id} of label {label} has inconsistent full dimension"
-            )));
+            return Err(InvalidEntryPoint::Dimension {
+                label,
+                row: id,
+                expected: self.row.len(),
+                actual: dimensions,
+            }
+            .into());
         }
         T::as_f32_into(vector, &mut self.row)
             .map_err(Into::<ANNError>::into)
             .with_context(|| format!("converting entry-point row {id} of label {label}"))?;
         if self.row.iter().any(|value| !value.is_finite()) {
-            return Err(ANNError::message(format!(
-                "non-finite full-precision entry-point row {id} of label {label}"
-            )));
+            return Err(InvalidEntryPoint::NonFiniteRow { label, row: id }.into());
         }
         Ok(())
     }
@@ -231,9 +423,7 @@ impl EntryScratch {
             *sum /= members.len() as f64;
         }
         if self.centroid.iter().any(|value| !value.is_finite()) {
-            return Err(ANNError::message(format!(
-                "invalid centroid for label {label}"
-            )));
+            return Err(InvalidEntryPoint::NonFiniteCentroid(label).into());
         }
         let mut best = (f64::INFINITY, u32::MAX);
         for &id in members {
@@ -248,9 +438,12 @@ impl EntryScratch {
                 })
                 .sum();
             if !distance.is_finite() {
-                return Err(ANNError::message(format!(
-                    "invalid centroid distance for row {id} of label {label}"
-                )));
+                return Err(InvalidEntryPoint::NonFiniteDistance {
+                    label,
+                    row: id,
+                    distance,
+                }
+                .into());
             }
             if distance < best.0 || (distance == best.0 && id < best.1) {
                 best = (distance, id);
@@ -260,41 +453,37 @@ impl EntryScratch {
     }
 }
 
+#[track_caller]
 fn validate_settings(rows: usize, dim: usize, settings: &StitchedBuildConfig) -> ANNResult<()> {
     if rows == 0 || rows >= u32::MAX as usize || dim == 0 {
-        return Err(ANNError::message(
-            "filtered build requires nonzero dimensions and 0 < rows < u32::MAX",
-        ));
+        return Err(InvalidShape {
+            rows,
+            dimensions: dim,
+        }
+        .into());
     }
-    if settings.label_degree == 0
-        || settings.max_degree == 0
-        || settings.max_degree > u32::MAX as usize
-        || settings.label_degree > u32::MAX as usize
-        || settings.l_build > u32::MAX as usize
-        || settings.l_build < settings.label_degree
-        || settings.concurrency == 0
-        || !settings.alpha.is_finite()
-        || settings.alpha < 1.0
-    {
-        return Err(ANNError::message("invalid filtered build settings"));
-    }
-    Ok(())
+    settings.validate().map_err(ANNError::new)
 }
 
-fn validate_postings(rows: usize, postings: &[(u32, &[u32])]) -> ANNResult<()> {
+fn validate_postings(rows: usize, postings: &[(u32, &[u32])]) -> Result<(), InvalidPosting> {
     let mut previous_label = None;
     for &(label, members) in postings {
         if previous_label == Some(label) {
-            return Err(ANNError::message(format!("duplicate label {label}")));
+            return Err(InvalidPosting::DuplicateLabel(label));
         }
         previous_label = Some(label);
-        if members.is_empty()
-            || members.last().is_some_and(|&id| id as usize >= rows)
-            || members.windows(2).any(|pair| pair[0] >= pair[1])
-        {
-            return Err(ANNError::message(format!(
-                "label {label} requires a nonempty, sorted, unique in-bounds posting list"
-            )));
+        if members.is_empty() {
+            return Err(InvalidPosting::Empty(label));
+        }
+        if let Some(&id) = members.iter().find(|&&id| id as usize >= rows) {
+            return Err(InvalidPosting::OutOfBounds { label, id, rows });
+        }
+        if let Some(pair) = members.windows(2).find(|pair| pair[0] >= pair[1]) {
+            return Err(InvalidPosting::Unsorted {
+                label,
+                left: pair[0],
+                right: pair[1],
+            });
         }
     }
     Ok(())
@@ -307,19 +496,19 @@ struct Membership {
 }
 
 impl Membership {
-    fn new(rows: usize, postings: &[(u32, &[u32])]) -> ANNResult<Self> {
+    fn new(rows: usize, postings: &[(u32, &[u32])]) -> Result<Self, MembershipOverflow> {
         let mut offsets = vec![0usize; rows + 1];
         for (_, members) in postings {
             for &id in *members {
                 offsets[id as usize + 1] = offsets[id as usize + 1]
                     .checked_add(1)
-                    .ok_or_else(|| ANNError::message("membership count overflow"))?;
+                    .ok_or(MembershipOverflow(id as usize))?;
             }
         }
         for i in 1..offsets.len() {
             offsets[i] = offsets[i]
                 .checked_add(offsets[i - 1])
-                .ok_or_else(|| ANNError::message("membership count overflow"))?;
+                .ok_or(MembershipOverflow(i - 1))?;
         }
         let mut cursor = offsets[..rows].to_vec();
         let mut labels = vec![0; offsets[rows]];
@@ -360,7 +549,7 @@ impl Membership {
     }
 }
 
-async fn append_label_graph<T: VectorRepr>(
+async fn append_label_graph<T: VectorRepr + FullPrecision>(
     vectors: rowmajor::Ref<'_, T>,
     label: u32,
     members: &[u32],
@@ -370,7 +559,7 @@ async fn append_label_graph<T: VectorRepr>(
 ) -> ANNResult<()> {
     let local_entry = members
         .binary_search(&entry)
-        .map_err(|_| ANNError::message("construction entry is outside its label"))?;
+        .map_err(|_| InvalidLabelGraph::MissingEntry { label, entry })?;
     let entry_id = u32::try_from(local_entry)?;
     let entry_vector = vectors.row(entry as usize);
     let mut builder = config::Builder::new(
@@ -381,18 +570,18 @@ async fn append_label_graph<T: VectorRepr>(
     );
     builder.alpha(settings.alpha).saturate_after_prune(false);
     let config = builder.build()?;
-    let params = DefaultProviderParameters::simple(
-        members.len(),
-        vectors.ncols(),
-        Metric::L2,
-        config.max_degree_u32().get(),
-    );
-    let index = diskann_async::new_index::<T, _>(config, params, NoDeletes)?;
+    let provider = Provider::<_, u32>::new(
+        ProviderConfig::new(
+            Capacity::new(members.len()),
+            MaxDegree::new(config.max_degree().get()),
+            Metric::L2,
+            rowmajor::Owned::row_vector(entry_vector.to_vec().into()),
+        )
+        .map_err(ANNError::new)?,
+    )?;
+    let index = Arc::new(DiskANNIndex::new(config, provider, None));
     index
-        .provider()
-        .set_start_points(std::iter::once(entry_vector))?;
-    index
-        .insert(&FullPrecision, &DefaultContext, &entry_id, entry_vector)
+        .insert(&Strategy, &Context, &entry_id, entry_vector)
         .await?;
 
     let mut order: Vec<_> = (0..members.len())
@@ -408,48 +597,59 @@ async fn append_label_graph<T: VectorRepr>(
         // At most `concurrency` row copies are live; do not copy a whole label dataset.
         let vector = vectors.row(members[local] as usize).to_vec();
         let local = u32::try_from(local)?;
-        tasks.spawn(async move {
-            index
-                .insert(&FullPrecision, &DefaultContext, &local, &vector)
-                .await
-        });
+        tasks.spawn(async move { index.insert(&Strategy, &Context, &local, &vector).await });
     }
     while !tasks.is_empty() {
         join_one(&mut tasks).await?;
     }
-    let total = members.len() + 1;
-    let chunk = total.div_ceil(settings.concurrency);
-    for start in (0..total).step_by(chunk) {
-        let end = (start + chunk).min(total);
-        let index = Arc::clone(&index);
-        let range = u32::try_from(start)?..u32::try_from(end)?;
-        tasks.spawn(async move {
-            index
-                .prune_range(&FullPrecision, &DefaultContext, range)
-                .await
-        });
+    // Query the provider mapping; insertion order and allocation policy are opaque.
+    let mut internal_to_local = BTreeMap::new();
+    for local in 0..members.len() {
+        internal_to_local.insert(
+            index.provider().to_internal_id(&Context, &(local as u32))?,
+            local,
+        );
     }
-    while !tasks.is_empty() {
-        join_one(&mut tasks).await?;
-    }
-
+    let accessor = Strategy.search_accessor(index.provider(), &Context, entry_vector)?;
+    let starts = accessor.starting_points().await?;
+    drop(accessor);
+    let mut prune_ids: Vec<_> = internal_to_local.keys().copied().collect();
+    prune_ids.extend_from_slice(&starts);
+    index.prune_range(&Strategy, &Context, prune_ids).await?;
+    let mut accessor = Strategy.prune_accessor(index.provider(), &Context, 0)?;
     let mut virtual_neighbors = AdjacencyList::new();
-    index
-        .provider()
-        .neighbors()
-        .get_neighbors_sync(members.len(), &mut virtual_neighbors)?;
+    for start in &starts {
+        let mut row = AdjacencyList::new();
+        accessor.get_neighbors(*start, &mut row).await?;
+        virtual_neighbors.extend_from_slice(&row);
+    }
+    for start in starts {
+        internal_to_local.insert(start, members.len());
+    }
+    let remap = |ids: &[u32]| -> ANNResult<Vec<u32>> {
+        ids.iter()
+            .map(|id| {
+                internal_to_local
+                    .get(id)
+                    .copied()
+                    .map(|local| local as u32)
+                    .ok_or_else(|| InvalidLabelGraph::UnmappedId { label, id: *id }.into())
+            })
+            .collect()
+    };
+    let virtual_neighbors = remap(&virtual_neighbors)?;
     let mut local_neighbors = AdjacencyList::new();
     for (local, &global) in members.iter().enumerate() {
-        index
-            .provider()
-            .neighbors()
-            .get_neighbors_sync(local, &mut local_neighbors)?;
+        let internal = index.provider().to_internal_id(&Context, &(local as u32))?;
+        accessor
+            .get_neighbors(internal, &mut local_neighbors)
+            .await?;
         append_remapped_label_neighbors(
             local,
             local_entry,
             members,
             &virtual_neighbors,
-            &local_neighbors,
+            &remap(&local_neighbors)?,
             &mut stitched[global as usize],
         )?;
     }
@@ -463,7 +663,7 @@ fn append_remapped_label_neighbors(
     virtual_neighbors: &[u32],
     local_neighbors: &[u32],
     stitched: &mut Vec<u32>,
-) -> ANNResult<()> {
+) -> Result<(), InvalidLabelGraph> {
     // The selected real centroid entry inherits the identical virtual start's
     // neighborhood. Every virtual edge must resolve to that same real member.
     let inherited = if local == local_entry {
@@ -478,7 +678,10 @@ fn append_remapped_label_neighbors(
             neighbor as usize
         };
         if neighbor >= members.len() {
-            return Err(ANNError::message("per-label Vamana emitted an invalid ID"));
+            return Err(InvalidLabelGraph::OutOfBounds {
+                id: neighbor as u32,
+                members: members.len(),
+            });
         }
         if neighbor != local {
             stitched.push(members[neighbor]);
@@ -489,9 +692,9 @@ fn append_remapped_label_neighbors(
 
 async fn join_one(tasks: &mut JoinSet<ANNResult<()>>) -> ANNResult<()> {
     if let Some(result) = tasks.join_next().await {
-        result.map_err(|error| {
-            ANNError::message(format!("filtered Vamana insertion task failed: {error}"))
-        })??;
+        result
+            .map_err(ANNError::new)
+            .context("filtered Vamana insertion task failed")??;
     }
     Ok(())
 }
@@ -554,15 +757,17 @@ fn checked_distance<T: VectorRepr>(
     vectors: rowmajor::Ref<'_, T>,
     left: u32,
     right: u32,
-) -> ANNResult<f32> {
+) -> Result<f32, InvalidDistance> {
     let value =
         distance.evaluate_similarity(vectors.row(left as usize), vectors.row(right as usize));
     if value.is_finite() && value >= 0.0 {
         Ok(value)
     } else {
-        Err(ANNError::message(format!(
-            "invalid squared L2 distance between rows {left} and {right}"
-        )))
+        Err(InvalidDistance {
+            left,
+            right,
+            distance: value,
+        })
     }
 }
 
@@ -637,7 +842,7 @@ mod tests {
         for (label, members) in labels {
             assert_connected(&graph, label, &members);
         }
-        assert!(graph.neighbors[1].is_empty());
+        assert_eq!(graph.neighbors[1], [2]);
     }
 
     #[test]
@@ -648,9 +853,11 @@ mod tests {
         assert_eq!(scratch.select(vectors, 7, &[0, 1, 2]).unwrap(), 0);
         for invalid in [f32::NAN, f32::INFINITY] {
             let values = [1., invalid];
-            assert!(scratch
-                .select(rowmajor::Ref::column_vector(&values), 7, &[0, 1])
-                .is_err());
+            assert!(
+                scratch
+                    .select(rowmajor::Ref::column_vector(&values), 7, &[0, 1])
+                    .is_err()
+            );
         }
     }
 
@@ -680,8 +887,47 @@ mod tests {
         for (label, members) in &labels {
             assert_connected(&graph, *label, members);
         }
-        assert!(graph.neighbors[7].is_empty());
+        assert_eq!(graph.neighbors[7], [0]);
         assert_eq!(graph.neighbors.len(), 8);
+    }
+
+    #[tokio::test]
+    async fn unlabeled_and_singleton_rows_have_deterministic_disk_compatible_edges() {
+        let values = [0f32, 1., 2., 3.];
+        let vectors = rowmajor::Ref::column_vector(&values);
+        let settings = StitchedBuildConfig {
+            max_degree: 1,
+            ..Default::default()
+        };
+        let unlabeled = build_stitched(vectors, [], &settings).await.unwrap();
+        assert_eq!(unlabeled.neighbors, [vec![1], vec![2], vec![3], vec![0]]);
+        assert!(unlabeled.postings().is_empty());
+        assert!(unlabeled.entry_points().is_empty());
+
+        let singleton_labels = [(7, &[0][..]), (9, &[2][..]), (99, &[3][..])];
+        let singleton = build_stitched(vectors, singleton_labels, &settings)
+            .await
+            .unwrap();
+        assert_eq!(singleton.neighbors, unlabeled.neighbors);
+        for (label, members) in singleton_labels {
+            assert_eq!(singleton.posting(label), members);
+            assert_eq!(singleton.entry_points()[&label], members);
+            assert_connected(&singleton, label, members);
+        }
+    }
+
+    #[tokio::test]
+    async fn one_row_graph_retains_valid_membership_without_a_self_edge() {
+        let values = [1f32];
+        let graph = build_stitched(
+            rowmajor::Ref::column_vector(&values),
+            [(7, &[0][..])],
+            &Default::default(),
+        )
+        .await
+        .unwrap();
+        assert!(graph.neighbors[0].is_empty());
+        assert_connected(&graph, 7, &[0]);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -724,7 +970,10 @@ mod tests {
         )
         .await
         .unwrap_err();
-        assert!(error.to_string().contains("protected label edges"));
+        let error = error.downcast::<InsufficientDegree>().unwrap();
+        assert_eq!(error.row, 0);
+        assert_eq!(error.required, 3);
+        assert_eq!(error.available, 2);
     }
 
     #[tokio::test]
@@ -732,9 +981,11 @@ mod tests {
         let values = [0.0f32, 1.0, 2.0];
         let vectors = rowmajor::Ref::try_from_data(&values, values.len(), 1).unwrap();
         for members in [&[][..], &[0, 0][..], &[1, 0][..], &[0, 3][..]] {
-            assert!(build_stitched(vectors, [(1, members)], &Default::default())
-                .await
-                .is_err());
+            assert!(
+                build_stitched(vectors, [(1, members)], &Default::default())
+                    .await
+                    .is_err()
+            );
         }
         assert!(
             build_stitched(vectors, [(1, &[0][..]), (1, &[1][..])], &Default::default())
@@ -742,13 +993,41 @@ mod tests {
                 .is_err()
         );
         let invalid = [f32::NAN];
-        assert!(build_stitched(
-            rowmajor::Ref::try_from_data(&invalid, invalid.len(), 1).unwrap(),
-            [(1, &[0][..])],
-            &Default::default()
-        )
-        .await
-        .is_err());
+        assert!(
+            build_stitched(
+                rowmajor::Ref::try_from_data(&invalid, invalid.len(), 1).unwrap(),
+                [(1, &[0][..])],
+                &Default::default()
+            )
+            .await
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn posting_validation_reports_the_invalid_member_and_label() {
+        assert!(matches!(
+            validate_postings(3, &[(7, &[0]), (7, &[1])]),
+            Err(InvalidPosting::DuplicateLabel(7))
+        ));
+        assert!(matches!(
+            validate_postings(3, &[(7, &[])]),
+            Err(InvalidPosting::Empty(7))
+        ));
+        assert!(matches!(
+            validate_postings(3, &[(7, &[0, 3])]),
+            Err(InvalidPosting::OutOfBounds {
+                label: 7,
+                id: 3,
+                rows: 3
+            })
+        ));
+        for members in [&[0, 0][..], &[1, 0][..]] {
+            assert!(matches!(
+                validate_postings(3, &[(7, members)]),
+                Err(InvalidPosting::Unsorted { label: 7, .. })
+            ));
+        }
     }
 
     #[tokio::test]
@@ -782,18 +1061,33 @@ mod tests {
                 ..defaults.clone()
             },
         ] {
-            assert!(build_stitched(vectors, [(1, &[0, 1][..])], &settings)
-                .await
-                .is_err());
+            assert!(
+                StitchedBuildConfig::new(
+                    settings.label_degree,
+                    settings.max_degree,
+                    settings.l_build,
+                    settings.alpha,
+                    settings.concurrency,
+                    settings.seed,
+                )
+                .is_err()
+            );
+            assert!(
+                build_stitched(vectors, [(1, &[0, 1][..])], &settings)
+                    .await
+                    .is_err()
+            );
         }
         let extreme = [f32::MAX, -f32::MAX];
-        assert!(build_stitched(
-            rowmajor::Ref::column_vector(&extreme),
-            [(1, &[0, 1][..])],
-            &defaults
-        )
-        .await
-        .is_err());
+        assert!(
+            build_stitched(
+                rowmajor::Ref::column_vector(&extreme),
+                [(1, &[0, 1][..])],
+                &defaults
+            )
+            .await
+            .is_err()
+        );
     }
 
     #[test]
@@ -890,10 +1184,12 @@ mod tests {
             .unwrap();
         for (id, row) in graph.neighbors.iter().enumerate() {
             assert_eq!(row.len(), 3);
-            assert!(members
-                .iter()
-                .filter(|&&member| member != id as u32)
-                .all(|member| row.contains(member)));
+            assert!(
+                members
+                    .iter()
+                    .filter(|&&member| member != id as u32)
+                    .all(|member| row.contains(member))
+            );
         }
         assert_connected(&graph, 7, &members);
 

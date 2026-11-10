@@ -12,7 +12,6 @@
 pub(crate) mod test_utils;
 
 pub mod error;
-pub mod filtered;
 
 pub mod build;
 pub use build::{
@@ -24,3 +23,6 @@ pub mod data_model;
 pub mod search;
 pub mod storage;
 pub mod utils;
+
+#[cfg(feature = "experimental_single_hop_search")]
+pub mod label_metadata;

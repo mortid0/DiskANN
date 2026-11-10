@@ -353,21 +353,6 @@ impl<U, V, D, Ctx> DefaultProvider<U, V, D, Ctx> {
     }
 }
 
-impl<U, V, D, Ctx> DefaultProvider<U, V, D, Ctx> {
-    // Validate the whole seed batch before reading any vectors or invoking callbacks.
-    pub(super) fn validate_init_ids(&self, ids: &[u32]) -> ANNResult<()>
-    where
-        D: super::super::postprocess::DeletionCheck,
-    {
-        for &id in ids {
-            if id.into_usize() >= self.total_points() || self.deleted.deletion_check(id) {
-                return Err(diskann::graph::search::SeedError::InvalidId(id).into());
-            }
-        }
-        Ok(())
-    }
-}
-
 /// Allow `&DefaultProvider` to implement `IntoIter`.
 impl<U, V, D, Ctx> IntoIterator for &DefaultProvider<U, V, D, Ctx> {
     type Item = u32;

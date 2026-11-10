@@ -159,24 +159,6 @@ where
     type Id = A::Id;
 }
 
-impl<A> glue::SeedableFilteredAccessor for FilteredAccessor<'_, A>
-where
-    A: glue::SearchAccessor + glue::SeedableAccessor,
-{
-    async fn filtered_distances_to_ids<F>(&mut self, ids: &[Self::Id], mut f: F) -> ANNResult<()>
-    where
-        F: FnMut(Decision<Self::Id>, f32) + Send,
-    {
-        self.inner
-            .distances_to_ids(ids, |id, distance| f(decide(self.labels, id), distance))
-            .await
-    }
-
-    fn default_result_pool(&self) -> crate::graph::search::ResultPool {
-        self.inner.default_result_pool()
-    }
-}
-
 impl<'a, A> glue::FilteredAccessor for FilteredAccessor<'a, A>
 where
     A: glue::SearchAccessor,

@@ -53,6 +53,13 @@ half = { workspace = true, features = ["rand_distr", "num-traits"] }
 
 [features]
 default = []
+experimental_single_hop_search = [
+    "inmem2",
+    "diskann-inmem/experimental_single_hop_search",
+    "diskann-disk/experimental_single_hop_search",
+    "diskann-benchmark-core/experimental_single_hop_search",
+    "diskann-tools/experimental_single_hop_search",
+]
 
 # Enable spherical-quantization based algorithms
 spherical-quantization = []

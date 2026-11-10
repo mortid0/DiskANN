@@ -17,6 +17,12 @@ pub use random_data_generator::*;
 pub mod ground_truth;
 pub use ground_truth::*;
 
+#[cfg(feature = "experimental_single_hop_search")]
+pub mod filtered_labels;
+
+#[cfg(feature = "experimental_single_hop_search")]
+pub mod filtered_disk;
+
 // range_search_disk_index is temporarily disabled - waiting for UnifiedDiskSearcher::range_search implementation
 // pub mod range_search_disk_index;
 // pub use range_search_disk_index::*;

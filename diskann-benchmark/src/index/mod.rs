@@ -12,6 +12,8 @@ mod streaming;
 mod benchmarks;
 mod inmem;
 mod result;
+#[cfg(feature = "experimental_single_hop_search")]
+mod single_hop;
 
 mod bftree;
 
@@ -20,6 +22,8 @@ mod inmem2;
 
 pub(crate) fn register_benchmarks(registry: &mut Registry) -> anyhow::Result<()> {
     benchmarks::register_benchmarks(registry)?;
+    #[cfg(feature = "experimental_single_hop_search")]
+    single_hop::register_benchmarks(registry)?;
     bftree::register_benchmarks(registry)?;
 
     #[cfg(feature = "inmem2")]

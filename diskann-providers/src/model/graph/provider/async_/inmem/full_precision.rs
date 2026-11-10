@@ -230,61 +230,6 @@ where
     type Id = u32;
 }
 
-impl<T, Q, D, Ctx> FullAccessor<'_, T, Q, D, Ctx>
-where
-    T: VectorRepr,
-    Q: AsyncFriendly,
-    D: AsyncFriendly,
-    Ctx: ExecutionContext,
-{
-    fn compute_seed_distances<F>(
-        &mut self,
-        ids: &[u32],
-        mut f: F,
-    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(u32, f32) + Send,
-    {
-        let mut f = move || -> ANNResult<()> {
-            for &i in ids {
-                if i.into_usize() >= self.provider.total_points() {
-                    return Err(diskann::graph::search::SeedError::InvalidId(i).into());
-                }
-                // SAFETY: We're accepting the consequences of potential unsynchronized,
-                // concurrent mutation.
-                let distance = self.computer.evaluate_similarity(unsafe {
-                    self.provider.base_vectors.get_vector_sync(i.into_usize())
-                });
-
-                f(i, distance);
-            }
-            Ok(())
-        };
-
-        std::future::ready(f())
-    }
-}
-
-impl<T, Q, D, Ctx> glue::SeedableAccessor for FullAccessor<'_, T, Q, D, Ctx>
-where
-    T: VectorRepr,
-    Q: AsyncFriendly,
-    D: AsyncFriendly + DeletionCheck,
-    Ctx: ExecutionContext,
-{
-    async fn distances_to_ids<F>(&mut self, ids: &[Self::Id], f: F) -> ANNResult<()>
-    where
-        F: FnMut(Self::Id, f32) + Send,
-    {
-        self.provider.validate_init_ids(ids)?;
-        self.compute_seed_distances(ids, f).await
-    }
-
-    fn default_result_pool(&self) -> diskann::graph::search::ResultPool {
-        diskann::graph::search::ResultPool::Frontier
-    }
-}
-
 impl<T, Q, D, Ctx> glue::SearchAccessor for FullAccessor<'_, T, Q, D, Ctx>
 where
     T: VectorRepr,
@@ -300,12 +245,27 @@ where
         std::future::ready(Ok(self.provider.num_start_points()))
     }
 
-    async fn start_point_distances<F>(&mut self, f: F) -> ANNResult<()>
+    fn start_point_distances<F>(
+        &mut self,
+        mut f: F,
+    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
     where
         F: FnMut(Self::Id, f32) + Send,
     {
-        let ids = self.provider.starting_points()?;
-        self.compute_seed_distances(&ids, f).await
+        let mut f = move || -> ANNResult<()> {
+            for i in self.provider.starting_points()? {
+                // SAFETY: We're accepting the consequences of potential unsynchronized,
+                // concurrent mutation.
+                let distance = self.computer.evaluate_similarity(unsafe {
+                    self.provider.base_vectors.get_vector_sync(i.into_usize())
+                });
+
+                f(i, distance);
+            }
+            Ok(())
+        };
+
+        std::future::ready(f())
     }
 
     fn expand_beam<Itr, P, F>(

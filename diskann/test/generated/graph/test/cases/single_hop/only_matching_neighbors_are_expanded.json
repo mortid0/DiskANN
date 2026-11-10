@@ -1,0 +1,22 @@
+{
+  "file": "diskann/src/graph/test/cases/single_hop.rs",
+  "test": "graph/test/cases/single_hop/only_matching_neighbors_are_expanded",
+  "payload": {
+    "comparisons": 4,
+    "hops": 4,
+    "results": [
+      [
+        2,
+        0.0625
+      ],
+      [
+        4,
+        3.0625
+      ],
+      [
+        0,
+        5.0625
+      ]
+    ]
+  }
+}

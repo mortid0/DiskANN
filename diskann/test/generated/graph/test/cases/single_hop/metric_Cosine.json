@@ -1,0 +1,22 @@
+{
+  "file": "diskann/src/graph/test/cases/single_hop.rs",
+  "test": "graph/test/cases/single_hop/metric_Cosine",
+  "payload": {
+    "comparisons": 4,
+    "hops": 4,
+    "results": [
+      [
+        0,
+        0.0
+      ],
+      [
+        2,
+        0.3999999761581421
+      ],
+      [
+        1,
+        1.0
+      ]
+    ]
+  }
+}

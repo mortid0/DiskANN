@@ -770,7 +770,7 @@ where
             'a,
             DP,
             &'a [DP::Element],
-            SearchAccessor: glue::SearchAccessor,
+            SearchAccessor: glue::SearchAccessor + glue::SeedableAccessor,
         > + Clone
         + AsyncFriendly,
 {
@@ -805,8 +805,7 @@ where
             GroundTruthMode::Flexible,
         );
 
-        let starting_points =
-            utils::filters::load_starting_points(&single_hop.starting_points, queries.nrows())?;
+        let init_ids = utils::filters::load_init_ids(&single_hop.init_ids, queries.nrows())?;
         let bit_maps = generate_bitmaps(&filtered.query_predicates, &filtered.data_labels)?;
 
         let filtered = benchmark_core::search::graph::SingleHop::new(
@@ -817,7 +816,7 @@ where
                 .into_iter()
                 .map(utils::filters::as_query_label_provider)
                 .collect(),
-            starting_points,
+            init_ids,
         )?;
 
         let result = search::knn::run(&filtered, &groundtruth, steps)?;

@@ -10,7 +10,10 @@ use crate::{
     graph::{
         DiskANNIndex,
         glue::SearchAccessor,
-        search::{record::NoopSearchRecord, scratch::SearchScratch},
+        search::{
+            record::NoopSearchRecord,
+            scratch::{PriorityQueueConfiguration, SearchScratch},
+        },
     },
     neighbor::{Neighbor, NeighborPriorityQueue},
     provider::DataProvider,
@@ -42,6 +45,25 @@ where
     DP: DataProvider,
     A: SearchAccessor<Id = DP::InternalId> + 'a,
 {
+    pub(in crate::graph) fn new(
+        index: &'a DiskANNIndex<DP>,
+        accessor: A,
+        l_value: usize,
+        num_start_points: usize,
+    ) -> Self {
+        Self {
+            index,
+            accessor,
+            scratch: SearchScratch::new(
+                PriorityQueueConfiguration::Resizable(l_value + num_start_points),
+                None,
+            ),
+            computed_result: Vec::new(),
+            next_result_index: 0,
+            search_param_l: l_value,
+        }
+    }
+
     /// Return the contained [`SearchAccessor`].
     ///
     /// This method is intended to enable per-page metric reporting from the accessor.
@@ -98,14 +120,16 @@ where
             }
 
             // Resume graph search to fill the next batch.
-            self.index
-                .search_internal(
-                    None, // beam_width
-                    &mut self.accessor,
-                    &mut self.scratch,
-                    &mut NoopSearchRecord::new(),
-                )
-                .await?;
+            if self.scratch.best.has_notvisited_node() {
+                self.index
+                    .search_internal(
+                        None, // beam_width
+                        &mut self.accessor,
+                        &mut self.scratch,
+                        &mut NoopSearchRecord::new(),
+                    )
+                    .await?;
+            }
 
             let start_points = self.accessor.starting_points().await?;
             let (mut candidates, total_considered) =

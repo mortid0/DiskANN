@@ -1176,20 +1176,29 @@ impl provider::HasId for Accessor<'_> {
 // glue //
 //------//
 
-impl glue::SearchAccessor for Accessor<'_> {
-    async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+impl glue::SeedableAccessor for Accessor<'_> {
+    async fn distances_to_ids<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
     where
         F: FnMut(u32, f32) + Send,
     {
         for &id in ids {
-            f(
-                id,
-                self.get_distance(id).escalate("start points must exist")?,
-            );
+            let distance = match self.get_distance(id) {
+                Err(AccessError::InvalidId(_)) => {
+                    return Err(crate::graph::search::SeedError::InvalidId(id).into());
+                }
+                result => result.escalate("seed distance must be available")?,
+            };
+            f(id, distance);
         }
         Ok(())
     }
 
+    fn default_result_pool(&self) -> crate::graph::search::ResultPool {
+        crate::graph::search::ResultPool::Frontier
+    }
+}
+
+impl glue::SearchAccessor for Accessor<'_> {
     fn starting_points(&self) -> impl Future<Output = ANNResult<Vec<u32>>> + Send {
         futures_util::future::ok(self.provider.start_point_ids().collect())
     }

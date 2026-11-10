@@ -228,17 +228,17 @@ where
         anyhow::bail!("Mismatch in query and vector filter sizes");
     }
 
-    let starting_points = search_params
+    let init_ids = search_params
         .search_mode
-        .single_hop_starting_points
+        .single_hop_init_ids
         .as_ref()
-        .map(|path| crate::utils::filters::load_starting_points(path, num_queries))
+        .map(|path| crate::utils::filters::load_init_ids(path, num_queries))
         .transpose()?;
-    if let Some(rows) = &starting_points {
+    if let Some(rows) = &init_ids {
         for (query, (ids, filter)) in rows.iter().zip(&vector_filters).enumerate() {
             anyhow::ensure!(
                 ids.iter().all(|id| filter.contains(id)),
-                "single-hop entry point does not match filter for query {query}"
+                "single-hop seed does not match filter for query {query}"
             );
         }
     }
@@ -349,7 +349,7 @@ where
                         has_filter,
                         vf,
                         search_params.post_processor.as_ref(),
-                        starting_points.as_ref().map_or(&[], |rows| &rows[query_id]),
+                        init_ids.as_ref().map_or(&[], |rows| &rows[query_id]),
                     )
                 };
 
@@ -425,10 +425,7 @@ where
         beam_width: search_params.beam_width,
         recall_at: search_params.recall_at,
         is_flat_search: search_params.search_mode.is_flat_search,
-        is_single_hop_search: search_params
-            .search_mode
-            .single_hop_starting_points
-            .is_some()
+        is_single_hop_search: search_params.search_mode.single_hop_init_ids.is_some()
             || cpp.is_some(),
         distance: search_params.distance,
         uses_vector_filters: search_params.vector_filters_file.is_some() || cpp.is_some(),

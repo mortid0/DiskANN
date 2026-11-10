@@ -42,7 +42,7 @@
               "recall_k": 10
             }
           ],
-          "starting_points": "single-hop-starting-points.json"
+          "init_ids": "single-hop-seeds.json"
         }
       }
     }

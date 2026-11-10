@@ -66,12 +66,12 @@ they are not C++ dummy points. This changes the prototype lifecycle format to
 version 2; rebuild older version-1 stores rather than reusing their `labels.bin`.
 The native builder still takes numeric labels and does not split points into dummies.
 
-Strict graph search reranks every expanded vertex using exact distances already
-loaded during traversal. Its bounded PQ frontier has exactly `L` slots and breaks
-PQ/exact-distance ties by ID. Explicit entry points are borrowed by the core search;
-no per-query entry-point copy is needed. An I/O limit may return fewer than `k`
-results, because uncached frontier points are not loaded past that limit. Established
-graph and adaptive-inline modes keep their existing queue/sort policies.
+Single-hop graph search reranks every expanded vertex using exact distances already
+loaded during traversal. Its bounded PQ frontier has exactly `L` slots and uses the
+ordinary distance ordering; equal-distance results have no guaranteed ID order.
+Query seeds are required and borrowed by the core search, with no per-query seed copy.
+An I/O limit may return fewer than `k` results because uncached frontier points are
+not loaded past that limit.
 
 `FilteredSnapshot::search_with_beam_width` exposes the disk expansion width;
 `search` retains its default of four. Exact posting scans use buffered positional

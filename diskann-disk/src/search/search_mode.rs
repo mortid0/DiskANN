@@ -10,7 +10,7 @@
 //! inline filter without a predicate) are unrepresentable at the API boundary.
 
 use diskann::graph::ext::labeled::QueryLabelProvider;
-use diskann::graph::search::AdaptiveL;
+use diskann::graph::search::{AdaptiveL, ResultPool, SeedSelection};
 use diskann_providers::model::graph::provider::DeterminantDiversityParams;
 
 /// Owned closure used to filter vector IDs during disk search.
@@ -72,16 +72,12 @@ pub enum SearchMode<'a> {
         adaptive_l: Option<AdaptiveL>,
     },
 
-    /// Experimental strict traversal; requires a label-connected graph and matching starts.
+    /// Single-hop traversal within a label-connected graph, with matching seeds.
     SingleHopFilter {
-        starting_points: &'a [u32],
+        init_ids: &'a [u32],
         filter: Box<dyn QueryLabelProvider<u32> + 'a>,
-    },
-
-    /// Ablation: strict traversal with reranking limited to the final PQ frontier.
-    SingleHopFilterFrontier {
-        starting_points: &'a [u32],
-        filter: Box<dyn QueryLabelProvider<u32> + 'a>,
+        seed_selection: SeedSelection,
+        result_pool: ResultPool,
     },
 
     DiverseGraph {
@@ -144,34 +140,40 @@ impl<'a> SearchMode<'a> {
         }
     }
 
-    /// Experimental strict single-hop traversal. All starts must match the predicate.
+    /// Experimental strict single-hop traversal. All seeds must match the predicate.
     ///
     /// Use a graph built to retain connectivity for this label; restricting an ordinary
-    /// graph can substantially reduce recall. Entry points are borrowed and required;
+    /// graph can substantially reduce recall. Seeds are borrowed and required;
     /// an empty slice returns no results. Every expanded candidate is reranked
     /// using its cached full-precision distance, even if later evicted from the PQ frontier.
     /// An I/O limit can yield fewer than k results: uncached frontier nodes are omitted.
-    pub fn single_hop_filter<F>(predicate: F, starting_points: &'a [u32]) -> Self
+    pub fn single_hop_filter<F>(predicate: F, init_ids: &'a [u32]) -> Self
+    where
+        F: Fn(&u32) -> bool + Send + Sync + 'a,
+    {
+        Self::single_hop_filter_with_options(
+            predicate,
+            init_ids,
+            SeedSelection::All,
+            ResultPool::Expanded,
+        )
+    }
+
+    /// Choose seed selection and post-processing candidates for single-hop traversal.
+    pub fn single_hop_filter_with_options<F>(
+        predicate: F,
+        init_ids: &'a [u32],
+        seed_selection: SeedSelection,
+        result_pool: ResultPool,
+    ) -> Self
     where
         F: Fn(&u32) -> bool + Send + Sync + 'a,
     {
         Self::SingleHopFilter {
-            starting_points,
+            init_ids,
             filter: Box::new(FnLabelProvider(predicate)),
-        }
-    }
-
-    /// Ablation of strict search that reranks only the final best `L` PQ candidates.
-    ///
-    /// Traversal is identical to [`Self::single_hop_filter`], but expanded candidates
-    /// evicted from the frontier are excluded from the result pool.
-    pub fn single_hop_filter_frontier<F>(predicate: F, starting_points: &'a [u32]) -> Self
-    where
-        F: Fn(&u32) -> bool + Send + Sync + 'a,
-    {
-        Self::SingleHopFilterFrontier {
-            starting_points,
-            filter: Box::new(FnLabelProvider(predicate)),
+            seed_selection,
+            result_pool,
         }
     }
 

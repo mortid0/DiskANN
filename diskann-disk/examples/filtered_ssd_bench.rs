@@ -609,9 +609,11 @@ mod experiment {
                             "single" => {
                                 SearchMode::single_hop_filter(predicate, &label_entries[&q.label])
                             }
-                            "single_frontier" => SearchMode::single_hop_filter_frontier(
+                            "single_frontier" => SearchMode::single_hop_filter_with_options(
                                 predicate,
                                 &label_entries[&q.label],
+                                diskann::graph::search::SeedSelection::All,
+                                diskann::graph::search::ResultPool::Frontier,
                             ),
                             _ => SearchMode::inline_filter(
                                 predicate,

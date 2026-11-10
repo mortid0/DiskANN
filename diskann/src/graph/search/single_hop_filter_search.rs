@@ -3,104 +3,183 @@
  * Licensed under the MIT license.
  */
 
-//! Strict filtered traversal for graphs built to preserve label connectivity.
+//! Single-hop filtered traversal for graphs built to preserve label connectivity.
 
 use diskann_utils::future::SendFuture;
-use thiserror::Error;
 
-use super::{Knn, Search, record::SearchRecord};
+use super::{
+    Knn, Search,
+    record::{NoopSearchRecord, SearchRecord},
+};
 use crate::{
     ANNError, ANNResult,
     error::IntoANNResult,
     graph::{
-        glue::{self, FilteredAccessor, SearchPostProcess, SearchStrategy},
+        glue::{
+            self, FilteredAccessor, SearchPostProcess, SearchStrategy, SeedableFilteredAccessor,
+        },
         index::{DiskANNIndex, SearchStats},
         search_output_buffer::SearchOutputBuffer,
     },
     neighbor::Neighbor,
     provider::DataProvider,
+    utils::VectorId,
 };
 
-/// Experimental strict single-hop search.
+/// A seed is stale or incompatible with the query's filter.
 ///
-/// Only matching neighbors enter the frontier or have their distance computed. The
-/// graph must preserve connectivity within the requested label subset, and every
-/// starting point must match. An ordinary unfiltered graph may give poor recall.
-/// Expanded candidates and the remaining frontier are passed to the post-processor
-/// in `(distance, ID)` order, including expanded candidates evicted from the
-/// bounded frontier. Quantized providers must rerank using exact distances.
-/// A post-processor may omit candidates it cannot load within its I/O budget.
-pub struct SingleHopFilterSearch<'s, I: Eq> {
-    /// Base graph search parameters.
-    pub inner: Knn,
-    starting_points: &'s [I],
-    rerank_frontier: bool,
-    closest_start_only: bool,
-    recorder: Option<&'s mut dyn SearchRecord<I>>,
+/// Search's existing `ANNResult` boundary preserves this type. Callers can use
+/// [`ANNError::downcast_ref`] to refresh seeds and retry without matching error text.
+#[derive(Debug, thiserror::Error)]
+pub enum SeedError<I> {
+    /// The seed does not name an initialized, live dataset vector.
+    #[error("seed ID {0} is outside the dataset or no longer available")]
+    InvalidId(I),
+    /// Single-hop traversal cannot begin at a rejected seed.
+    #[error("single-hop seed {0} does not match the filter")]
+    Rejected(I),
 }
 
-impl<I: Eq + std::fmt::Debug> std::fmt::Debug for SingleHopFilterSearch<'_, I> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SingleHopFilterSearch")
-            .field("inner", &self.inner)
-            .field("starting_points", &self.starting_points)
-            .field("rerank_frontier", &self.rerank_frontier)
-            .finish_non_exhaustive()
+impl<I: VectorId> From<SeedError<I>> for ANNError {
+    #[track_caller]
+    fn from(error: SeedError<I>) -> Self {
+        Self::new(error)
     }
 }
 
-impl<'s, I: Eq> SingleHopFilterSearch<'s, I> {
-    /// Use caller-owned matching dataset IDs as entry points. An empty slice
-    /// returns no results; duplicates share one frontier slot. IDs must name
-    /// initialized vectors and remain valid for the duration of the query.
-    pub fn new(inner: Knn, starting_points: &'s [I]) -> Self {
+/// Which supplied seeds enter the bounded search frontier.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SeedSelection {
+    /// Use every distinct seed, sharing the same L slots as discovered candidates.
+    All,
+    /// Use the closest seed by traversal distance; input order breaks ties.
+    Closest,
+}
+
+/// Candidates passed to post-processing after single-hop traversal.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResultPool {
+    /// Only the final bounded frontier. Appropriate for exact traversal distances.
+    Frontier,
+    /// Expanded nodes and the remaining frontier, ordered by distance.
+    /// Retains potential winners when traversal distances are approximate.
+    Expanded,
+}
+
+/// Single-hop traversal for graphs that preserve connectivity within the filter.
+///
+/// Only matching neighbors enter the frontier or have their distance computed.
+/// Seeds are required internal dataset IDs and must stay live for the query. Every seed must
+/// match, including seeds not selected by [`SeedSelection::Closest`]. Ordinary
+/// unfiltered graphs can give poor recall. The provider chooses the result pool
+/// unless explicitly overridden; post-processing may omit candidates it cannot load.
+///
+/// A filtered accessor alone is insufficient; the seed capability is a compile-time
+/// requirement. Seed distances never pass through the provider start-point hooks.
+///
+/// ```compile_fail,E0277
+/// use diskann::{graph::{glue::{FilteredAccessor, SearchStrategy},
+///     search::{Knn, Search, SingleHopFilterSearch}}, provider::DataProvider};
+/// fn require_search<'a, DP: DataProvider, S: SearchStrategy<'a, DP, &'a [f32]>>(
+///     _: impl Search<'a, DP, S, &'a [f32]>) {}
+/// fn unsupported<'a, DP, S>(init_ids: &[DP::InternalId])
+/// where DP: DataProvider,
+///       S: SearchStrategy<'a, DP, &'a [f32], SearchAccessor: FilteredAccessor>,
+/// {
+///     require_search::<DP, S>(SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), init_ids));
+/// }
+/// ```
+///
+/// Omitting seeds is a compile-time error:
+///
+/// ```compile_fail,E0061
+/// use diskann::graph::search::{Knn, SingleHopFilterSearch};
+/// let search = SingleHopFilterSearch::<u32>::new(Knn::new_default(10).unwrap());
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct SingleHopFilterSearch<'s, I> {
+    pub inner: Knn,
+    init_ids: &'s [I],
+    seed_selection: SeedSelection,
+    result_pool: Option<ResultPool>,
+}
+
+impl<'s, I> SingleHopFilterSearch<'s, I> {
+    pub fn new(inner: Knn, init_ids: &'s [I]) -> Self {
         Self {
             inner,
-            starting_points,
-            rerank_frontier: false,
-            closest_start_only: false,
-            recorder: None,
+            init_ids,
+            seed_selection: SeedSelection::All,
+            result_pool: None,
         }
     }
 
-    /// Select one starting point by approximate distance, preserving input order
-    /// on ties, as C++ cached_beam_search does for label medoids.
-    pub fn with_closest_start(mut self) -> Self {
-        self.closest_start_only = true;
+    pub fn with_seed_selection(mut self, selection: SeedSelection) -> Self {
+        self.seed_selection = selection;
         self
     }
 
-    /// Record nodes selected for expansion, with the current hop and comparison counts.
-    /// A provider may truncate the selected beam when an I/O budget is exhausted.
-    pub fn with_recorder(mut self, recorder: &'s mut dyn SearchRecord<I>) -> Self {
-        self.recorder = Some(recorder);
+    pub fn with_result_pool(mut self, pool: ResultPool) -> Self {
+        self.result_pool = Some(pool);
         self
     }
 
-    /// Rerank only the final best `L` approximate candidates.
-    ///
-    /// This ablation preserves the original prototype's candidate selection. It
-    /// can lose an exact nearest neighbor that was expanded and later evicted.
-    pub fn with_frontier_reranking(mut self) -> Self {
-        self.rerank_frontier = true;
-        self
+    /// Record nodes selected for expansion. A provider may truncate a selected beam
+    /// when its I/O budget is exhausted.
+    pub fn with_recorder<SR: ?Sized>(self, recorder: &mut SR) -> RecordedSingleHop<'s, '_, I, SR> {
+        RecordedSingleHop {
+            inner: self,
+            recorder,
+        }
     }
 }
 
-#[derive(Debug, Error)]
-#[error("single-hop filtered search requires every starting point to match the filter")]
-struct RejectedStartingPoint;
+/// Single-hop search with a statically dispatched traversal recorder.
+#[derive(Debug)]
+pub struct RecordedSingleHop<'s, 'r, I, SR: ?Sized> {
+    pub inner: SingleHopFilterSearch<'s, I>,
+    pub recorder: &'r mut SR,
+}
 
 impl<'a, DP, S, T> Search<'a, DP, S, T> for SingleHopFilterSearch<'_, DP::InternalId>
 where
     DP: DataProvider,
-    S: SearchStrategy<'a, DP, T, SearchAccessor: FilteredAccessor>,
+    S: SearchStrategy<'a, DP, T, SearchAccessor: SeedableFilteredAccessor>,
     T: Copy + Send + Sync,
 {
     type Output = SearchStats;
 
+    async fn search<O, PP, OB>(
+        self,
+        index: &'a DiskANNIndex<DP>,
+        strategy: &'a S,
+        processor: PP,
+        context: &'a DP::Context,
+        query: T,
+        output: &mut OB,
+    ) -> ANNResult<Self::Output>
+    where
+        O: Send,
+        PP: SearchPostProcess<S::SearchAccessor, T, O> + Send + Sync,
+        OB: SearchOutputBuffer<O> + Send + ?Sized,
+    {
+        self.with_recorder(&mut NoopSearchRecord::new())
+            .search(index, strategy, processor, context, query, output)
+            .await
+    }
+}
+
+impl<'a, DP, S, T, SR> Search<'a, DP, S, T> for RecordedSingleHop<'_, '_, DP::InternalId, SR>
+where
+    DP: DataProvider,
+    S: SearchStrategy<'a, DP, T, SearchAccessor: SeedableFilteredAccessor>,
+    T: Copy + Send + Sync,
+    SR: SearchRecord<DP::InternalId> + ?Sized,
+{
+    type Output = SearchStats;
+
     fn search<O, PP, OB>(
-        mut self,
+        self,
         index: &'a DiskANNIndex<DP>,
         strategy: &'a S,
         processor: PP,
@@ -117,59 +196,63 @@ where
             let mut accessor = strategy
                 .search_accessor(&index.data_provider, context, query)
                 .into_ann_result()?;
-            // Strict entry points are ordinary matching dataset IDs, not frozen
-            // build points. They share the L frontier slots with other candidates.
-            let mut scratch = index.search_scratch(self.inner.l_value().get(), 0);
+            // Seeds are ordinary matching dataset IDs. They share the L frontier slots with other candidates.
+            let mut scratch = index.search_scratch(self.inner.inner.l_value().get(), 0);
             let scratch = &mut *scratch;
-            let mut rejected_start = false;
+            let mut rejected_seed = None;
             let mut closest: Option<Neighbor<DP::InternalId>> = None;
             accessor
-                .start_point_distances_from(self.starting_points, |decision, distance| {
+                .filtered_distances_to_ids(self.inner.init_ids, |decision, distance| {
                     if let glue::Decision::Accept(id) = decision {
                         let id = id.into_inner();
-                        if self.closest_start_only {
-                            if closest
-                                .as_ref()
-                                .is_none_or(|best| distance < *best.distance())
-                            {
-                                closest = Some(Neighbor::new(id, distance));
+                        if scratch.visited.insert(id) {
+                            match self.inner.seed_selection {
+                                SeedSelection::All => {
+                                    scratch.best.insert(Neighbor::new(id, distance));
+                                }
+                                SeedSelection::Closest => {
+                                    if closest
+                                        .as_ref()
+                                        .is_none_or(|best| distance < *best.distance())
+                                    {
+                                        closest = Some(Neighbor::new(id, distance));
+                                    }
+                                }
                             }
-                            scratch.cmps += 1;
-                        } else if scratch.visited.insert(id) {
-                            scratch
-                                .best
-                                .insert_with_id_ties(Neighbor::new(id, distance));
                             scratch.cmps += 1;
                         }
                     } else {
-                        rejected_start = true;
+                        rejected_seed = Some(decision.into_inner());
                     }
                 })
                 .await?;
-            if rejected_start {
-                return Err(ANNError::new(RejectedStartingPoint));
+            if let Some(id) = rejected_seed {
+                return Err(SeedError::Rejected(id).into());
             }
 
-            if let Some(start) = closest {
-                scratch.visited.insert(*start.id());
-                scratch.best.insert_with_id_ties(start);
+            if let Some(seed) = closest {
+                // Other seeds remain discoverable through graph traversal.
+                scratch.visited.clear();
+                scratch.visited.insert(*seed.id());
+                scratch.best.insert(seed);
             }
 
             let mut neighbors = Vec::with_capacity(index.max_degree_with_slack());
             // This does not widen the traversal queue. Each expanded ID is retained
-            // once, so the additional storage is O(hops), like a disk accessor's
-            // full-precision distance cache.
-            let mut expanded =
-                (!self.rerank_frontier).then(|| Vec::with_capacity(self.inner.l_value().get()));
+            // once, so the additional storage is O(hops).
+            let mut expanded = (self
+                .inner
+                .result_pool
+                .unwrap_or_else(|| accessor.default_result_pool())
+                == ResultPool::Expanded)
+                .then(|| Vec::with_capacity(self.inner.inner.l_value().get()));
             while scratch.best.has_notvisited_node() && !accessor.terminate_early() {
                 scratch.beam_nodes.clear();
-                while scratch.beam_nodes.len() < self.inner.beam_width().get()
+                while scratch.beam_nodes.len() < self.inner.inner.beam_width().get()
                     && let Some(node) = scratch.best.closest_notvisited()
                 {
                     scratch.beam_nodes.push(*node.id());
-                    if let Some(recorder) = &mut self.recorder {
-                        recorder.record(node, scratch.hops, scratch.cmps);
-                    }
+                    self.recorder.record(node, scratch.hops, scratch.cmps);
                     if let Some(expanded) = &mut expanded {
                         expanded.push(node);
                     }
@@ -183,7 +266,7 @@ where
                     )
                     .await?;
                 for neighbor in &neighbors {
-                    scratch.best.insert_with_id_ties(*neighbor);
+                    scratch.best.insert(*neighbor);
                 }
                 scratch.cmps += neighbors.len() as u32;
                 scratch.hops += scratch.beam_nodes.len() as u32;
@@ -194,7 +277,7 @@ where
                 Extend::extend(&mut expanded, scratch.best.iter());
                 expanded.sort_unstable_by_key(|n| *n.id());
                 expanded.dedup_by_key(|n| *n.id());
-                expanded.sort_unstable_by(crate::neighbor::ord::fast_distance_total);
+                expanded.sort_unstable_by(crate::neighbor::ord::fast_distance);
                 processor
                     .post_process(&mut accessor, query, expanded.into_iter(), output)
                     .await
@@ -204,7 +287,7 @@ where
                     .post_process(
                         &mut accessor,
                         query,
-                        scratch.best.iter().take(self.inner.l_value().get()),
+                        scratch.best.iter().take(self.inner.inner.l_value().get()),
                         output,
                     )
                     .await
@@ -265,23 +348,28 @@ mod tests {
         }
     }
 
+    impl glue::SeedableAccessor for ApproximateAccessor<'_> {
+        async fn distances_to_ids<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+        where
+            F: FnMut(u32, f32) + Send,
+        {
+            let distance = self.distance;
+            glue::SeedableAccessor::distances_to_ids(&mut self.inner, ids, |id, _| {
+                f(id, distance(id));
+            })
+            .await
+        }
+        fn default_result_pool(&self) -> ResultPool {
+            ResultPool::Expanded
+        }
+    }
+
     impl glue::SearchAccessor for ApproximateAccessor<'_> {
         fn terminate_early(&mut self) -> bool {
             let trace = self.trace.lock().unwrap();
             trace
                 .stop_after
                 .is_some_and(|limit| trace.expanded.len() >= limit)
-        }
-
-        async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
-        where
-            F: FnMut(u32, f32) + Send,
-        {
-            let distance = self.distance;
-            glue::SearchAccessor::start_point_distances_from(&mut self.inner, ids, |id, _| {
-                f(id, distance(id));
-            })
-            .await
         }
 
         async fn starting_points(&self) -> ANNResult<Vec<u32>> {
@@ -392,7 +480,7 @@ mod tests {
     }
 
     #[test]
-    fn exact_reranking_retains_expanded_winner_evicted_from_pq_frontier() {
+    fn post_processing_retains_expanded_winner_evicted_from_approximate_frontier() {
         let index = approximate_graph();
         let trace = Mutex::new(Trace::default());
         let mut results = Vec::<Neighbor<u32>>::new();
@@ -420,7 +508,7 @@ mod tests {
             .block_on(
                 frontier_index.search_with(
                     SingleHopFilterSearch::new(Knn::new_default(2).unwrap(), &[10])
-                        .with_frontier_reranking(),
+                        .with_result_pool(ResultPool::Frontier),
                     &Filtered::new(
                         ApproximateStrategy(&frontier_trace, approximate_distance),
                         &Evens,
@@ -445,11 +533,11 @@ mod tests {
     }
 
     #[test]
-    fn dataset_entry_points_do_not_increase_strict_frontier_capacity() {
+    fn dataset_seeds_do_not_increase_frontier_capacity() {
         for params in [
             SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[10]),
             SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[10])
-                .with_frontier_reranking(),
+                .with_result_pool(ResultPool::Frontier),
         ] {
             let index = graph(10);
             let trace = Mutex::new(Trace::default());
@@ -465,39 +553,7 @@ mod tests {
                 ))
                 .unwrap();
             assert_eq!(trace.lock().unwrap().expanded, [10, 2]);
-            assert_eq!(stats.hops, 2, "the lower-PQ-ranked ID 0 must be evicted");
-            assert_eq!(stats.cmps, 3);
-        }
-    }
-
-    #[test]
-    fn equal_pq_distances_expand_lower_dataset_id_first() {
-        let tied_distance = |id| match id {
-            10 => 100.0,
-            0 | 2 => 1.0,
-            _ => panic!("rejected neighbors must not reach PQ evaluation"),
-        };
-        for params in [
-            SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[10]),
-            SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[10])
-                .with_frontier_reranking(),
-        ] {
-            let index = graph(10);
-            let trace = Mutex::new(Trace::default());
-            let mut results = Vec::<Neighbor<u32>>::new();
-            let stats = current_thread_runtime()
-                .block_on(index.search_with(
-                    params,
-                    &Filtered::new(ApproximateStrategy(&trace, tied_distance), &Evens),
-                    ExactRerank(&trace),
-                    &provider::Context::new(),
-                    &[0.0][..],
-                    &mut results,
-                ))
-                .unwrap();
-            assert_eq!(trace.lock().unwrap().expanded, [10, 0]);
-            assert_eq!(*results[0].id(), 0);
-            assert_eq!(stats.hops, 2);
+            assert_eq!(stats.hops, 2, "the lower-ranked ID 0 must be evicted");
             assert_eq!(stats.cmps, 3);
         }
     }
@@ -543,7 +599,7 @@ mod tests {
     }
 
     #[test]
-    fn strict_search_does_not_cross_rejected_neighbors() {
+    fn single_hop_does_not_cross_rejected_neighbors() {
         let index = graph(10);
         let mut results = Vec::<Neighbor<u32>>::new();
         let stats = current_thread_runtime()
@@ -559,7 +615,7 @@ mod tests {
         let mut ids: Vec<_> = results.iter().map(|n| *n.id()).collect();
         ids.sort_unstable();
         assert_eq!(ids, [0, 2, 10]);
-        assert_eq!(stats.cmps, 3, "only the start and two accepted distances");
+        assert_eq!(stats.cmps, 3, "only the seed and two accepted distances");
         assert_eq!(
             stats.hops, 3,
             "rejected nodes must never become frontier nodes"
@@ -568,8 +624,8 @@ mod tests {
     }
 
     #[test]
-    fn closest_start_uses_distance_and_preserves_input_order_on_ties() {
-        for (starts, query, expected) in [
+    fn closest_seed_uses_distance_and_preserves_input_order_on_ties() {
+        for (init_ids, query, expected) in [
             (vec![4, 0], 1.0, vec![4]),   // disconnected 4 is closer
             (vec![4, 0], 0.005, vec![4]), // exact tie retains first seed
             (vec![0, 4], 0.005, vec![0, 2]),
@@ -579,8 +635,8 @@ mod tests {
             current_thread_runtime()
                 .block_on(
                     index.search_with(
-                        SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), &starts)
-                            .with_closest_start(),
+                        SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), &init_ids)
+                            .with_seed_selection(SeedSelection::Closest),
                         &Filtered::new(provider::Strategy::new(), &Evens),
                         glue::CopyIds,
                         &provider::Context::new(),
@@ -597,7 +653,7 @@ mod tests {
     }
 
     #[test]
-    fn mismatching_start_is_an_error() {
+    fn mismatching_seed_is_an_error() {
         let index = graph(11);
         let mut results = Vec::<Neighbor<u32>>::new();
         let error = current_thread_runtime()
@@ -610,7 +666,10 @@ mod tests {
                 &mut results,
             ))
             .unwrap_err();
-        assert!(error.to_string().contains("starting point"));
+        assert!(matches!(
+            error.downcast_ref::<SeedError<u32>>(),
+            Some(SeedError::Rejected(11))
+        ));
         assert!(results.is_empty());
     }
 
@@ -674,13 +733,13 @@ mod tests {
     }
 
     #[test]
-    fn explicit_starts_bypass_rejected_frozen_point_and_allow_empty_search() {
+    fn explicit_seeds_bypass_rejected_frozen_point_and_allow_empty_search() {
         let index = graph(11);
-        for starts in [&[2, 2][..], &[][..]] {
+        for init_ids in [&[2, 2][..], &[][..]] {
             let mut results = Vec::<Neighbor<u32>>::new();
             let stats = current_thread_runtime()
                 .block_on(index.search_with(
-                    SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), starts),
+                    SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), init_ids),
                     &Filtered::new(provider::Strategy::new(), &Evens),
                     glue::CopyIds,
                     &provider::Context::new(),
@@ -691,7 +750,7 @@ mod tests {
             let ids: Vec<_> = results.iter().map(|n| *n.id()).collect();
             assert_eq!(
                 ids,
-                if starts.is_empty() {
+                if init_ids.is_empty() {
                     vec![]
                 } else {
                     vec![0, 2]
@@ -699,5 +758,234 @@ mod tests {
             );
             assert_eq!(stats.hops as usize, ids.len());
         }
+    }
+
+    #[test]
+    fn closest_seed_still_validates_every_seed() {
+        for seeds in [[0, 1], [1, 0]] {
+            let index = graph(10);
+            let strategy = Filtered::new(provider::Strategy::new(), &Evens);
+            let mut results = Vec::<Neighbor<u32>>::new();
+            let error = current_thread_runtime()
+                .block_on(
+                    index.search_with(
+                        SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &seeds)
+                            .with_seed_selection(SeedSelection::Closest),
+                        &strategy,
+                        glue::CopyIds,
+                        &provider::Context::new(),
+                        &[0.0][..],
+                        &mut results,
+                    ),
+                )
+                .unwrap_err();
+            assert!(matches!(
+                error.downcast_ref::<SeedError<u32>>(),
+                Some(SeedError::Rejected(1))
+            ));
+            assert!(results.is_empty());
+        }
+    }
+
+    #[test]
+    fn more_seeds_than_l_share_the_bounded_frontier() {
+        let index = graph(11);
+        let strategy = Filtered::new(provider::Strategy::new(), &Evens);
+        let mut recorder = super::super::record::VisitedSearchRecord::new(1);
+        let mut results = Vec::<Neighbor<u32>>::new();
+        let stats = current_thread_runtime()
+            .block_on(
+                index.search_with(
+                    SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[2, 4, 0, 4])
+                        .with_recorder(&mut recorder),
+                    &strategy,
+                    glue::CopyIds,
+                    &provider::Context::new(),
+                    &[0.0][..],
+                    &mut results,
+                ),
+            )
+            .unwrap();
+        assert_eq!(recorder.ids().collect::<Vec<_>>(), [0]);
+        assert_eq!(results.iter().map(|n| *n.id()).collect::<Vec<_>>(), [0]);
+        assert_eq!(stats.hops, 1);
+    }
+
+    #[test]
+    fn provider_default_avoids_retaining_evicted_exact_candidates() {
+        let index = graph(10);
+        let strategy = Filtered::new(provider::Strategy::new(), &Evens);
+        let mut results = Vec::<Neighbor<u32>>::new();
+        current_thread_runtime()
+            .block_on(index.search_with(
+                SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &[10]),
+                &strategy,
+                glue::CopyIds,
+                &provider::Context::new(),
+                &[0.0][..],
+                &mut results,
+            ))
+            .unwrap();
+        assert_eq!(results.iter().map(|n| *n.id()).collect::<Vec<_>>(), [0]);
+    }
+
+    #[test]
+    fn approximate_beam_retains_evicted_winner_without_changing_traversal() {
+        for pool in [ResultPool::Expanded, ResultPool::Frontier] {
+            let index = approximate_graph();
+            let trace = Mutex::new(Trace::default());
+            let strategy = Filtered::new(ApproximateStrategy(&trace, approximate_distance), &Evens);
+            let mut results = Vec::<Neighbor<u32>>::new();
+            let stats = current_thread_runtime()
+                .block_on(
+                    index.search_with(
+                        SingleHopFilterSearch::new(Knn::new(2, Some(4)).unwrap(), &[10, 0])
+                            .with_result_pool(pool),
+                        &strategy,
+                        ExactRerank(&trace),
+                        &provider::Context::new(),
+                        &[0.0][..],
+                        &mut results,
+                    ),
+                )
+                .unwrap();
+            assert_eq!(trace.lock().unwrap().expanded, [0, 10, 2, 4, 6]);
+            assert_eq!(stats.hops, 5);
+            assert_eq!(
+                *results[0].id(),
+                if pool == ResultPool::Expanded { 0 } else { 4 }
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_seed_is_typed_and_search_can_retry_with_refreshed_seeds() {
+        let index = graph(10);
+        let context = provider::Context::new();
+        let mut results = Vec::<Neighbor<u32>>::new();
+        for (seed, valid) in [(999, false), (4, true)] {
+            let init_ids = [seed];
+            let strategy = Filtered::new(provider::Strategy::new(), &Evens);
+            let result = current_thread_runtime().block_on(index.search(
+                SingleHopFilterSearch::new(Knn::new_default(1).unwrap(), &init_ids),
+                &strategy,
+                &context,
+                &[0.0][..],
+                &mut results,
+            ));
+            if valid {
+                assert_eq!(result.unwrap().result_count, 1);
+                assert_eq!(*results[0].id(), 4);
+            } else {
+                assert!(matches!(
+                    result.unwrap_err().downcast::<SeedError<u32>>(),
+                    Ok(SeedError::InvalidId(999))
+                ));
+                assert!(results.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn filter_start_points_keeps_dataset_seeds() {
+        for pool in [ResultPool::Frontier, ResultPool::Expanded] {
+            let index = graph(10);
+            let mut results = Vec::<Neighbor<u32>>::new();
+            current_thread_runtime()
+                .block_on(
+                    index.search_with(
+                        SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), &[4, 10, 4])
+                            .with_result_pool(pool),
+                        &Filtered::new(provider::Strategy::new(), &Evens),
+                        glue::Pipeline::new(
+                            crate::graph::ext::labeled::Unfiltered,
+                            glue::Pipeline::new(glue::FilterStartPoints, glue::CopyIds),
+                        ),
+                        &provider::Context::new(),
+                        &[0.01][..],
+                        &mut results,
+                    ),
+                )
+                .unwrap();
+            assert_eq!(
+                results.iter().map(|n| *n.id()).collect::<Vec<_>>(),
+                [4, 0, 2]
+            );
+            assert_eq!(*results[0].distance(), 0.0);
+        }
+    }
+
+    #[test]
+    fn closest_seed_leaves_unselected_seeds_discoverable() {
+        let index = graph(10);
+        let mut results = Vec::<Neighbor<u32>>::new();
+        let mut recorder = super::super::record::VisitedSearchRecord::new(2);
+        current_thread_runtime()
+            .block_on(
+                index.search_with(
+                    SingleHopFilterSearch::new(Knn::new_default(10).unwrap(), &[2, 0, 2, 0])
+                        .with_seed_selection(SeedSelection::Closest)
+                        .with_recorder(&mut recorder),
+                    &Filtered::new(provider::Strategy::new(), &Evens),
+                    glue::CopyIds,
+                    &provider::Context::new(),
+                    &[0.0][..],
+                    &mut results,
+                ),
+            )
+            .unwrap();
+        assert_eq!(results.iter().map(|n| *n.id()).collect::<Vec<_>>(), [0, 2]);
+        assert_eq!(recorder.ids().collect::<Vec<_>>(), [0, 2]);
+    }
+
+    #[test]
+    fn paged_search_keeps_seeds_without_repeating_results() {
+        current_thread_runtime().block_on(async {
+            let index = graph(10);
+            let strategy = provider::Strategy::new();
+            let context = provider::Context::new();
+            for (seeds, expected) in [
+                (&[4, 4][..], vec![4]),       // isolated seed is the exact nearest neighbor
+                (&[0, 0, 2][..], vec![0, 2]), // cycle and duplicate seeds
+                (&[10, 4][..], vec![4, 0, 1, 2]), // frozen point is excluded
+                (&[][..], vec![]),            // no fallback to provider start points
+            ] {
+                let mut search = index
+                    .paged_search_with_init_ids(&strategy, &context, &[0.01][..], 10, Some(seeds))
+                    .await
+                    .unwrap();
+                for id in expected {
+                    let page = search.next_page(1).await.unwrap();
+                    assert_eq!(page.len(), 1);
+                    assert_eq!(*page[0].id(), id);
+                }
+                assert!(search.next_page(1).await.unwrap().is_empty());
+                assert!(search.next_page(1).await.unwrap().is_empty());
+            }
+            // Default paged search continues to use the provider's frozen points.
+            let mut search = index
+                .paged_search(&strategy, &context, &[0.0][..], 10)
+                .await
+                .unwrap();
+            assert_eq!(*search.next_page(1).await.unwrap()[0].id(), 0);
+        });
+    }
+
+    #[test]
+    fn paged_search_reports_invalid_seed() {
+        let index = graph(10);
+        let error = current_thread_runtime()
+            .block_on(index.paged_search_with_init_ids(
+                &provider::Strategy::new(),
+                &provider::Context::new(),
+                &[0.0][..],
+                10,
+                Some(&[999]),
+            ))
+            .unwrap_err();
+        assert!(matches!(
+            error.downcast_ref::<SeedError<u32>>(),
+            Some(SeedError::InvalidId(999))
+        ));
     }
 }

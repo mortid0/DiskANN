@@ -22,7 +22,9 @@ use diskann::{
         self, DiskANNIndex,
         ext::labeled::{self, QueryLabelProvider},
         glue::{self, DefaultPostProcessor, SearchPostProcess, SearchStrategy},
-        search::{AdaptiveL, InlineFilterSearch, Knn, SingleHopFilterSearch},
+        search::{
+            AdaptiveL, InlineFilterSearch, Knn, ResultPool, SeedSelection, SingleHopFilterSearch,
+        },
         search_output_buffer::{self, BufferState, IdDistanceAssociatedData},
     },
     neighbor::{self, Neighbor},
@@ -282,10 +284,17 @@ impl IOTracker {
 }
 
 #[derive(Clone, Copy)]
+enum RerankCandidates {
+    /// Load candidates and preserve the usual distance-only ordering.
+    All,
+    /// Apply the single-hop candidate policy.
+    SingleHop(ResultPool),
+}
+
+#[derive(Clone, Copy)]
 pub struct RerankAndFilter<'a> {
     filter: PostprocessStrategy<'a>,
-    expanded_only: bool,
-    break_ties_by_id: bool,
+    candidates: RerankCandidates,
 }
 
 #[derive(Clone, Copy)]
@@ -307,24 +316,14 @@ impl<'a> RerankAndFilter<'a> {
     pub fn new(filter: PostprocessStrategy<'a>) -> Self {
         Self {
             filter,
-            expanded_only: false,
-            break_ties_by_id: false,
+            candidates: RerankCandidates::All,
         }
     }
 
-    fn expanded() -> Self {
+    fn single_hop(pool: ResultPool) -> Self {
         Self {
             filter: PostprocessStrategy::AcceptAll,
-            expanded_only: true,
-            break_ties_by_id: true,
-        }
-    }
-
-    fn strict_frontier() -> Self {
-        Self {
-            filter: PostprocessStrategy::AcceptAll,
-            expanded_only: false,
-            break_ties_by_id: true,
+            candidates: RerankCandidates::SingleHop(pool),
         }
     }
 }
@@ -493,7 +492,10 @@ where
                 } else {
                     // A finite I/O budget can truncate a selected expansion beam.
                     // Strict expanded reranking must not load these unexpanded IDs.
-                    if !self.expanded_only {
+                    if !matches!(
+                        self.candidates,
+                        RerankCandidates::SingleHop(ResultPool::Expanded)
+                    ) {
                         uncached_ids.push(n);
                     }
                     None
@@ -522,13 +524,7 @@ where
         }
 
         // Sort the full precision distances.
-        if self.break_ties_by_id {
-            reranked.sort_unstable_by(|a, b| {
-                neighbor::ord::fast_distance(a, b).then_with(|| a.id().0.cmp(&b.id().0))
-            });
-        } else {
-            reranked.sort_unstable_by(neighbor::ord::fast_distance);
-        }
+        reranked.sort_unstable_by(neighbor::ord::fast_distance);
 
         // Store the reranked results.
         extend_output(accessor, reranked, output)
@@ -883,6 +879,33 @@ where
     }
 }
 
+impl<Data, VP> glue::SeedableAccessor for DiskAccessor<'_, Data, VP>
+where
+    Data: GraphDataType<VectorIdType = u32>,
+    VP: VertexProvider<Data>,
+{
+    async fn distances_to_ids<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
+    where
+        F: FnMut(u32, f32) + Send,
+    {
+        if let Some(&id) = ids
+            .iter()
+            .find(|&&id| id as usize >= self.provider.num_points)
+        {
+            return Err(diskann::graph::search::SeedError::InvalidId(id).into());
+        }
+        let batch_size = self.scratch.pq_scratch.max_vectors().max(1);
+        for batch in ids.chunks(batch_size) {
+            self.pq_distances(batch, |distance, id| f(id, distance))?;
+        }
+        Ok(())
+    }
+
+    fn default_result_pool(&self) -> diskann::graph::search::ResultPool {
+        diskann::graph::search::ResultPool::Expanded
+    }
+}
+
 impl<Data, VP> glue::SearchAccessor for DiskAccessor<'_, Data, VP>
 where
     Data: GraphDataType<VectorIdType = u32>,
@@ -899,26 +922,6 @@ where
     {
         let start_vertex_id = self.provider.graph_header.metadata().medoid as u32;
         self.pq_distances(&[start_vertex_id], |dist, id| f(id, dist))
-    }
-
-    async fn start_point_distances_from<F>(&mut self, ids: &[u32], mut f: F) -> ANNResult<()>
-    where
-        F: FnMut(u32, f32) + Send,
-    {
-        if ids
-            .iter()
-            .any(|&id| id as usize >= self.provider.num_points)
-        {
-            return Err(diskann_error!(
-                ErrorKind::IndexError,
-                "starting point ID is outside the dataset"
-            ));
-        }
-        let batch_size = self.scratch.pq_scratch.max_vectors().max(1);
-        for batch in ids.chunks(batch_size) {
-            self.pq_distances(batch, |distance, id| f(id, distance))?;
-        }
-        Ok(())
     }
 
     fn expand_beam<Itr, P, F>(
@@ -1518,15 +1521,15 @@ where
                     ));
                 }
                 let global_start;
-                let starts = match label {
+                let init_ids = match label {
                     Some(label) => {
-                        let starts = metadata.entries(*label);
-                        if starts.is_empty() {
+                        let init_ids = metadata.entries(*label);
+                        if init_ids.is_empty() {
                             return Err(ANNError::message(
                                 "cannot find medoid for specified filter",
                             ));
                         }
-                        starts
+                        init_ids
                     }
                     None => {
                         let centroids = metadata.centroids().ok_or_else(|| {
@@ -1569,10 +1572,13 @@ where
                 let strategy = labeled::Filtered::new(strategy, &filter);
                 self.runtime.block_on(
                     self.index.search_with(
-                        SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starts)
-                            .with_closest_start(),
+                        SingleHopFilterSearch::new(Knn::new(l, beam_width)?, init_ids)
+                            .with_seed_selection(SeedSelection::Closest),
                         &strategy,
-                        glue::Pipeline::new(labeled::Unfiltered, RerankAndFilter::expanded()),
+                        glue::Pipeline::new(
+                            labeled::Unfiltered,
+                            RerankAndFilter::single_hop(ResultPool::Expanded),
+                        ),
                         &DefaultContext,
                         query,
                         &mut result_output_buffer,
@@ -1632,11 +1638,9 @@ where
             }
             SearchMode::SingleHopFilter {
                 filter,
-                starting_points,
-            }
-            | SearchMode::SingleHopFilterFrontier {
-                filter,
-                starting_points,
+                init_ids,
+                seed_selection,
+                result_pool,
             } => {
                 let strategy = self.search_strategy(
                     &io_tracker,
@@ -1644,20 +1648,16 @@ where
                     cache_indexed_vectors,
                 );
                 let strategy = labeled::Filtered::new(strategy, filter.as_ref());
-                let frontier_only = matches!(mode, SearchMode::SingleHopFilterFrontier { .. });
-                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, starting_points);
-                let (search, processor) = if frontier_only {
-                    (
-                        search.with_frontier_reranking(),
-                        RerankAndFilter::strict_frontier(),
-                    )
-                } else {
-                    (search, RerankAndFilter::expanded())
-                };
+                let search = SingleHopFilterSearch::new(Knn::new(l, beam_width)?, init_ids)
+                    .with_seed_selection(*seed_selection)
+                    .with_result_pool(*result_pool);
                 self.runtime.block_on(self.index.search_with(
                     search,
                     &strategy,
-                    glue::Pipeline::new(labeled::Unfiltered, processor),
+                    glue::Pipeline::new(
+                        labeled::Unfiltered,
+                        RerankAndFilter::single_hop(*result_pool),
+                    ),
                     &DefaultContext,
                     query,
                     &mut result_output_buffer,
@@ -3115,7 +3115,7 @@ mod disk_provider_tests {
     }
 
     #[test]
-    fn single_hop_uses_matching_dataset_entry_points() {
+    fn single_hop_uses_matching_dataset_seeds() {
         let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
         let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
             CreateDiskIndexSearcherParams {
@@ -3149,11 +3149,13 @@ mod disk_provider_tests {
             None,
             SearchMode::single_hop_filter(|id| *id == 0, &[1]),
         );
-        assert!(mismatching
-            .err()
-            .expect("mismatching seed must fail")
-            .to_string()
-            .contains("starting point"));
+        assert!(matches!(
+            mismatching
+                .err()
+                .expect("mismatching seed must fail")
+                .downcast_ref::<diskann::graph::search::SeedError<u32>>(),
+            Some(diskann::graph::search::SeedError::Rejected(1))
+        ));
 
         let out_of_range = search_engine.search(
             &[0.1; 128],
@@ -3162,15 +3164,17 @@ mod disk_provider_tests {
             None,
             SearchMode::single_hop_filter(|_| true, &[256]),
         );
-        assert!(out_of_range
-            .err()
-            .expect("out-of-range seed must fail")
-            .to_string()
-            .contains("outside the dataset"));
+        assert!(matches!(
+            out_of_range
+                .err()
+                .expect("out-of-range seed must fail")
+                .downcast_ref::<diskann::graph::search::SeedError<u32>>(),
+            Some(diskann::graph::search::SeedError::InvalidId(256))
+        ));
     }
 
     #[test]
-    fn filtered_modes_respect_empty_entry_points() {
+    fn filtered_modes_respect_empty_seeds() {
         let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
         let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
             CreateDiskIndexSearcherParams {
@@ -3184,7 +3188,12 @@ mod disk_provider_tests {
         );
         for mode in [
             SearchMode::single_hop_filter(|_| true, &[]),
-            SearchMode::single_hop_filter_frontier(|_| true, &[]),
+            SearchMode::single_hop_filter_with_options(
+                |_| true,
+                &[],
+                SeedSelection::All,
+                ResultPool::Frontier,
+            ),
         ] {
             let result = search_engine
                 .search(&[0.1; 128], 10, 10, None, mode)
@@ -3196,7 +3205,7 @@ mod disk_provider_tests {
     }
 
     #[test]
-    fn single_hop_supports_more_entry_points_than_graph_degree() {
+    fn single_hop_supports_more_seeds_than_graph_degree() {
         let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
         let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
             CreateDiskIndexSearcherParams {
@@ -3262,7 +3271,7 @@ mod disk_provider_tests {
     }
 
     #[test]
-    fn strict_reranking_orders_equal_exact_distances_by_dataset_id() {
+    fn single_hop_reranking_sorts_distances_and_keeps_tied_candidates() {
         let storage_provider = Arc::new(VirtualStorageProvider::new_overlay(test_data_root()));
         let search_engine = create_disk_index_searcher::<GraphDataF32VectorUnitData>(
             CreateDiskIndexSearcherParams {
@@ -3292,8 +3301,8 @@ mod disk_provider_tests {
                 .insert(id, (distance, (), None));
         }
         for processor in [
-            RerankAndFilter::expanded(),
-            RerankAndFilter::strict_frontier(),
+            RerankAndFilter::single_hop(ResultPool::Expanded),
+            RerankAndFilter::single_hop(ResultPool::Frontier),
         ] {
             let mut ids = [0u32; 3];
             let mut distances = [0.0; 3];
@@ -3309,6 +3318,8 @@ mod disk_provider_tests {
                 ))
                 .unwrap();
             assert_eq!(count, 3);
+            assert_eq!(ids[0], 5);
+            ids[1..].sort_unstable();
             assert_eq!(ids, [5, 3, 7]);
             assert_eq!(distances, [0.0, 1.0, 1.0]);
             assert_eq!(io_tracker.io_count(), 0);

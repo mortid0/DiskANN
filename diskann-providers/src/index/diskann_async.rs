@@ -226,7 +226,7 @@ pub(crate) mod tests {
         }
 
         let (config, params) = simplified_builder(32, 4, Metric::L2, 2, 64, no_modify).unwrap();
-        let index = new_index::<f32, _>(config, params, NoDeletes).unwrap();
+        let index = new_index::<f32, _>(config, params, TableBasedDeletes).unwrap();
         let data: Vec<_> = (0..64).map(|i| vec![i as f32, (i % 7) as f32]).collect();
         populate_data(index.provider(), &DefaultContext, &data).await;
         index
@@ -243,7 +243,7 @@ pub(crate) mod tests {
         }
 
         let strategy = Filtered::new(FullPrecision, &EvenIds);
-        for beam in [1, 4] {
+        for (beam, l) in [(1, 8), (4, 8), (1, 32), (4, 32)] {
             for q in [0.25, 15.5, 33.75, 62.0] {
                 let query = [q, 2.0];
                 let mut truth: Vec<_> = data
@@ -257,13 +257,13 @@ pub(crate) mod tests {
                         )
                     })
                     .collect();
-                truth.sort_unstable_by(neighbor::ord::fast_distance_total);
+                truth.sort_unstable_by(neighbor::ord::fast_distance);
                 let mut ids = [u32::MAX; 5];
                 let mut distances = [f32::MAX; 5];
                 let mut output = search_output_buffer::IdDistance::new(&mut ids, &mut distances);
                 let stats = index
                     .search(
-                        SingleHopFilterSearch::new(Knn::new(32, Some(beam)).unwrap(), &[2]),
+                        SingleHopFilterSearch::new(Knn::new(l, Some(beam)).unwrap(), &[0, 32]),
                         &strategy,
                         &DefaultContext,
                         query.as_slice(),
@@ -272,12 +272,35 @@ pub(crate) mod tests {
                     .await
                     .unwrap();
                 assert_eq!(stats.result_count, 5);
-                assert_eq!(
-                    ids.as_slice(),
-                    &truth[..5].iter().map(|n| *n.id()).collect::<Vec<_>>()
-                );
-                for (distance, expected) in distances.iter().zip(&truth) {
-                    assert_abs_diff_eq!(distance, expected.distance());
+                assert!(distances.windows(2).all(|pair| pair[0] <= pair[1]));
+                for (position, id) in ids.iter().enumerate() {
+                    assert!(EvenIds.is_match(*id));
+                    assert!(!ids[..position].contains(id));
+                }
+                if l == 32 {
+                    let truth_distances: Vec<_> =
+                        truth[..5].iter().map(|n| *n.distance()).collect();
+                    assert_eq!(distances.as_slice(), truth_distances);
+                } else {
+                    // L is one quarter of the 32-member label, so this measures
+                    // approximate recall instead of exhausting the matching graph.
+                    // Equal-distance candidates are interchangeable at the cutoff.
+                    let hits = distances
+                        .iter()
+                        .filter(|d| **d <= *truth[4].distance())
+                        .count();
+                    assert!(
+                        hits >= 4,
+                        "recall below 0.8 for q={q}, beam={beam}: {ids:?}"
+                    );
+                    assert!(stats.hops < 32);
+                }
+                for (&id, &distance) in ids.iter().zip(&distances) {
+                    let vector = &data[id as usize];
+                    assert_abs_diff_eq!(
+                        distance,
+                        (vector[0] - query[0]).powi(2) + (vector[1] - query[1]).powi(2)
+                    );
                 }
             }
         }
@@ -285,7 +308,7 @@ pub(crate) mod tests {
         let error = index
             .search_with(
                 SingleHopFilterSearch::new(Knn::new_default(32).unwrap(), &[u32::MAX]),
-                &strategy,
+                &Filtered::new(FullPrecision, &EvenIds),
                 glue::CopyIds,
                 &DefaultContext,
                 &[0.0, 0.0][..],
@@ -293,7 +316,157 @@ pub(crate) mod tests {
             )
             .await
             .unwrap_err();
-        assert!(error.to_string().contains("outside the dataset"));
+        use diskann::graph::search::SeedError;
+        assert!(matches!(
+            error.downcast_ref::<SeedError<u32>>(),
+            Some(SeedError::InvalidId(u32::MAX))
+        ));
+
+        index.provider().delete(&DefaultContext, &0).await.unwrap();
+        let error = index
+            .search(
+                SingleHopFilterSearch::new(Knn::new_default(8).unwrap(), &[0, 32]),
+                &strategy,
+                &DefaultContext,
+                &[0.0, 0.0][..],
+                &mut results,
+            )
+            .await
+            .unwrap_err();
+        assert!(matches!(
+            error.downcast_ref::<SeedError<u32>>(),
+            Some(SeedError::InvalidId(0))
+        ));
+    }
+
+    async fn check_single_hop_quantized<Q, S>(data: &[Vec<f32>], quantizer: Q, strategy: S)
+    where
+        Q: CreateVectorStore,
+        Q::Target: AsyncFriendly + model::graph::provider::async_::common::SetElementHelper<f32>,
+        S: for<'a> glue::DefaultSearchStrategy<
+                'a,
+                FullPrecisionProvider<f32, Q::Target, TableDeleteProviderAsync>,
+                &'a [f32],
+                SearchAccessor: glue::SearchAccessor + glue::SeedableAccessor,
+            >,
+    {
+        use diskann::graph::{
+            ext::labeled::Filtered,
+            search::{Knn, ResultPool, SeedError, SingleHopFilterSearch},
+        };
+        #[derive(Debug)]
+        struct Evens;
+        impl QueryLabelProvider<u32> for Evens {
+            fn is_match(&self, id: u32) -> bool {
+                id.is_multiple_of(2)
+            }
+        }
+        let (config, params) =
+            simplified_builder(8, 4, Metric::L2, 2, data.len(), no_modify).unwrap();
+        let index =
+            new_quant_index::<f32, _, _>(config, params, quantizer, TableBasedDeletes).unwrap();
+        populate_data(index.provider(), &DefaultContext, data).await;
+        for id in 0..data.len() {
+            index
+                .provider()
+                .neighbors()
+                .set_neighbors_sync(
+                    id,
+                    &[
+                        ((id + 2) % data.len()) as u32,
+                        ((id + 1) % data.len()) as u32,
+                    ],
+                )
+                .unwrap();
+        }
+        let query = data[0].as_slice();
+        let accessor = strategy
+            .search_accessor(index.provider(), &DefaultContext, query)
+            .unwrap();
+        assert_eq!(
+            glue::SeedableAccessor::default_result_pool(&accessor),
+            ResultPool::Expanded
+        );
+        drop(accessor);
+        let strategy = Filtered::new(strategy, &Evens);
+        for beam in [1, 4] {
+            let mut ids = [u32::MAX; 5];
+            let mut distances = [f32::MAX; 5];
+            let mut output = search_output_buffer::IdDistance::new(&mut ids, &mut distances);
+            let stats = index
+                .search(
+                    SingleHopFilterSearch::new(Knn::new(8, Some(beam)).unwrap(), &[0]),
+                    &strategy,
+                    &DefaultContext,
+                    query,
+                    &mut output,
+                )
+                .await
+                .unwrap();
+            assert_eq!(stats.result_count, 5);
+            assert_eq!(ids[0], 0);
+            for (&id, &distance) in ids.iter().zip(&distances) {
+                assert!(id.is_multiple_of(2));
+                assert_abs_diff_eq!(
+                    distance,
+                    SquaredL2::evaluate(query, data[id as usize].as_slice()),
+                    epsilon = 1e-4
+                );
+            }
+        }
+        index.provider().delete(&DefaultContext, &0).await.unwrap();
+        let mut results = Vec::<Neighbor<u32>>::new();
+        let error = index
+            .search(
+                SingleHopFilterSearch::new(Knn::new_default(8).unwrap(), &[0]),
+                &strategy,
+                &DefaultContext,
+                query,
+                &mut results,
+            )
+            .await
+            .unwrap_err();
+        assert!(matches!(
+            error.downcast_ref::<SeedError<u32>>(),
+            Some(SeedError::InvalidId(0))
+        ));
+    }
+
+    #[tokio::test]
+    async fn single_hop_quantized_providers_validate_seeds_and_rerank() {
+        let data: Vec<_> = (0..64)
+            .map(|i| vec![i as f32 + 1.0, (i % 7) as f32 + 1.0])
+            .collect();
+        let matrix: rowmajor::Owned<f32> = squish(data.iter(), 2);
+        let scalar = ScalarQuantizationParameters::default().train(matrix.as_view());
+        check_single_hop_quantized(&data, inmem::WithBits::<4>::new(scalar), Quantized).await;
+
+        let centroids: Vec<_> = (0..model::pq::NUM_PQ_CENTROIDS)
+            .flat_map(|i| [i as f32 + 1.0, (i % 7) as f32 + 1.0])
+            .collect();
+        let product =
+            model::pq::FixedChunkPQTable::new(2, centroids.into(), vec![0, 2].into()).unwrap();
+        check_single_hop_quantized(&data, product, Hybrid::new(None)).await;
+
+        let spherical = diskann_quantization::spherical::SphericalQuantizer::train(
+            matrix.as_view(),
+            diskann_quantization::algorithms::transforms::TransformKind::PaddingHadamard {
+                target_dim: diskann_quantization::algorithms::transforms::TargetDim::Natural,
+            },
+            Metric::L2.try_into().unwrap(),
+            diskann_quantization::spherical::PreScale::None,
+            &mut create_rnd_from_seed_in_tests(42),
+            diskann_quantization::alloc::GlobalAllocator,
+        )
+        .unwrap();
+        check_single_hop_quantized(
+            &data,
+            diskann_quantization::spherical::iface::Impl::<1>::new(spherical).unwrap(),
+            inmem::spherical::Quantized::search(
+                diskann_quantization::spherical::iface::QueryLayout::FourBitTransposed,
+            ),
+        )
+        .await;
     }
 
     /////////////////////////////////////////

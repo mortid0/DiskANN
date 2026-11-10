@@ -784,14 +784,14 @@ mod tests {
             .iter()
             .map(|ids| ids.iter().copied().min().into_iter().collect())
             .collect();
-        let seeds_path = directory.path().join("starts.json");
+        let seeds_path = directory.path().join("seeds.json");
         std::fs::write(&seeds_path, serde_json::to_vec(&seeds).unwrap()).unwrap();
         let mut raw = value_from_file(&example_directory().join("disk-index-filter.json"));
         raw["jobs"].as_array_mut().unwrap().truncate(1);
         let content = &mut raw["jobs"][0]["content"];
         content["source"]["save_path"] = serde_json::json!(directory.path().join("index"));
         content["search_phase"]["search_mode"] = serde_json::json!({
-            "single_hop_starting_points": seeds_path,
+            "single_hop_init_ids": seeds_path,
         });
         run_integration_test(raw);
     }

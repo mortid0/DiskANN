@@ -78,9 +78,9 @@ pub(crate) struct DiskSearchMode {
     /// One original C++ label name per query line; reads metadata beside the disk index.
     #[serde(default)]
     pub(crate) cpp_query_labels: Option<InputFile>,
-    /// JSON file with one array of matching dataset entry IDs per query.
-    #[serde(default)]
-    pub(crate) single_hop_starting_points: Option<InputFile>,
+    /// JSON file with one array of matching seed IDs per query.
+    #[serde(default, alias = "single_hop_starting_points")]
+    pub(crate) single_hop_init_ids: Option<InputFile>,
     #[serde(default)]
     pub(crate) is_flat_search: bool,
     #[serde(default)]
@@ -94,13 +94,10 @@ impl DiskSearchMode {
         has_vector_filters: bool,
         vector_filter: &'a HashSet<u32>,
         post_processor: Option<&TopkPostProcessor>,
-        starting_points: &'a [u32],
+        init_ids: &'a [u32],
     ) -> SearchMode<'a> {
-        if self.single_hop_starting_points.is_some() {
-            return SearchMode::single_hop_filter(
-                move |id| vector_filter.contains(id),
-                starting_points,
-            );
+        if self.single_hop_init_ids.is_some() {
+            return SearchMode::single_hop_filter(move |id| vector_filter.contains(id), init_ids);
         }
         let adaptive_l = self.adaptive_l.as_ref().map(|adaptive_l| {
             graph::search::AdaptiveL::new(adaptive_l.sample_count.into(), adaptive_l.scale_factor)
@@ -143,7 +140,7 @@ impl DiskSearchMode {
     pub(crate) fn validate(&mut self, checker: &mut Checker) -> Result<(), anyhow::Error> {
         if let Some(path) = self.cpp_query_labels.as_mut() {
             anyhow::ensure!(
-                self.single_hop_starting_points.is_none()
+                self.single_hop_init_ids.is_none()
                     && !self.is_flat_search
                     && self.adaptive_l.is_none(),
                 "C++ sidecar search cannot combine explicit seeds, flat search or adaptive L"
@@ -151,13 +148,13 @@ impl DiskSearchMode {
             path.resolve(checker)
                 .context("invalid C++ query-label file")?;
         }
-        if let Some(path) = self.single_hop_starting_points.as_mut() {
+        if let Some(path) = self.single_hop_init_ids.as_mut() {
             anyhow::ensure!(
                 !self.is_flat_search && self.adaptive_l.is_none(),
                 "single-hop cannot be combined with flat search or adaptive L"
             );
             path.resolve(checker)
-                .context("invalid single-hop starting-points file")?;
+                .context("invalid single-hop seed file")?;
         }
         if let Some(adaptive_l) = self.adaptive_l.as_mut() {
             adaptive_l.validate(checker)?;
@@ -172,7 +169,7 @@ impl fmt::Display for DiskSearchMode {
         if self.cpp_query_labels.is_some() {
             return f.write_str("single-hop (C++ sidecars)");
         }
-        if self.single_hop_starting_points.is_some() {
+        if self.single_hop_init_ids.is_some() {
             return f.write_str("single-hop");
         }
         let base = if self.is_flat_search { "flat" } else { "graph" };
@@ -323,7 +320,7 @@ impl DiskSearchPhase {
             .context("invalid disk search mode")?;
 
         #[cfg(feature = "disk-index")]
-        if self.search_mode.single_hop_starting_points.is_some() {
+        if self.search_mode.single_hop_init_ids.is_some() {
             anyhow::ensure!(
                 self.vector_filters_file.is_some(),
                 "single-hop requires vector_filters_file"
@@ -415,7 +412,7 @@ impl Example for DiskIndexOperation {
             num_threads: 8,
             #[cfg(feature = "disk-index")]
             search_mode: DiskSearchMode {
-                single_hop_starting_points: None,
+                single_hop_init_ids: None,
                 cpp_query_labels: None,
                 is_flat_search: false,
                 adaptive_l: None,

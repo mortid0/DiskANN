@@ -264,7 +264,7 @@ results will be printed to `stdout`.
 
 single-hop uses the existing benchmark runner, top-k recall aggregation, repetition
 and thread sweeps. the graph input selects `"search-type": "topk-single-hop-filter"`
-and supplies a `"starting_points"` file in addition to the existing filtered inputs.
+and supplies a `"init_ids"` file in addition to the existing filtered inputs.
 the file is a json array containing one array of dataset ids per query, for example
 `[[17], [23, 41], []]`. empty lists intentionally return no results. seeds are loaded
 once before timed queries, and the normal result buffers retain actual result lengths.
@@ -285,7 +285,7 @@ the existing disk-index benchmark also accepts explicit seeds:
 
 ```json
 "search_mode": {
-  "single_hop_starting_points": "label-starts.json"
+  "single_hop_init_ids": "label-seeds.json"
 }
 ```
 

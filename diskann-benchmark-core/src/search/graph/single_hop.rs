@@ -17,8 +17,8 @@ use diskann_utils::{
 
 use crate::search::{self, Search, graph::KnnParams, graph::Strategy};
 
-/// Benchmark single-hop search on a label-connected graph with explicit entry
-/// points for each query. Seeds are prepared once and borrowed during timed searches.
+/// Benchmark single-hop search on a label-connected graph with explicit seeds for each
+/// query. Seeds are prepared once and borrowed during timed searches.
 /// Empty seed lists return zero results; short result rows are handled by the
 /// standard recall aggregator without treating buffer padding as retrieved IDs.
 ///
@@ -38,14 +38,14 @@ where
     queries: Arc<rowmajor::Owned<T>>,
     strategy: Strategy<S>,
     labels: Arc<[Arc<dyn labeled::QueryLabelProvider<DP::InternalId>>]>,
-    starting_points: Arc<[Arc<[DP::InternalId]>]>,
+    init_ids: Arc<[Arc<[DP::InternalId]>]>,
 }
 
 impl<DP, T, S> SingleHop<DP, T, S>
 where
     DP: provider::DataProvider,
 {
-    /// Query rows, label providers and entry-point lists have a one-to-one mapping.
+    /// Query rows, label providers and seed lists have a one-to-one mapping.
     /// A collection of strategies must also have one entry per query.
     ///
     /// # Errors
@@ -56,13 +56,13 @@ where
         queries: Arc<rowmajor::Owned<T>>,
         strategy: Strategy<S>,
         labels: Arc<[Arc<dyn labeled::QueryLabelProvider<DP::InternalId>>]>,
-        starting_points: Arc<[Arc<[DP::InternalId]>]>,
+        init_ids: Arc<[Arc<[DP::InternalId]>]>,
     ) -> anyhow::Result<Arc<Self>> {
         strategy.length_compatible(queries.nrows())?;
         anyhow::ensure!(
-            starting_points.len() == queries.nrows(),
-            "number of entry-point lists ({}) must equal number of queries ({})",
-            starting_points.len(),
+            init_ids.len() == queries.nrows(),
+            "number of seed lists ({}) must equal number of queries ({})",
+            init_ids.len(),
             queries.nrows()
         );
 
@@ -78,7 +78,7 @@ where
                 queries,
                 strategy,
                 labels,
-                starting_points,
+                init_ids,
             }))
         }
     }
@@ -92,7 +92,7 @@ where
             DP,
             &'a [T],
             DP::ExternalId,
-            SearchAccessor: glue::SearchAccessor,
+            SearchAccessor: glue::SearchAccessor + glue::SeedableAccessor,
         > + Clone
         + AsyncFriendly,
     T: AsyncFriendly + Clone,
@@ -121,7 +121,7 @@ where
         let context = DP::Context::default();
         let knn = parameters.knn;
         let single_hop_search =
-            graph::search::SingleHopFilterSearch::new(knn, &self.starting_points[index]);
+            graph::search::SingleHopFilterSearch::new(knn, &self.init_ids[index]);
         let strategy =
             labeled::Filtered::new(self.strategy.get(index)?.clone(), &*self.labels[index]);
         let stats = self
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn single_hop_harness_rejects_misaligned_query_inputs() {
-        for (labels, starts) in [(0, 1), (1, 0)] {
+        for (labels, seeds) in [(0, 1), (1, 0)] {
             let result = SingleHop::new(
                 index(),
                 Arc::new(rowmajor::Owned::from_element(1, 1, 0.0f32)),
@@ -234,7 +234,7 @@ mod tests {
                 (0..labels)
                     .map(|_| Arc::new(Evens) as Arc<dyn labeled::QueryLabelProvider<u32>>)
                     .collect(),
-                (0..starts).map(|_| Arc::from([0])).collect(),
+                (0..seeds).map(|_| Arc::from([0])).collect(),
             );
             assert!(result.is_err());
         }

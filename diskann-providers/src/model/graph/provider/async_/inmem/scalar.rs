@@ -496,6 +496,58 @@ where
     type Id = u32;
 }
 
+impl<const NBITS: usize, V, D, Ctx> QuantAccessor<'_, NBITS, V, D, Ctx>
+where
+    V: AsyncFriendly,
+    D: AsyncFriendly,
+    Ctx: ExecutionContext,
+    Unsigned: Representation<NBITS>,
+    QueryComputer<NBITS>: for<'a> PreprocessedDistanceFunction<CVRef<'a, NBITS>, f32>,
+{
+    fn compute_seed_distances<F>(
+        &mut self,
+        ids: &[u32],
+        mut f: F,
+    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(u32, f32) + Send,
+    {
+        let mut f = move || -> ANNResult<()> {
+            for &i in ids {
+                if i.into_usize() >= self.provider.total_points() {
+                    return Err(diskann::graph::search::SeedError::InvalidId(i).into());
+                }
+                let vector = self.provider.aux_vectors.get_vector(i.into_usize())?;
+                f(i, self.computer.evaluate_similarity(vector));
+            }
+            Ok(())
+        };
+
+        std::future::ready(f())
+    }
+}
+
+impl<const NBITS: usize, V, D, Ctx> glue::SeedableAccessor for QuantAccessor<'_, NBITS, V, D, Ctx>
+where
+    V: AsyncFriendly,
+    D: AsyncFriendly + DeletionCheck,
+    Ctx: ExecutionContext,
+    Unsigned: Representation<NBITS>,
+    QueryComputer<NBITS>: for<'a> PreprocessedDistanceFunction<CVRef<'a, NBITS>, f32>,
+{
+    async fn distances_to_ids<F>(&mut self, ids: &[Self::Id], f: F) -> ANNResult<()>
+    where
+        F: FnMut(Self::Id, f32) + Send,
+    {
+        self.provider.validate_init_ids(ids)?;
+        self.compute_seed_distances(ids, f).await
+    }
+
+    fn default_result_pool(&self) -> diskann::graph::search::ResultPool {
+        diskann::graph::search::ResultPool::Expanded
+    }
+}
+
 impl<const NBITS: usize, V, D, Ctx> glue::SearchAccessor for QuantAccessor<'_, NBITS, V, D, Ctx>
 where
     V: AsyncFriendly,
@@ -517,31 +569,7 @@ where
         F: FnMut(Self::Id, f32) + Send,
     {
         let ids = self.provider.starting_points()?;
-        self.start_point_distances_from(&ids, f).await
-    }
-
-    fn start_point_distances_from<F>(
-        &mut self,
-        ids: &[Self::Id],
-        mut f: F,
-    ) -> impl std::future::Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Self::Id, f32) + Send,
-    {
-        let mut f = move || -> ANNResult<()> {
-            for &i in ids {
-                if i.into_usize() >= self.provider.total_points() {
-                    return Err(diskann::ANNError::message(
-                        "starting point ID is outside the dataset",
-                    ));
-                }
-                let vector = self.provider.aux_vectors.get_vector(i.into_usize())?;
-                f(i, self.computer.evaluate_similarity(vector));
-            }
-            Ok(())
-        };
-
-        std::future::ready(f())
+        self.compute_seed_distances(&ids, f).await
     }
 
     fn expand_beam<Itr, P, F>(

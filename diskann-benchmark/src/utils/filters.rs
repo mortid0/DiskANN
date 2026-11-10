@@ -119,8 +119,8 @@ pub(crate) fn as_query_label_provider(set: BitSet) -> Arc<dyn QueryLabelProvider
     Arc::new(BitmapFilter(set))
 }
 
-/// Load one entry-point list per query outside the timed search loop.
-pub(crate) fn load_starting_points(
+/// Load one seed list per query outside the timed search loop.
+pub(crate) fn load_init_ids(
     path: &InputFile,
     num_queries: usize,
 ) -> anyhow::Result<Arc<[Arc<[u32]>]>> {
@@ -128,7 +128,7 @@ pub(crate) fn load_starting_points(
         serde_json::from_reader(std::io::BufReader::new(std::fs::File::open(&**path)?))?;
     anyhow::ensure!(
         rows.len() == num_queries,
-        "number of entry-point lists ({}) must equal number of queries ({})",
+        "number of seed lists ({}) must equal number of queries ({})",
         rows.len(),
         num_queries
     );
@@ -142,16 +142,16 @@ mod tests {
     #[test]
     fn single_hop_seed_file_validates_rows_and_preserves_empty_queries() {
         let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("starts.json");
+        let path = directory.path().join("seeds.json");
         std::fs::write(&path, "[[2, 4], [], [6]]").unwrap();
         let input = InputFile::new(path);
-        let rows = load_starting_points(&input, 3).unwrap();
+        let rows = load_init_ids(&input, 3).unwrap();
         assert_eq!(&*rows[0], [2, 4]);
         assert!(rows[1].is_empty());
         assert_eq!(&*rows[2], [6]);
-        assert!(load_starting_points(&input, 2).is_err());
+        assert!(load_init_ids(&input, 2).is_err());
         std::fs::write(&*input, "[[4294967296]]").unwrap();
-        assert!(load_starting_points(&input, 1).is_err());
+        assert!(load_init_ids(&input, 1).is_err());
     }
 
     #[test]

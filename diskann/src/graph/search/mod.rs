@@ -120,7 +120,9 @@ pub use inline_filter_search::{AdaptiveL, InlineFilterSearch};
 pub use knn_search::{Knn, KnnSearchError, RecordedKnn};
 pub use multihop_filter_search::MultihopFilterSearch;
 pub use range_search::{Range, RangeBuilder, RangeSearchError};
-pub use single_hop_filter_search::SingleHopFilterSearch;
+pub use single_hop_filter_search::{
+    RecordedSingleHop, ResultPool, SeedError, SeedSelection, SingleHopFilterSearch,
+};
 
 // Feature-gated diverse search.
 #[cfg(feature = "experimental_diversity_search")]

@@ -32,7 +32,7 @@ use super::{
     search::{
         PagedSearch,
         record::{NoopSearchRecord, SearchRecord, VisitedSearchRecord},
-        scratch::{self, PriorityQueueConfiguration, SearchScratch, SearchScratchParams},
+        scratch::{self, SearchScratch, SearchScratchParams},
     },
     search_output_buffer,
     workingset::View,
@@ -2077,15 +2077,32 @@ where
         T: Copy + Send + 'a,
     {
         async move {
-            self.paged_search_with_init_ids(strategy, context, query, l_value, None)
-                .await
+            let accessor = strategy
+                .search_accessor(&self.data_provider, context, query)
+                .into_ann_result()?;
+            let start_ids = accessor.starting_points().await?;
+            let mut paged = PagedSearch::new(self, accessor, l_value, start_ids.len());
+            paged.scratch.visited.extend(start_ids.iter().copied());
+            paged
+                .accessor
+                .expand_beam(
+                    start_ids.into_iter(),
+                    glue::NotInMut::new(&mut paged.scratch.visited),
+                    |id, distance| paged.scratch.best.insert(Neighbor::new(id, distance)),
+                )
+                .await?;
+            Ok(paged)
         }
     }
 
-    /// Begin a paged search with explicit initial seed IDs.
+    /// Begin a paged search with explicit query seeds.
     ///
-    /// This is the same as [`paged_search`](Self::paged_search) but allows the caller to
-    /// provide custom starting points for the graph traversal.
+    /// Seeds are eligible results and are evaluated before graph traversal. `None`
+    /// uses provider start points; an empty slice returns no results. Provider start
+    /// points are still excluded from results, independently of the supplied seeds.
+    ///
+    /// # Errors
+    /// Returns [`crate::graph::search::SeedError`] for invalid seeds.
     pub fn paged_search_with_init_ids<'a, S, T>(
         &'a self,
         strategy: &'a S,
@@ -2095,55 +2112,30 @@ where
         init_ids: Option<&'a [DP::InternalId]>,
     ) -> impl SendFuture<ANNResult<PagedSearch<'a, DP, S::SearchAccessor>>>
     where
-        S: SearchStrategy<'a, DP, T, SearchAccessor: glue::SearchAccessor>,
+        S: SearchStrategy<'a, DP, T, SearchAccessor: glue::SearchAccessor + glue::SeedableAccessor>,
         T: Copy + Send + 'a,
     {
         async move {
-            let (accessor, scratch) = {
-                let mut accessor = strategy
-                    .search_accessor(&self.data_provider, context, query)
-                    .into_ann_result()?;
-
-                let start_ids = accessor.starting_points().await?;
-                let num_start_points = start_ids.len();
-
-                let init_ids: std::borrow::Cow<'_, [DP::InternalId]> = match init_ids {
-                    Some(ids) => ids.into(),
-                    None => start_ids.into(),
-                };
-
-                // NOTE: init_ids are real points, and shouldn't be excluded from candidates
-                let mut scratch = SearchScratch::new(
-                    PriorityQueueConfiguration::Resizable(l_value + num_start_points),
-                    None,
-                );
-
-                let mut neighbors = Vec::with_capacity(self.max_degree_with_slack());
-                scratch.visited.extend(init_ids.iter().copied());
-                accessor
-                    .expand_beam(
-                        init_ids.iter().copied(),
-                        glue::NotInMut::new(&mut scratch.visited),
-                        |id, distance| neighbors.push(Neighbor::new(id, distance)),
-                    )
-                    .await?;
-
-                // The predicate `NotInMut` ensures that the contents of `neighbors` are unique.
-                neighbors
-                    .iter()
-                    .for_each(|neighbor| scratch.best.insert(*neighbor));
-
-                (accessor, scratch)
+            let Some(init_ids) = init_ids else {
+                return self.paged_search(strategy, context, query, l_value).await;
             };
-
-            ANNResult::Ok(PagedSearch {
-                index: self,
-                scratch,
-                computed_result: vec![Neighbor::default(); l_value],
-                next_result_index: l_value,
-                search_param_l: l_value,
-                accessor,
-            })
+            let accessor = strategy
+                .search_accessor(&self.data_provider, context, query)
+                .into_ann_result()?;
+            let num_start_points = accessor.num_starting_points().await?;
+            let mut paged = PagedSearch::new(self, accessor, l_value, num_start_points);
+            glue::SeedableAccessor::distances_to_ids(
+                &mut paged.accessor,
+                init_ids,
+                |id, distance| {
+                    if paged.scratch.visited.insert(id) {
+                        paged.scratch.best.insert(Neighbor::new(id, distance));
+                        paged.scratch.cmps += 1;
+                    }
+                },
+            )
+            .await?;
+            Ok(paged)
         }
     }
 

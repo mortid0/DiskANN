@@ -109,9 +109,28 @@ use crate::{
     provider::{self, DataProvider, HasId},
 };
 
-#[derive(Debug, thiserror::Error)]
-#[error("this search accessor does not support explicit starting points")]
-struct ExplicitStartingPointsUnsupported;
+/// Optional batched distance access for caller-supplied query seeds.
+///
+/// Implement only when arbitrary initialized dataset IDs can be validated and evaluated.
+/// These IDs are query seeds, not provider start points. Wrappers classify the
+/// results through [`SeedableFilteredAccessor`] without changing start-point hooks.
+pub trait SeedableAccessor: HasId + Send + Sync {
+    /// Evaluate the query against each supplied internal ID, preserving input order.
+    /// Duplicate IDs are allowed. Reject missing or deleted IDs with
+    /// [`crate::graph::search::SeedError::InvalidId`] before accessing their data.
+    fn distances_to_ids<F>(
+        &mut self,
+        ids: &[Self::Id],
+        f: F,
+    ) -> impl Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(Self::Id, f32) + Send;
+
+    /// Choose the candidates needed by the provider's post-processor.
+    /// Exact traversal distances usually need only the bounded frontier; approximate
+    /// distances may require retaining expanded candidates that leave that frontier.
+    fn default_result_pool(&self) -> crate::graph::search::ResultPool;
+}
 
 /// The main extension point for graph search.
 ///
@@ -138,20 +157,6 @@ pub trait SearchAccessor: HasId + Send + Sync {
     ) -> impl std::future::Future<Output = ANNResult<()>> + Send
     where
         F: FnMut(Self::Id, f32) + Send;
-
-    /// Evaluate explicit query entry points instead of the provider's frozen points.
-    /// Implementations must reject invalid IDs before accessing vector storage. The
-    /// default reports that this optional operation is unsupported.
-    fn start_point_distances_from<F>(
-        &mut self,
-        _ids: &[Self::Id],
-        _f: F,
-    ) -> impl Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Self::Id, f32) + Send,
-    {
-        std::future::ready(Err(ANNError::new(ExplicitStartingPointsUnsupported)))
-    }
 
     /// A primitive routine used by graph search. This is purposely implemented as a
     /// coarse-grained operation to enable optimization opportunities by the backend.
@@ -446,19 +451,6 @@ pub trait FilteredAccessor: HasId + Send + Sync {
     where
         F: FnMut(Decision<Self::Id>, f32) + Send;
 
-    /// Evaluate and classify explicit query entry points. See
-    /// [`SearchAccessor::start_point_distances_from`].
-    fn start_point_distances_from<F>(
-        &mut self,
-        _ids: &[Self::Id],
-        _f: F,
-    ) -> impl Future<Output = ANNResult<()>> + Send
-    where
-        F: FnMut(Decision<Self::Id>, f32) + Send,
-    {
-        std::future::ready(Err(ANNError::new(ExplicitStartingPointsUnsupported)))
-    }
-
     /// This function has similar semantics to [`SearchAccessor::expand_beam`] except that
     /// the `on_neighbors` callback receives [`Decision`] rather than raw IDs. This is used
     /// to indicate whether or not the associated item is accepted or rejected by the
@@ -515,6 +507,25 @@ pub trait FilteredAccessor: HasId + Send + Sync {
 
     /// Return the number of starting points.
     fn num_starting_points(&self) -> impl std::future::Future<Output = ANNResult<usize>> + Send;
+}
+
+/// Optional query-seed distances with filter decisions.
+///
+/// This capability keeps the seed and filter in the same accessor layer. It does not
+/// change the provider's start points or how they are excluded during post-processing.
+pub trait SeedableFilteredAccessor: FilteredAccessor {
+    /// Evaluate and classify every supplied seed, including seeds rejected by the filter.
+    /// Input order is preserved; duplicate IDs are allowed.
+    fn filtered_distances_to_ids<F>(
+        &mut self,
+        ids: &[Self::Id],
+        f: F,
+    ) -> impl Future<Output = ANNResult<()>> + Send
+    where
+        F: FnMut(Decision<Self::Id>, f32) + Send;
+
+    /// Choose the candidates needed by the provider's post-processor.
+    fn default_result_pool(&self) -> crate::graph::search::ResultPool;
 }
 
 /// A predicate evaluating `item`.

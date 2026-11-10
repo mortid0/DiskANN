@@ -274,13 +274,14 @@ impl MultihopFilterSearchPhase {
 pub(crate) struct SingleHopFilterSearchPhase {
     #[serde(flatten)]
     pub(crate) filtered: MultihopFilterSearchPhase,
-    pub(crate) starting_points: InputFile,
+    #[serde(alias = "starting_points")]
+    pub(crate) init_ids: InputFile,
 }
 
 impl SingleHopFilterSearchPhase {
     fn validate(&mut self, checker: &mut Checker) -> anyhow::Result<()> {
         self.filtered.validate(checker)?;
-        self.starting_points.resolve(checker)?;
+        self.init_ids.resolve(checker)?;
         Ok(())
     }
 }
